@@ -65,29 +65,29 @@
 
 ---
 
-### 阶段四：DTO / VO 数据传输对象
+### 阶段四：DTO / VO 数据传输对象 ✅
 
 #### DTO（请求对象）
 
-- [ ] LoginDTO.java
-- [ ] RegisterDTO.java
-- [ ] PasswordUpdateDTO.java
-- [ ] BookQueryDTO.java
-- [ ] CartAddDTO.java
-- [ ] CartUpdateDTO.java
-- [ ] OrderCreateDTO.java
-- [ ] OrderQueryDTO.java
+- [x] LoginDTO.java
+- [x] RegisterDTO.java
+- [x] PasswordUpdateDTO.java
+- [x] BookQueryDTO.java
+- [x] CartAddDTO.java
+- [x] CartUpdateDTO.java
+- [x] OrderCreateDTO.java
+- [x] OrderQueryDTO.java
 
 #### VO（响应对象）
 
-- [ ] UserVO.java
-- [ ] BookVO.java
-- [ ] BookDetailVO.java
-- [ ] CartVO.java
-- [ ] OrderVO.java
-- [ ] OrderDetailVO.java
-- [ ] ReviewVO.java
-- [ ] CategoryVO.java
+- [x] UserVO.java
+- [x] BookVO.java
+- [x] BookDetailVO.java
+- [x] CartVO.java
+- [x] OrderVO.java
+- [x] OrderItemVO.java
+- [x] ReviewVO.java
+- [x] CategoryVO.java
 
 ---
 
@@ -219,3 +219,4 @@
 | 2026/5/18 | 5fa3e83 | feat: 完成基础框架搭建 |
 | 2026/5/18 | 8586ded | feat: 添加8个Entity实体类 |
 | 2026/5/18 | a8ec09c | feat: 添加8个Mapper接口 |
+| 2026/5/18 | dde801c | feat: 添加DTO和VO数据传输对象 |
