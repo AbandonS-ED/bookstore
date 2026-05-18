@@ -135,35 +135,35 @@
 
 ---
 
-### 阶段六：Controller 控制层
+### 阶段六：Controller 控制层 ✅
 
 #### 业务 Controller
 
-- [ ] UserController.java
+- [x] UserController.java
   - POST /api/user/register
   - POST /api/user/login
   - GET /api/user/info
   - PUT /api/user/password
   - PUT /api/user/profile
 
-- [ ] BookController.java
+- [x] BookController.java
   - GET /api/book/list
   - GET /api/book/{id}
   - GET /api/book/search
   - GET /api/book/category/{categoryId}
 
-- [ ] CategoryController.java
+- [x] CategoryController.java
   - GET /api/category/list
   - GET /api/category/tree
 
-- [ ] CartController.java
+- [x] CartController.java
   - GET /api/cart/list
   - POST /api/cart/add
   - PUT /api/cart/update
   - DELETE /api/cart/{id}
   - DELETE /api/cart/clear
 
-- [ ] OrderController.java
+- [x] OrderController.java
   - POST /api/order/create
   - GET /api/order/list
   - GET /api/order/{id}
@@ -171,35 +171,35 @@
   - PUT /api/order/{id}/cancel
   - PUT /api/order/{id}/confirm
 
-- [ ] ReviewController.java
+- [x] ReviewController.java
   - POST /api/review/add
   - GET /api/review/book/{bookId}
   - DELETE /api/review/{id}
 
 #### 管理 Controller（admin/）
 
-- [ ] admin/BookManageController.java
+- [x] admin/BookManageController.java
   - POST /admin/book/add
   - PUT /admin/book/update
   - DELETE /admin/book/{id}
   - PUT /admin/book/{id}/status
 
-- [ ] admin/CategoryManageController.java
+- [x] admin/CategoryManageController.java
   - POST /admin/category/add
   - PUT /admin/category/update
   - DELETE /admin/category/{id}
 
-- [ ] admin/OrderManageController.java
+- [x] admin/OrderManageController.java
   - GET /admin/order/list
   - PUT /admin/order/{id}/ship
   - PUT /admin/order/{id}/deliver
 
-- [ ] admin/UserManageController.java
+- [x] admin/UserManageController.java
   - GET /admin/user/list
   - PUT /admin/user/{id}/disable
   - PUT /admin/user/{id}/enable
 
-- [ ] admin/ReviewManageController.java
+- [x] admin/ReviewManageController.java
   - GET /admin/review/list
   - DELETE /admin/review/{id}
   - PUT /admin/review/{id}/hide
@@ -220,4 +220,5 @@
 | 2026/5/18 | 8586ded | feat: 添加8个Entity实体类 |
 | 2026/5/18 | a8ec09c | feat: 添加8个Mapper接口 |
 | 2026/5/18 | dde801c | feat: 添加DTO和VO数据传输对象 |
-| 2026/5/18 | xxxxxxx | feat: 完成Service业务层（6个Service接口+实现类） |
+| 2026/5/18 | da4af82 | feat: 完成Service业务层（6个Service接口+实现类） |
+| 2026/5/18 | 9c15790 | feat: 完成Controller控制层（11个Controller） |
