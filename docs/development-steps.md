@@ -221,4 +221,5 @@
 | 2026/5/18 | a8ec09c | feat: 添加8个Mapper接口 |
 | 2026/5/18 | dde801c | feat: 添加DTO和VO数据传输对象 |
 | 2026/5/18 | da4af82 | feat: 完成Service业务层（6个Service接口+实现类） |
-| 2026/5/18 | 9c15790 | feat: 完成Controller控制层（11个Controller） |
+| 2026/5/18 | f621743 | feat: 完成Controller控制层（11个Controller） |
+| 2026/5/18 | a753142 | fix: 移除BookServiceImpl中未使用的BaseMapper导入 |
