@@ -40,9 +40,9 @@ mysql -u root -p < sql/init.sql
 mvn spring-boot:run
 ```
 
-访问 http://localhost:8080
+访问 http://localhost:8081
 
-**管理员账号：** admin / 123456
+**管理员账号：** admin / 123456（SHA-256加密）
 
 ## 项目结构
 

@@ -12,7 +12,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - MySQL 8.0（数据库）
 - Druid 1.2.23（连接池）
 - Vue 3 + Vite（前端框架）
-- Java 17 / Spring Boot 3.2.5
 
 ## 常用命令
 
@@ -76,7 +75,7 @@ com.example.bookstore/
 ### 配置文件
 
 主配置位于 `src/main/resources/application.yml`：
-- 后端服务端口：**8080**（API服务）
+- 后端服务端口：**8081**（API服务）
 - 数据库：**localhost:3306/bookstore**
 - MyBatis-Plus XML映射：`classpath:mapper/*.xml`
 - CORS已配置允许前端开发服务器（如 localhost:5173）访问
@@ -105,7 +104,7 @@ com.example.bookstore/
 - `BookstoreApplication` 使用 `@MapperScan("com.example.bookstore.mapper")` 自动扫描Mapper
 - 管理员接口位于 `/admin/` 路径下
 - SQL中 `order` 表名需用反引号包裹（保留字）
-- 密码使用SHA-1加密（见 `SecurityUtils`）
+- 密码使用SHA-256加密（见 `SecurityUtils`）
 - 订单号通过 `OrderNoGenerator` 工具类生成
 
 ## 文档位置
