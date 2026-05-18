@@ -4,7 +4,10 @@ import com.example.bookstore.common.Result;
 import com.example.bookstore.dto.LoginDTO;
 import com.example.bookstore.dto.PasswordUpdateDTO;
 import com.example.bookstore.dto.RegisterDTO;
+import com.example.bookstore.entity.User;
 import com.example.bookstore.service.UserService;
+import com.example.bookstore.util.AuthContext;
+import com.example.bookstore.util.JwtUtils;
 import com.example.bookstore.vo.UserVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,23 +31,28 @@ public class UserController {
     @PostMapping("/login")
     public Result<Map<String, String>> login(@Valid @RequestBody LoginDTO loginDTO) {
         String username = userService.login(loginDTO);
-        return Result.success(Map.of("username", username));
+        User user = userService.getUserByUsername(username);
+        String token = JwtUtils.generateToken(user.getId(), user.getRole());
+        return Result.success(Map.of("token", token, "username", username));
     }
 
     @GetMapping("/info")
-    public Result<UserVO> getUserInfo(@RequestParam Long userId) {
+    public Result<UserVO> getUserInfo() {
+        Long userId = AuthContext.getCurrentUserId();
         UserVO userVO = userService.getUserInfo(userId);
         return Result.success(userVO);
     }
 
     @PutMapping("/password")
-    public Result<Void> updatePassword(@RequestParam Long userId, @Valid @RequestBody PasswordUpdateDTO passwordUpdateDTO) {
+    public Result<Void> updatePassword(@Valid @RequestBody PasswordUpdateDTO passwordUpdateDTO) {
+        Long userId = AuthContext.getCurrentUserId();
         userService.updatePassword(userId, passwordUpdateDTO);
         return Result.success();
     }
 
     @PutMapping("/profile")
-    public Result<Void> updateProfile(@RequestParam Long userId, @Valid @RequestBody RegisterDTO registerDTO) {
+    public Result<Void> updateProfile(@Valid @RequestBody RegisterDTO registerDTO) {
+        Long userId = AuthContext.getCurrentUserId();
         userService.updateProfile(userId, registerDTO);
         return Result.success();
     }

@@ -3,6 +3,7 @@ package com.example.bookstore.controller;
 import com.example.bookstore.common.Result;
 import com.example.bookstore.entity.Review;
 import com.example.bookstore.service.ReviewService;
+import com.example.bookstore.util.AuthContext;
 import com.example.bookstore.vo.ReviewVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +18,8 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping("/add")
-    public Result<Void> add(@RequestParam Long userId, @RequestBody Review review) {
-        reviewService.add(userId, review);
+    public Result<Void> add(@RequestBody Review review) {
+        reviewService.add(AuthContext.getCurrentUserId(), review);
         return Result.success();
     }
 
@@ -29,8 +30,8 @@ public class ReviewController {
     }
 
     @DeleteMapping("/{id}")
-    public Result<Void> delete(@RequestParam Long userId, @PathVariable Long id) {
-        reviewService.delete(userId, id);
+    public Result<Void> delete(@PathVariable Long id) {
+        reviewService.delete(AuthContext.getCurrentUserId(), id);
         return Result.success();
     }
 }

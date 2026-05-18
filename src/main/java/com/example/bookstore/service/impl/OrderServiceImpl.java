@@ -78,6 +78,11 @@ public class OrderServiceImpl implements OrderService {
         for (Cart cart : cartItems) {
             Book book = bookMapper.selectById(cart.getBookId());
 
+            int affected = bookMapper.decreaseStock(book.getId(), cart.getQuantity());
+            if (affected == 0) {
+                throw new BusinessException(1, "书籍[" + book.getTitle() + "]库存不足");
+            }
+
             OrderItem item = new OrderItem();
             item.setOrderId(order.getId());
             item.setBookId(book.getId());
@@ -88,9 +93,6 @@ public class OrderServiceImpl implements OrderService {
             item.setQuantity(cart.getQuantity());
             item.setSubtotal(book.getPrice().multiply(BigDecimal.valueOf(cart.getQuantity())));
             orderItemMapper.insert(item);
-
-            book.setStock(book.getStock() - cart.getQuantity());
-            bookMapper.updateById(book);
 
             cartMapper.deleteById(cart.getId());
 
