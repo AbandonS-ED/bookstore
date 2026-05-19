@@ -223,3 +223,5 @@
 | 2026/5/18 | da4af82 | feat: 完成Service业务层（6个Service接口+实现类） |
 | 2026/5/18 | f621743 | feat: 完成Controller控制层（11个Controller） |
 | 2026/5/18 | a753142 | fix: 移除BookServiceImpl中未使用的BaseMapper导入 |
+| 2026/5/19 | 901a185 | feat: 完善前端功能并修复多项问题 |
+| 2026/5/19 | ddf5dd2 | feat: 推送更新至远程仓库 |
