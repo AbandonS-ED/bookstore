@@ -43,7 +43,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public void update(Long userId, AddressUpdateDTO addressUpdateDTO) {
-        Address address = addressMapper.selectById(addressUpdateDTO.getId());
+        Address address = addressMapper.selectById(Long.parseLong(addressUpdateDTO.getId()));
         if (address == null || !address.getUserId().equals(userId)) {
             throw new BusinessException(1, "收货地址不存在");
         }

@@ -56,7 +56,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void updateQuantity(Long userId, CartUpdateDTO cartUpdateDTO) {
-        Cart cart = cartMapper.selectById(cartUpdateDTO.getId());
+        Cart cart = cartMapper.selectById(Long.parseLong(cartUpdateDTO.getId()));
         if (cart == null) {
             throw new BusinessException(1, "购物车记录不存在");
         }
