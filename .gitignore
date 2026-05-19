@@ -34,6 +34,9 @@ build/
 ### VS Code ###
 .vscode/
 
+### Local config (each dev has own DB password) ###
+application-local.yml
+
 ### Frontend ###
 bookstore-frontend/node_modules/
 bookstore-frontend/dist/
