@@ -44,7 +44,7 @@
           </div>
           <div v-else class="no-address">
             <p>暂无收货地址</p>
-            <button class="btn-add-address" @click="showAddressDialog = true">添加地址</button>
+            <button class="btn-add-address" @click="openAddressDialog()">添加地址</button>
           </div>
         </div>
 
@@ -100,6 +100,34 @@
             {{ submitting ? '提交中...' : '提交订单' }}
           </button>
         </div>
+
+        <!-- 添加地址对话框 -->
+        <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑地址' : '新增地址'" width="500px">
+          <el-form :model="addressForm" label-width="80px">
+            <el-form-item label="收货人">
+              <el-input v-model="addressForm.receiverName" placeholder="请输入收货人姓名" />
+            </el-form-item>
+            <el-form-item label="手机号">
+              <el-input v-model="addressForm.phone" placeholder="请输入手机号" />
+            </el-form-item>
+            <el-form-item label="省份">
+              <el-input v-model="addressForm.province" placeholder="请输入省份" />
+            </el-form-item>
+            <el-form-item label="城市">
+              <el-input v-model="addressForm.city" placeholder="请输入城市" />
+            </el-form-item>
+            <el-form-item label="区县">
+              <el-input v-model="addressForm.district" placeholder="请输入区县" />
+            </el-form-item>
+            <el-form-item label="详细地址">
+              <el-input v-model="addressForm.detailAddress" type="textarea" :rows="2" placeholder="请输入详细地址" />
+            </el-form-item>
+          </el-form>
+          <template #footer>
+            <el-button @click="dialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="handleSaveAddress">保存</el-button>
+          </template>
+        </el-dialog>
       </div>
     </div>
   </div>
@@ -122,6 +150,16 @@ const submitting = ref(false)
 const addresses = ref([])
 const selectedAddressId = ref(null)
 const showAddressDialog = ref(false)
+const dialogVisible = ref(false)
+const isEdit = ref(false)
+const addressForm = ref({
+  receiverName: '',
+  phone: '',
+  province: '',
+  city: '',
+  district: '',
+  detailAddress: ''
+})
 const orderItems = ref([])
 
 const subtotal = computed(() => {
@@ -147,7 +185,7 @@ const fetchAddresses = async () => {
     const res = await fetch('/api/address/list')
     const data = await res.json()
     addresses.value = data.data || []
-    const defaultAddr = addresses.value.find(a => a.isDefault)
+    const defaultAddr = addresses.value.find(a => a.isDefault === 1)
     if (defaultAddr) {
       selectedAddressId.value = defaultAddr.id
     } else if (addresses.value.length) {
@@ -155,6 +193,55 @@ const fetchAddresses = async () => {
     }
   } catch (error) {
     console.error('Failed to fetch addresses')
+  }
+}
+
+const openAddressDialog = (addr = null) => {
+  if (addr) {
+    isEdit.value = true
+    addressForm.value = {
+      receiverName: addr.receiverName || '',
+      phone: addr.phone || '',
+      province: addr.province || '',
+      city: addr.city || '',
+      district: addr.district || '',
+      detailAddress: addr.detailAddress || ''
+    }
+  } else {
+    isEdit.value = false
+    addressForm.value = {
+      receiverName: '',
+      phone: '',
+      province: '',
+      city: '',
+      district: '',
+      detailAddress: ''
+    }
+  }
+  dialogVisible.value = true
+}
+
+const handleSaveAddress = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    const res = await fetch('/api/address/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(addressForm.value)
+    })
+    const data = await res.json()
+    if (data.code === 200) {
+      ElMessage.success('添加成功')
+      dialogVisible.value = false
+      fetchAddresses()
+    } else {
+      ElMessage.error(data.message || '添加失败')
+    }
+  } catch (error) {
+    ElMessage.error('添加失败')
   }
 }
 

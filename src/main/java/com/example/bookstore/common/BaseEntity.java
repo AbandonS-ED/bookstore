@@ -2,6 +2,7 @@ package com.example.bookstore.common;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 @Data
 public abstract class BaseEntity {
 
+    @TableId
     private Long id;
 
     @TableField(fill = FieldFill.INSERT)
