@@ -1,5 +1,6 @@
 package com.example.bookstore.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.bookstore.common.BaseEntity;
 import lombok.Data;
@@ -10,6 +11,7 @@ import lombok.EqualsAndHashCode;
 @TableName("address")
 public class Address extends BaseEntity {
 
+    @TableField("user_id")
     private Long userId;
 
     private String receiverName;

@@ -47,17 +47,29 @@ mvn spring-boot:run
 ## 项目结构
 
 ```
-src/main/java/com/example/bookstore/
-├── config/          # 配置类
-├── controller/     # 控制器
-├── service/        # 业务层
-├── mapper/         # 数据访问层
-├── entity/        # 实体类
-├── dto/           # 数据传输对象
-├── vo/            # 视图对象
-├── common/        # 通用类
-├── exception/     # 异常处理
-└── util/          # 工具类
+bookstore/                          # 后端 Spring Boot 项目
+├── src/main/java/com/example/bookstore/
+│   ├── config/                     # 配置类
+│   ├── controller/                 # 控制器
+│   ├── service/                    # 业务层
+│   ├── mapper/                     # 数据访问层
+│   ├── entity/                     # 实体类
+│   ├── dto/                        # 数据传输对象
+│   ├── vo/                         # 视图对象
+│   ├── common/                     # 通用类
+│   ├── exception/                  # 异常处理
+│   └── util/                       # 工具类
+├── bookstore-frontend/             # 前端 Vue 3 项目
+│   ├── src/
+│   │   ├── views/                  # 页面组件
+│   │   ├── components/             # 公共组件
+│   │   ├── router/                 # 路由配置
+│   │   ├── stores/                 # Pinia 状态管理
+│   │   ├── api/                    # API 接口封装
+│   │   └── utils/                  # 工具函数
+│   └── vite.config.js             # Vite 配置（代理 /api 和 /admin 到 8081）
+└── sql/
+    └── init.sql                    # 数据库初始化脚本
 ```
 
 ## 数据库表
