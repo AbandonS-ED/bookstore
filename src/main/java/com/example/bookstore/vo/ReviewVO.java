@@ -12,10 +12,12 @@ public class ReviewVO {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long userId;
 
     private String username;
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long bookId;
 
     private Integer rating;

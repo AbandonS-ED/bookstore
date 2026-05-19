@@ -12,6 +12,7 @@ public class CategoryVO {
 
     private String name;
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long parentId;
 
     private Integer sort;

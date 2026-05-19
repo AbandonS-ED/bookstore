@@ -2,6 +2,7 @@ package com.example.bookstore.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.bookstore.common.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -36,6 +37,7 @@ public class Book extends BaseEntity {
     @Positive(message = "库存必须大于0")
     private Integer stock;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long categoryId;
 
     private String description;

@@ -27,6 +27,7 @@ public class BookDetailVO {
 
     private Integer stock;
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long categoryId;
 
     private String categoryName;
