@@ -154,13 +154,15 @@ const handleDelete = async (id) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
+  } catch {
+    return
+  }
+  try {
     await addressApi.delete(id)
     ElMessage.success('删除成功')
     addresses.value = addresses.value.filter(a => a.id !== id)
-  } catch (error) {
-    if (error !== 'cancel' && error !== 'close') {
-      ElMessage.error('删除失败')
-    }
+  } catch {
+    ElMessage.error('删除失败')
   }
 }
 
