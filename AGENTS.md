@@ -1,37 +1,37 @@
 # AGENTS.md
 
-## 快速命令
+## Quick commands
 
 ```bash
-mvn clean package              # 完整构建
-mvn spring-boot:run            # 启动后端（端口 8081）
-mvn test -Dtest=ClassName      # 运行单个测试
-mysql -u root -p < sql/init.sql  # 初始化数据库（8 张表）
+mvn clean package              # Full build
+mvn spring-boot:run            # Start backend (port 8081)
+mvn test -Dtest=ClassName      # Run single test (only `main()` class exists)
+mysql -u root -p < sql/init.sql  # Init database (creates `bookstore` DB, 8 tables)
 ```
 
-bookstore-frontend/ 是独立前端（Vue 3 + Vite）：
+Frontend (`bookstore-frontend/`, Vue 3 + Vite + Element Plus + Pinia):
 ```bash
-npm run dev   # 启动前端（端口 5173，代理 /api, /admin → 8081）
-npm run build # 构建生产包
+npm run dev   # Port 5173, proxies /api and /admin → 8081
+npm run build # Production bundle
 ```
 
-## 架构要点
+## Architecture
 
-- **三层架构**：Controller → Service → Mapper（MyBatis-Plus），无 XML 映射文件
-- **DTO 入 / VO 出**：请求用 DTO，响应用 VO，统一 `Result<T>(code,message,data)` 包装
-- **分页响应**：`PageResult<T>(total,records)`，MyBatis-Plus `PaginationInnerInterceptor` 分页
-- **认证**：`AuthInterceptor` 拦截 `/api/cart/**`, `/api/order/**`, `/api/user/info|password|profile`, `/api/review/add`, `/admin/**`，校验 JWT（Header: `Authorization: Bearer <token>`），用户信息存 `AuthContext`（ThreadLocal）
-- **管理员**：`AdminInterceptor` 拦截所有 `/admin/**`，校验 role=admin
-- **全局异常**：`GlobalExceptionHandler` 捕获 `BusinessException` 和通用 `Exception`
-- **订单状态流**：`pending → paid → shipped → delivered → completed`；`pending → cancelled`；`paid/shipped → refunded`
-- **密码**：BCrypt 加密
+- **Controller → Service → Mapper** (MyBatis-Plus, **no XML mapper files** — `classpath:mapper/*.xml` configured but unused)
+- **DTO in / VO out**: requests use DTOs, responses use VOs, wrapped in `Result<T>(code,message,data)`
+- **Pagination**: `PageResult<T>(total,records)` via MyBatis-Plus `PaginationInnerInterceptor`
+- **Auth**: `AuthInterceptor` on `/api/user/info|password|profile`, `/api/address/**`, `/api/cart/**`, `/api/order/**`, `/api/review/add`, `/admin/**` — validates JWT (`Authorization: Bearer <token>`), stores user in `AuthContext` (ThreadLocal)
+- **Admin**: `AdminInterceptor` on `/admin/**` — checks `role=admin`
+- **Pwd**: BCrypt via `spring-security-crypto` (no full Spring Security)
+- **JWT**: HMAC-SHA384 (jjwt 0.12.5), key at `jwt.secret` in `application.yml`, 24h expiry
+- **Orders state**: `pending → paid → shipped → delivered → completed`; `pending → cancelled`; `paid/shipped → refunded` (**defined but `refunded` transitions NOT implemented**)
 
-## 关键约束
+## Key constraints
 
-- SQL 中 `order` 表名需反引号包裹（MySQL 保留字）
-- 默认管理员：`admin` / `123456`
-- JWT 密钥在 `application.yml` 的 `jwt.secret`，有效期 24h
-- 后端端口 8081，前端端口 5173（Vite 代理后端）
-- `@MapperScan("com.example.bookstore.mapper")` 在 `BookstoreApplication.java`
-- `BaseEntity` 提供 `id` `createTime` `updateTime` 公共字段
-- 测试仅一个 `main` 方法类（BCrypt 哈希生成），无 Spring 测试
+- SQL `order` table must be backtick-quoted (MySQL reserved word)
+- Default admin: `admin` / `123456`
+- `application-local.yml` overrides `spring.datasource.password` via `DB_PASSWORD` env var (empty default)
+- Only test: `src/test/.../Test.java` — has `main()` method only (no Spring tests, no test framework usage)
+- `@MapperScan("com.example.bookstore.mapper")` in `BookstoreApplication.java`
+- `BaseEntity` provides `id`, `createTime`, `updateTime` (MyBatis-Plus `@TableField` auto-fill)
+- Port: backend 8081, frontend 5173

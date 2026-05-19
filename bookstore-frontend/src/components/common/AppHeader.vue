@@ -37,7 +37,7 @@
             <span class="arrow">▼</span>
             <div v-if="showUserMenu" class="dropdown-menu">
               <router-link to="/user" class="dropdown-item">个人中心</router-link>
-              <router-link to="/orders" class="dropdown-item">我的订单</router-link>
+              <router-link to="/user/orders" class="dropdown-item">我的订单</router-link>
               <router-link v-if="isAdmin" to="/admin" class="dropdown-item">管理后台</router-link>
               <div class="dropdown-divider"></div>
               <a class="dropdown-item" @click="handleLogout">退出登录</a>

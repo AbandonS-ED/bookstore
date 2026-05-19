@@ -16,11 +16,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 常用命令
 
 ```bash
-# 构建项目
+# 后端构建
 mvn clean package
 
-# 运行应用
+# 后端运行
 mvn spring-boot:run
+
+# 后端编译（不运行）
+mvn clean compile -DskipTests
 
 # 运行测试
 mvn test
@@ -28,8 +31,23 @@ mvn test
 # 运行单个测试类
 mvn test -Dtest=类名
 
-# 跳过测试
+# 跳过测试打包
 mvn clean package -DskipTests
+```
+
+## 前端命令
+
+```bash
+cd bookstore-frontend
+
+# 安装依赖
+npm install
+
+# 开发模式运行（前端端口 5173）
+npm run dev
+
+# 生产构建
+npm run build
 ```
 
 ## 数据库初始化
@@ -101,19 +119,44 @@ com.example.bookstore/
 | `order_item` | 订单明细表（冗余书籍信息） |
 | `review` | 书籍评论表，评分1-5 |
 
-### 前端结构
+## 前端结构
 
-- **Vue 3 + Vite** 项目（独立前端工程）
+- **Vue 3 + Vite** 项目位于 `bookstore-frontend/`
 - 组件化开发，Vue Router 路由管理
-- Pinia 状态管理（如需要）
+- **API 层采用双 axios 实例**：
+  - `src/api/index.js` - 用户端API，`baseURL: '/api'`，经 vite 代理转发到 `http://localhost:8081`
+  - `src/api/admin.js` - 管理端API，`baseURL: '/api'`，请求 `/api/admin/xxx` 经代理转发到后端 `/admin/xxx`
+- vite 代理配置：同时代理 `/api` 和 `/admin` 到后端 `http://localhost:8081`
+- 后台接口路径：`/admin/xxx`（不是 `/api/admin/xxx`）
+
+## 数据库表
+
+| 表名 | 用途 |
+|------|------|
+| `user` | 用户表，包含角色（user/admin） |
+| `category` | 分类表（支持层级，通过parent_id） |
+| `book` | 书籍表，含库存、价格、封面 |
+| `address` | 用户收货地址表 |
+| `cart` | 购物车表（user_id + book_id唯一约束） |
+| `order` | 订单主表，含状态、支付状态 |
+| `order_item` | 订单明细表（冗余书籍信息） |
+| `review` | 书籍评论表，评分1-5 |
+
+## 订单状态流转
+
+```
+pending(待付款) → paid(已付款) → shipped(已发货) → delivered(已收货) → completed(已完成)
+    ↓                ↓
+cancelled(已取消)   refunded(已退款)
+```
 
 ## 开发注意事项
 
 - `BookstoreApplication` 使用 `@MapperScan("com.example.bookstore.mapper")` 自动扫描Mapper
-- 管理员接口位于 `/admin/` 路径下
 - SQL中 `order` 表名需用反引号包裹（保留字）
 - 密码使用BCrypt加密（见 `SecurityUtils`），密钥从 `application.yml` 的 `jwt.secret` 读取
 - 订单号通过 `OrderNoGenerator` 工具类生成
+- 实体类时间字段（createTime/updateTime）通过 `MyMetaObjectHandler` 自动填充
 
 ## 文档位置
 
