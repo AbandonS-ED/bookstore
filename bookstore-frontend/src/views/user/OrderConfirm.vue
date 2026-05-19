@@ -34,11 +34,11 @@
               </div>
               <div class="address-info">
                 <div class="address-header">
-                  <span class="receiver">{{ addr.receiver }}</span>
+                  <span class="receiver">{{ addr.receiverName }}</span>
                   <span class="phone">{{ addr.phone }}</span>
                   <span v-if="addr.isDefault" class="default-tag">默认</span>
                 </div>
-                <p class="address-detail">{{ addr.province }}{{ addr.city }}{{ addr.district }}{{ addr.detail }}</p>
+                <p class="address-detail">{{ addr.province }}{{ addr.city }}{{ addr.district }}{{ addr.detailAddress }}</p>
               </div>
             </div>
           </div>
@@ -139,6 +139,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { orderApi } from '@/api/order'
 import { cartApi } from '@/api/cart'
+import { addressApi } from '@/api/address'
 import { useCartStore } from '@/stores/cart'
 
 const route = useRoute()
@@ -149,7 +150,6 @@ const loading = ref(true)
 const submitting = ref(false)
 const addresses = ref([])
 const selectedAddressId = ref(null)
-const showAddressDialog = ref(false)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const addressForm = ref({
@@ -182,9 +182,8 @@ const totalCount = computed(() => {
 
 const fetchAddresses = async () => {
   try {
-    const res = await fetch('/api/address/list')
-    const data = await res.json()
-    addresses.value = data.data || []
+    const res = await addressApi.getList()
+    addresses.value = res.data || []
     const defaultAddr = addresses.value.find(a => a.isDefault === 1)
     if (defaultAddr) {
       selectedAddressId.value = defaultAddr.id
@@ -223,23 +222,10 @@ const openAddressDialog = (addr = null) => {
 
 const handleSaveAddress = async () => {
   try {
-    const token = localStorage.getItem('token')
-    const res = await fetch('/api/address/add', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(addressForm.value)
-    })
-    const data = await res.json()
-    if (data.code === 200) {
-      ElMessage.success('添加成功')
-      dialogVisible.value = false
-      fetchAddresses()
-    } else {
-      ElMessage.error(data.message || '添加失败')
-    }
+    const res = await addressApi.add(addressForm.value)
+    ElMessage.success('添加成功')
+    dialogVisible.value = false
+    fetchAddresses()
   } catch (error) {
     ElMessage.error('添加失败')
   }
