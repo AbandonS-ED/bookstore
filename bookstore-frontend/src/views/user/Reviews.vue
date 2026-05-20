@@ -101,7 +101,7 @@ onMounted(() => {
 .page-header h1 {
   font-family: var(--font-display);
   font-size: var(--text-2xl);
-  color: var(--color-ink);
+  color: var(--color-text);
 }
 
 .review-list {
@@ -111,7 +111,7 @@ onMounted(() => {
 }
 
 .review-item {
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
 }
@@ -137,11 +137,11 @@ onMounted(() => {
 
 .review-stars span {
   font-size: 14px;
-  color: var(--color-border);
+  color: var(--color-divider);
 }
 
 .review-stars span.filled {
-  color: var(--color-copper);
+  color: var(--color-accent-muted);
 }
 
 .review-content {
@@ -171,7 +171,7 @@ onMounted(() => {
 }
 
 .btn-delete:hover {
-  color: var(--color-vermillion);
+  color: var(--color-accent);
 }
 
 .empty-state {
@@ -199,13 +199,13 @@ onMounted(() => {
 .review-skeleton {
   display: flex;
   gap: var(--space-4);
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
 }
 
 .skeleton {
-  background: linear-gradient(90deg, var(--color-paper-dark) 25%, var(--color-paper-white) 50%, var(--color-paper-dark) 75%);
+  background: linear-gradient(90deg, var(--color-bg-cream) 25%, var(--color-bg-card) 50%, var(--color-bg-cream) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-sm);

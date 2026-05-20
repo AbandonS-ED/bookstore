@@ -123,13 +123,13 @@ onUnmounted(() => {
 .admin-layout {
   display: flex;
   min-height: 100vh;
-  background: var(--color-paper);
+  background: var(--color-bg);
 }
 
 /* 侧边栏 */
 .sidebar {
   width: 260px;
-  background: var(--color-ink);
+  background: var(--color-primary-abyss);
   color: var(--color-text-inverse);
   display: flex;
   flex-direction: column;
@@ -189,7 +189,7 @@ onUnmounted(() => {
 .nav-item.active {
   background: rgba(255, 255, 255, 0.1);
   color: var(--color-text-inverse);
-  border-left-color: var(--color-vermillion);
+  border-left-color: var(--color-accent);
 }
 
 .nav-icon {
@@ -218,7 +218,7 @@ onUnmounted(() => {
 .admin-avatar {
   width: 40px;
   height: 40px;
-  background: var(--color-vermillion);
+  background: var(--color-accent);
   color: white;
   border-radius: var(--radius-full);
   display: flex;
@@ -269,8 +269,8 @@ onUnmounted(() => {
 
 .top-header {
   height: var(--header-height);
-  background: var(--color-paper-white);
-  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+  border-bottom: 1px solid var(--color-divider);
   padding: 0 var(--space-8);
   display: flex;
   align-items: center;
@@ -289,7 +289,7 @@ onUnmounted(() => {
   font-family: var(--font-display);
   font-size: var(--text-xl);
   font-weight: 600;
-  color: var(--color-ink);
+  color: var(--color-text);
 }
 
 .header-right {

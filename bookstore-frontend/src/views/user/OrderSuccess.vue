@@ -44,7 +44,7 @@ onMounted(() => {
   max-width: 500px;
   margin: 0 auto;
   text-align: center;
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
   padding: var(--space-12);
   box-shadow: var(--shadow-md);
@@ -57,7 +57,7 @@ onMounted(() => {
 .success-title {
   font-family: var(--font-display);
   font-size: var(--text-2xl);
-  color: var(--color-ink);
+  color: var(--color-text);
   margin-bottom: var(--space-4);
 }
 
@@ -90,23 +90,23 @@ onMounted(() => {
 }
 
 .btn-primary {
-  background: var(--color-vermillion);
+  background: var(--color-accent);
   color: white;
   border: none;
 }
 
 .btn-primary:hover {
-  background: var(--color-vermillion-light);
+  background: var(--color-accent-muted);
 }
 
 .btn-secondary {
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-divider);
 }
 
 .btn-secondary:hover {
-  border-color: var(--color-vermillion);
-  color: var(--color-vermillion);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 </style>

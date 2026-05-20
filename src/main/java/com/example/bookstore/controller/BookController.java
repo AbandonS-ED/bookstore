@@ -9,6 +9,8 @@ import com.example.bookstore.vo.BookVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+
 @RestController
 @RequestMapping("/api/book")
 @RequiredArgsConstructor
@@ -41,8 +43,14 @@ public class BookController {
     public Result<PageResult<BookVO>> category(
             @PathVariable Long categoryId,
             @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
-        PageResult<BookVO> result = bookService.findByCategory(categoryId, pageNum, pageSize);
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) Integer minRating,
+            @RequestParam(required = false) String timeRange) {
+        PageResult<BookVO> result = bookService.findByCategory(categoryId, pageNum, pageSize, sortBy,
+                minPrice, maxPrice, minRating, timeRange);
         return Result.success(result);
     }
 }

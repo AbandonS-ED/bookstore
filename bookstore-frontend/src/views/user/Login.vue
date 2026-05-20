@@ -1,26 +1,21 @@
 <template>
   <div class="auth-page">
     <div class="auth-container">
-      <!-- 左侧品牌区 -->
       <div class="auth-brand">
         <div class="brand-content">
+          <div class="brand-icon">📖</div>
           <h1 class="brand-title">书斋</h1>
-          <p class="brand-subtitle">开卷有益，读书让灵魂更有趣</p>
-          <div class="brand-decor">
-            <span class="decor-item">📖</span>
-            <span class="decor-item">📚</span>
-            <span class="decor-item">✒️</span>
-          </div>
+          <p class="brand-subtitle">SHUZHAI BOOKS</p>
+          <p class="brand-desc">用阅读点亮时光</p>
         </div>
         <div class="brand-pattern"></div>
       </div>
 
-      <!-- 右侧表单区 -->
       <div class="auth-form-wrapper">
         <div class="auth-form-container">
           <div class="auth-header">
-            <h2>登录书斋</h2>
-            <p>欢迎回来，请输入您的账号信息</p>
+            <h2>欢迎回来</h2>
+            <p>请输入您的账号信息</p>
           </div>
 
           <form @submit.prevent="handleLogin" class="auth-form">
@@ -89,16 +84,8 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
-const formData = reactive({
-  username: '',
-  password: ''
-})
-
-const errors = reactive({
-  username: '',
-  password: ''
-})
-
+const formData = reactive({ username: '', password: '' })
+const errors = reactive({ username: '', password: '' })
 const showPassword = ref(false)
 const rememberMe = ref(false)
 const loading = ref(false)
@@ -107,23 +94,13 @@ const validate = () => {
   let valid = true
   errors.username = ''
   errors.password = ''
-
-  if (!formData.username.trim()) {
-    errors.username = '请输入用户名'
-    valid = false
-  }
-
-  if (!formData.password) {
-    errors.password = '请输入密码'
-    valid = false
-  }
-
+  if (!formData.username.trim()) { errors.username = '请输入用户名'; valid = false }
+  if (!formData.password) { errors.password = '请输入密码'; valid = false }
   return valid
 }
 
 const handleLogin = async () => {
   if (!validate()) return
-
   loading.value = true
   try {
     await userStore.login(formData)
@@ -140,12 +117,13 @@ const handleLogin = async () => {
 
 <style scoped>
 .auth-page {
-  min-height: 100vh;
+  min-height: calc(100vh - var(--header-height));
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-paper);
+  background: var(--color-bg);
   padding: var(--space-6);
+  margin-top: calc(-1 * var(--header-height));
 }
 
 .auth-container {
@@ -155,14 +133,13 @@ const handleLogin = async () => {
   border-radius: var(--radius-xl);
   overflow: hidden;
   box-shadow: var(--shadow-xl);
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
 }
 
-/* 左侧品牌区 */
 .auth-brand {
   flex: 1;
-  background: linear-gradient(135deg, var(--color-ink) 0%, var(--color-ink-light) 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary-abyss) 0%, var(--color-primary-dark) 100%);
+  color: var(--color-bg-warm);
   padding: var(--space-12);
   display: flex;
   flex-direction: column;
@@ -174,63 +151,51 @@ const handleLogin = async () => {
 .brand-content {
   position: relative;
   z-index: 1;
+  text-align: center;
   animation: fadeInUp 0.6s ease;
+}
+
+.brand-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-4);
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 .brand-title {
   font-family: var(--font-display);
   font-size: var(--text-5xl);
-  font-weight: 700;
+  font-weight: 900;
   letter-spacing: 8px;
-  margin-bottom: var(--space-4);
+  color: var(--color-bg-warm);
+  margin-bottom: var(--space-2);
 }
 
 .brand-subtitle {
+  font-size: var(--text-xs);
+  letter-spacing: 4px;
+  color: rgba(237,230,214,0.35);
+  margin-bottom: var(--space-4);
+}
+
+.brand-desc {
   font-size: var(--text-lg);
-  opacity: 0.8;
+  color: rgba(237,230,214,0.6);
   font-style: italic;
-}
-
-.brand-decor {
-  margin-top: var(--space-8);
-  display: flex;
-  gap: var(--space-4);
-}
-
-.decor-item {
-  font-size: 32px;
-  animation: float 3s ease-in-out infinite;
-}
-
-.decor-item:nth-child(2) {
-  animation-delay: 0.5s;
-}
-
-.decor-item:nth-child(3) {
-  animation-delay: 1s;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
 }
 
 .brand-pattern {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image:
-    radial-gradient(circle at 20% 80%, rgba(201, 64, 67, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(122, 158, 126, 0.2) 0%, transparent 50%);
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 70%, rgba(192,154,75,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 30%, rgba(192,154,75,0.05) 0%, transparent 50%);
 }
 
-/* 右侧表单区 */
 .auth-form-wrapper {
   flex: 1;
   padding: var(--space-12);
@@ -253,13 +218,13 @@ const handleLogin = async () => {
 .auth-header h2 {
   font-family: var(--font-display);
   font-size: var(--text-3xl);
-  color: var(--color-ink);
+  color: var(--color-text);
   margin-bottom: var(--space-2);
 }
 
 .auth-header p {
   font-size: var(--text-sm);
-  color: var(--color-text-muted);
+  color: var(--color-text-light);
 }
 
 .auth-form {
@@ -293,18 +258,19 @@ const handleLogin = async () => {
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
+  background: none;
+  border: none;
   font-size: 18px;
   opacity: 0.6;
+  cursor: pointer;
   transition: opacity var(--transition-fast);
 }
 
-.toggle-pwd:hover {
-  opacity: 1;
-}
+.toggle-pwd:hover { opacity: 1; }
 
 .error-msg {
   font-size: var(--text-xs);
-  color: var(--color-vermillion);
+  color: var(--color-accent);
 }
 
 .form-options {
@@ -322,26 +288,22 @@ const handleLogin = async () => {
   cursor: pointer;
 }
 
-.remember-me input {
-  accent-color: var(--color-vermillion);
-}
+.remember-me input { accent-color: var(--color-accent); }
 
 .forgot-pwd {
   font-size: var(--text-sm);
-  color: var(--color-vermillion);
+  color: var(--color-accent-muted);
 }
 
-.forgot-pwd:hover {
-  text-decoration: underline;
-}
+.forgot-pwd:hover { text-decoration: underline; }
 
 .btn-submit {
   width: 100%;
   padding: var(--space-4);
-  background: var(--color-vermillion);
-  color: white;
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-muted) 100%);
+  color: var(--color-primary-abyss);
   font-size: var(--text-base);
-  font-weight: 600;
+  font-weight: 700;
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -350,17 +312,16 @@ const handleLogin = async () => {
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
+  box-shadow: 0 2px 12px rgba(192,154,75,0.2);
 }
 
 .btn-submit:hover:not(:disabled) {
-  background: var(--color-vermillion-light);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(201, 64, 67, 0.3);
+  box-shadow: 0 6px 24px rgba(192,154,75,0.3);
+  letter-spacing: 0.04em;
 }
 
-.btn-submit:active:not(:disabled) {
-  transform: scale(0.98);
-}
+.btn-submit:active:not(:disabled) { transform: scale(0.98); }
 
 .btn-submit:disabled {
   opacity: 0.7;
@@ -370,50 +331,32 @@ const handleLogin = async () => {
 .loading-spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+  border: 2px solid rgba(46,31,21,0.2);
+  border-top-color: var(--color-primary-abyss);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 .auth-footer {
   text-align: center;
   margin-top: var(--space-6);
   font-size: var(--text-sm);
-  color: var(--color-text-muted);
+  color: var(--color-text-light);
 }
 
 .link {
-  color: var(--color-vermillion);
+  color: var(--color-accent-muted);
   font-weight: 500;
 }
 
-.link:hover {
-  text-decoration: underline;
-}
+.link:hover { text-decoration: underline; }
 
 @media (max-width: 768px) {
-  .auth-container {
-    flex-direction: column;
-    max-width: 420px;
-  }
-
-  .auth-brand {
-    padding: var(--space-8);
-  }
-
-  .brand-title {
-    font-size: var(--text-4xl);
-  }
-
-  .auth-form-wrapper {
-    padding: var(--space-8);
-  }
+  .auth-container { flex-direction: column; max-width: 420px; }
+  .auth-brand { padding: var(--space-8); }
+  .brand-title { font-size: var(--text-4xl); }
+  .auth-form-wrapper { padding: var(--space-8); }
 }
 </style>

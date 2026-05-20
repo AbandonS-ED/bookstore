@@ -249,7 +249,7 @@ onMounted(() => {
 .orders-page {
   padding: var(--space-8) 0 var(--space-16);
   min-height: calc(100vh - var(--header-height));
-  background: var(--color-paper);
+  background: var(--color-bg);
 }
 
 .page-container {
@@ -261,10 +261,10 @@ onMounted(() => {
 .page-title {
   font-family: var(--font-display);
   font-size: var(--text-2xl);
-  color: var(--color-ink);
+  color: var(--color-text);
   margin-bottom: var(--space-8);
   padding-bottom: var(--space-4);
-  border-bottom: 2px solid var(--color-vermillion);
+  border-bottom: 2px solid var(--color-accent);
 }
 
 .orders-loading {
@@ -274,13 +274,13 @@ onMounted(() => {
 }
 
 .skeleton-card {
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
 }
 
 .skeleton {
-  background: linear-gradient(90deg, var(--color-paper-dark) 25%, var(--color-paper-white) 50%, var(--color-paper-dark) 75%);
+  background: linear-gradient(90deg, var(--color-bg-cream) 25%, var(--color-bg-card) 50%, var(--color-bg-cream) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-md);
@@ -310,8 +310,8 @@ onMounted(() => {
 
 .tab-btn {
   padding: var(--space-2) var(--space-4);
-  background: var(--color-paper-white);
-  border: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-divider);
   border-radius: var(--radius-full);
   font-size: var(--text-sm);
   cursor: pointer;
@@ -322,12 +322,12 @@ onMounted(() => {
 }
 
 .tab-btn:hover {
-  border-color: var(--color-copper);
+  border-color: var(--color-accent-muted);
 }
 
 .tab-btn.active {
-  background: var(--color-vermillion);
-  border-color: var(--color-vermillion);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
   color: white;
 }
 
@@ -345,7 +345,7 @@ onMounted(() => {
 }
 
 .order-card {
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   cursor: pointer;
@@ -361,7 +361,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-divider);
 }
 
 .order-info {
@@ -371,9 +371,9 @@ onMounted(() => {
 }
 
 .order-no {
-  font-family: var(--font-accent);
+  font-family: var(--font-display);
   font-size: var(--text-sm);
-  color: var(--color-ink);
+  color: var(--color-text);
 }
 
 .order-time {
@@ -389,27 +389,27 @@ onMounted(() => {
 }
 
 .order-status.pending {
-  background: rgba(201, 64, 67, 0.1);
-  color: var(--color-vermillion);
+  background: rgba(192, 154, 75, 0.1);
+  color: var(--color-accent);
 }
 
 .order-status.paid {
-  background: rgba(176, 141, 87, 0.1);
-  color: var(--color-copper);
+  background: rgba(192, 154, 75, 0.08);
+  color: var(--color-accent-muted);
 }
 
 .order-status.shipped {
-  background: rgba(122, 158, 126, 0.1);
-  color: var(--color-bamboo);
+  background: rgba(74, 53, 38, 0.08);
+  color: var(--color-primary);
 }
 
 .order-status.delivered {
-  background: rgba(122, 158, 126, 0.2);
-  color: var(--color-bamboo);
+  background: rgba(74, 53, 38, 0.12);
+  color: var(--color-primary);
 }
 
 .order-status.cancelled {
-  background: var(--color-paper-dark);
+  background: var(--color-bg-cream);
   color: var(--color-text-muted);
 }
 
@@ -465,7 +465,7 @@ onMounted(() => {
 
 .preview-price {
   font-size: var(--text-sm);
-  color: var(--color-vermillion);
+  color: var(--color-accent);
 }
 
 .more-items {
@@ -490,10 +490,10 @@ onMounted(() => {
 }
 
 .total-value {
-  font-family: var(--font-accent);
+  font-family: var(--font-display);
   font-size: var(--text-lg);
   font-weight: 600;
-  color: var(--color-vermillion);
+  color: var(--color-accent);
   margin-left: var(--space-2);
 }
 
@@ -502,22 +502,22 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border-light);
+  border-top: 1px solid var(--color-divider);
 }
 
 .pay-hint {
   font-size: var(--text-sm);
-  color: var(--color-vermillion);
+  color: var(--color-accent);
 }
 
 .ship-hint {
   font-size: var(--text-sm);
-  color: var(--color-bamboo);
+  color: var(--color-primary);
 }
 
 .complete-hint {
   font-size: var(--text-sm);
-  color: var(--color-copper);
+  color: var(--color-accent-muted);
 }
 
 .footer-actions {
@@ -534,7 +534,7 @@ onMounted(() => {
 }
 
 .btn-pay {
-  background: var(--color-vermillion);
+  background: var(--color-accent);
   border: none;
   color: white;
 }
@@ -544,20 +544,20 @@ onMounted(() => {
 }
 
 .btn-cancel {
-  background: var(--color-paper-white);
-  border: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-divider);
   color: var(--color-text-secondary);
 }
 
 .btn-cancel:hover {
-  border-color: var(--color-vermillion);
-  color: var(--color-vermillion);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 .empty-orders {
   text-align: center;
   padding: var(--space-16) 0;
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
 }
 
@@ -569,7 +569,7 @@ onMounted(() => {
 .empty-orders h2 {
   font-family: var(--font-display);
   font-size: var(--text-xl);
-  color: var(--color-ink);
+  color: var(--color-text);
   margin-bottom: var(--space-2);
 }
 
@@ -581,7 +581,7 @@ onMounted(() => {
 .btn-browse {
   display: inline-block;
   padding: var(--space-3) var(--space-8);
-  background: var(--color-vermillion);
+  background: var(--color-accent);
   color: white;
   text-decoration: none;
   border-radius: var(--radius-md);
@@ -603,8 +603,8 @@ onMounted(() => {
 
 .page-btn {
   padding: var(--space-2) var(--space-4);
-  background: var(--color-paper-white);
-  border: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-divider);
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
   cursor: pointer;
@@ -612,8 +612,8 @@ onMounted(() => {
 }
 
 .page-btn:hover:not(:disabled) {
-  border-color: var(--color-vermillion);
-  color: var(--color-vermillion);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 .page-btn:disabled {

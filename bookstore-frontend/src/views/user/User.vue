@@ -177,7 +177,7 @@ onMounted(async () => {
 .user-page {
   padding: var(--space-8) 0 var(--space-16);
   min-height: calc(100vh - var(--header-height));
-  background: var(--color-paper);
+  background: var(--color-bg);
 }
 
 .page-container {
@@ -194,12 +194,12 @@ onMounted(async () => {
   display: flex;
   gap: var(--space-6);
   padding: var(--space-8);
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
 }
 
 .skeleton {
-  background: linear-gradient(90deg, var(--color-paper-dark) 25%, var(--color-paper-white) 50%, var(--color-paper-dark) 75%);
+  background: linear-gradient(90deg, var(--color-bg-cream) 25%, var(--color-bg-card) 50%, var(--color-bg-cream) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-md);
@@ -227,7 +227,7 @@ onMounted(async () => {
   align-items: center;
   gap: var(--space-6);
   padding: var(--space-8);
-  background: linear-gradient(135deg, var(--color-ink) 0%, var(--color-ink-light) 100%);
+  background: linear-gradient(135deg, var(--color-text) 0%, var(--color-primary-dark) 100%);
   border-radius: var(--radius-lg);
   color: white;
   margin-bottom: var(--space-6);
@@ -237,7 +237,7 @@ onMounted(async () => {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: var(--color-copper);
+  background: var(--color-accent-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -280,11 +280,11 @@ onMounted(async () => {
 }
 
 .tag.admin {
-  background: var(--color-vermillion);
+  background: var(--color-accent);
 }
 
 .tag.member {
-  background: var(--color-copper);
+  background: var(--color-accent-muted);
 }
 
 .profile-stats {
@@ -301,7 +301,7 @@ onMounted(async () => {
 
 .stat-value {
   display: block;
-  font-family: var(--font-accent);
+  font-family: var(--font-display);
   font-size: var(--text-2xl);
   font-weight: 700;
   margin-bottom: var(--space-1);
@@ -325,7 +325,7 @@ onMounted(async () => {
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-5);
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
   text-decoration: none;
   transition: all var(--transition-fast);
@@ -349,7 +349,7 @@ onMounted(async () => {
   font-family: var(--font-display);
   font-size: var(--text-base);
   font-weight: 600;
-  color: var(--color-ink);
+  color: var(--color-text);
   margin-bottom: var(--space-1);
 }
 
@@ -366,12 +366,12 @@ onMounted(async () => {
 
 .menu-item:hover .menu-arrow {
   transform: translateX(4px);
-  color: var(--color-vermillion);
+  color: var(--color-accent);
 }
 
 /* Recent Orders */
 .recent-orders {
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
 }
@@ -382,13 +382,13 @@ onMounted(async () => {
   align-items: center;
   margin-bottom: var(--space-4);
   padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-divider);
 }
 
 .section-header h2 {
   font-family: var(--font-display);
   font-size: var(--text-lg);
-  color: var(--color-ink);
+  color: var(--color-text);
 }
 
 .more-link {
@@ -399,7 +399,7 @@ onMounted(async () => {
 }
 
 .more-link:hover {
-  color: var(--color-vermillion);
+  color: var(--color-accent);
 }
 
 .order-list {
@@ -413,14 +413,14 @@ onMounted(async () => {
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-3);
-  background: var(--color-paper);
+  background: var(--color-bg);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .order-item:hover {
-  background: var(--color-paper-dark);
+  background: var(--color-bg-cream);
 }
 
 .order-info {
@@ -429,9 +429,9 @@ onMounted(async () => {
 
 .order-no {
   display: block;
-  font-family: var(--font-accent);
+  font-family: var(--font-display);
   font-size: var(--text-sm);
-  color: var(--color-ink);
+  color: var(--color-text);
   margin-bottom: var(--space-1);
 }
 
@@ -448,27 +448,27 @@ onMounted(async () => {
 }
 
 .order-status.pending {
-  background: rgba(201, 64, 67, 0.1);
-  color: var(--color-vermillion);
+  background: rgba(192, 154, 75, 0.1);
+  color: var(--color-accent);
 }
 
 .order-status.paid {
-  background: rgba(176, 141, 87, 0.1);
-  color: var(--color-copper);
+  background: rgba(192, 154, 75, 0.08);
+  color: var(--color-accent-muted);
 }
 
 .order-status.shipped {
-  background: rgba(122, 158, 126, 0.1);
-  color: var(--color-bamboo);
+  background: rgba(74, 53, 38, 0.08);
+  color: var(--color-primary);
 }
 
 .order-status.delivered {
-  background: rgba(122, 158, 126, 0.2);
-  color: var(--color-bamboo);
+  background: rgba(74, 53, 38, 0.12);
+  color: var(--color-primary);
 }
 
 .order-status.cancelled {
-  background: var(--color-paper-dark);
+  background: var(--color-bg-cream);
   color: var(--color-text-muted);
 }
 
@@ -478,10 +478,10 @@ onMounted(async () => {
 
 .total-value {
   display: block;
-  font-family: var(--font-accent);
+  font-family: var(--font-display);
   font-size: var(--text-base);
   font-weight: 600;
-  color: var(--color-vermillion);
+  color: var(--color-accent);
 }
 
 .total-items {
@@ -502,7 +502,7 @@ onMounted(async () => {
 .btn-browse {
   display: inline-block;
   padding: var(--space-2) var(--space-6);
-  background: var(--color-vermillion);
+  background: var(--color-accent);
   color: white;
   text-decoration: none;
   border-radius: var(--radius-md);
@@ -511,7 +511,7 @@ onMounted(async () => {
 }
 
 .btn-browse:hover {
-  background: var(--color-vermillion-light);
+  background: var(--color-accent-muted);
 }
 
 @media (max-width: 768px) {

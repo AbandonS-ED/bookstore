@@ -184,12 +184,13 @@ const handleRegister = async () => {
 
 <style scoped>
 .auth-page {
-  min-height: 100vh;
+  min-height: calc(100vh - var(--header-height));
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-paper);
+  background: var(--color-bg);
   padding: var(--space-6);
+  margin-top: calc(-1 * var(--header-height));
 }
 
 .auth-container {
@@ -199,12 +200,12 @@ const handleRegister = async () => {
   border-radius: var(--radius-xl);
   overflow: hidden;
   box-shadow: var(--shadow-xl);
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
 }
 
 .auth-brand {
   flex: 1;
-  background: linear-gradient(135deg, var(--color-ink) 0%, var(--color-ink-light) 100%);
+  background: linear-gradient(135deg, var(--color-text) 0%, var(--color-primary-dark) 100%);
   color: white;
   padding: var(--space-12);
   display: flex;
@@ -269,8 +270,8 @@ const handleRegister = async () => {
   right: 0;
   bottom: 0;
   background-image:
-    radial-gradient(circle at 20% 80%, rgba(201, 64, 67, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(122, 158, 126, 0.2) 0%, transparent 50%);
+    radial-gradient(circle at 20% 80%, rgba(192, 154, 75, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(74, 53, 38, 0.2) 0%, transparent 50%);
 }
 
 .auth-form-wrapper {
@@ -295,7 +296,7 @@ const handleRegister = async () => {
 .auth-header h2 {
   font-family: var(--font-display);
   font-size: var(--text-3xl);
-  color: var(--color-ink);
+  color: var(--color-text);
   margin-bottom: var(--space-2);
 }
 
@@ -351,13 +352,13 @@ const handleRegister = async () => {
 
 .error-msg {
   font-size: var(--text-xs);
-  color: var(--color-vermillion);
+  color: var(--color-accent);
 }
 
 .btn-submit {
   width: 100%;
   padding: var(--space-4);
-  background: var(--color-vermillion);
+  background: var(--color-accent);
   color: white;
   font-size: var(--text-base);
   font-weight: 600;
@@ -375,7 +376,7 @@ const handleRegister = async () => {
 .btn-submit:hover:not(:disabled) {
   background: var(--color-vermillion-light);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(201, 64, 67, 0.3);
+  box-shadow: 0 4px 12px rgba(192, 154, 75, 0.3);
 }
 
 .btn-submit:disabled {
@@ -406,7 +407,7 @@ const handleRegister = async () => {
 }
 
 .link {
-  color: var(--color-vermillion);
+  color: var(--color-accent);
   font-weight: 500;
 }
 

@@ -207,7 +207,7 @@ onMounted(() => {
 }
 
 .users-table {
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
 }
 

@@ -196,12 +196,12 @@ onMounted(() => {
 .page-header h1 {
   font-family: var(--font-display);
   font-size: var(--text-2xl);
-  color: var(--color-ink);
+  color: var(--color-text);
 }
 
 .btn-add {
   padding: var(--space-2) var(--space-4);
-  background: var(--color-vermillion);
+  background: var(--color-accent);
   color: white;
   border: none;
   border-radius: var(--radius-md);
@@ -220,24 +220,24 @@ onMounted(() => {
 }
 
 .address-item {
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-divider);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .address-item:hover {
-  border-color: var(--color-vermillion);
+  border-color: var(--color-accent);
 }
 
 .address-item.default {
-  border-color: var(--color-vermillion);
-  background: rgba(201, 64, 67, 0.03);
+  border-color: var(--color-accent);
+  background: rgba(192, 154, 75, 0.03);
 }
 
 .address-info {
@@ -257,8 +257,8 @@ onMounted(() => {
 
 .default-tag {
   font-size: var(--text-xs);
-  color: var(--color-vermillion);
-  background: rgba(201, 64, 67, 0.1);
+  color: var(--color-accent);
+  background: rgba(192, 154, 75, 0.1);
   padding: 2px 8px;
   border-radius: var(--radius-full);
 }
@@ -282,7 +282,7 @@ onMounted(() => {
 }
 
 .address-actions button:hover {
-  color: var(--color-vermillion);
+  color: var(--color-accent);
 }
 
 .empty-state {
@@ -308,7 +308,7 @@ onMounted(() => {
 }
 
 .address-skeleton {
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
   display: flex;
@@ -317,7 +317,7 @@ onMounted(() => {
 }
 
 .skeleton {
-  background: linear-gradient(90deg, var(--color-paper-dark) 25%, var(--color-paper-white) 50%, var(--color-paper-dark) 75%);
+  background: linear-gradient(90deg, var(--color-bg-cream) 25%, var(--color-bg-card) 50%, var(--color-bg-cream) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-sm);

@@ -1,110 +1,134 @@
 <template>
   <div class="books-page">
     <div class="page-container">
-      <div class="books-layout">
-        <!-- 左侧边栏 -->
-        <aside class="sidebar">
-          <div class="sidebar-section">
-            <h3>分类</h3>
-            <ul class="category-list">
-              <li
-                :class="{ active: !selectedCategoryId }"
-                @click="selectCategory(null)"
-              >
-                全部
-              </li>
-              <li
-                v-for="cat in categories"
-                :key="cat.id"
-                :class="{ active: selectedCategoryId === cat.id }"
-                @click="selectCategory(cat.id)"
-              >
-                {{ cat.name }}
-              </li>
-            </ul>
-          </div>
-        </aside>
+      <div class="page-header">
+        <h1>全部书籍</h1>
+        <p class="page-subtitle">
+          共 <strong>{{ total || 0 }}</strong> 本好书等你发现
+        </p>
+      </div>
 
-        <!-- 右侧内容 -->
-        <main class="books-content">
-          <!-- 工具栏 -->
-          <div class="toolbar">
-            <div class="toolbar-left">
-              <span class="result-count">共 {{ total }} 本书</span>
-            </div>
-            <div class="toolbar-right">
-              <div class="sort-options">
-                <span
-                  :class="{ active: sortBy === 'default' }"
-                  @click="changeSort('default')"
-                >推荐</span>
-                <span
-                  :class="{ active: sortBy === 'price_asc' }"
-                  @click="changeSort('price_asc')"
-                >价格↑</span>
-                <span
-                  :class="{ active: sortBy === 'price_desc' }"
-                  @click="changeSort('price_desc')"
-                >价格↓</span>
-                <span
-                  :class="{ active: sortBy === 'new' }"
-                  @click="changeSort('new')"
-                >新品</span>
+      <div class="filter-pills">
+        <span
+          v-for="pill in filterPills"
+          :key="pill.key"
+          :class="['pill', { active: pill.key === 'all' ? activeTags.size === 0 : activeTags.has(pill.key) }]"
+          @click="changeTag(pill.key)"
+        >
+          {{ pill.label }}
+        </span>
+      </div>
+
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <span class="result-count">共 <strong>{{ total }}</strong> 本</span>
+          <span v-for="tag in activeTags" :key="tag" class="active-tag-badge">
+            {{ filterPills.find(p => p.key === tag)?.label || tag }}
+            <span class="remove-tag" @click="removeTag(tag)">✕</span>
+          </span>
+          <button v-if="activeTags.size > 0" class="clear-all" @click="clearTags">清除全部</button>
+        </div>
+        <div class="toolbar-right">
+          <div class="sort-select" @click.stop="toggleSort">
+            <span class="sort-label">{{ currentSortLabel }}</span>
+            <span class="sort-arrow">▾</span>
+            <div v-if="sortOpen" class="sort-dropdown">
+              <div
+                v-for="opt in sortOptions"
+                :key="opt.value"
+                :class="['sort-item', { active: sortBy === opt.value }]"
+                @click="changeSort(opt.value)"
+              >
+                {{ opt.label }}
+                <span v-if="sortBy === opt.value" class="check">✓</span>
               </div>
             </div>
           </div>
+          <div class="view-toggle">
+            <span
+              :class="['view-btn', { active: viewMode === 'grid' }]"
+              @click="viewMode = 'grid'"
+              title="网格视图"
+            >▦</span>
+            <span
+              :class="['view-btn', { active: viewMode === 'list' }]"
+              @click="viewMode = 'list'"
+              title="列表视图"
+            >☰</span>
+          </div>
+        </div>
+      </div>
 
-          <!-- 书籍网格 -->
-          <div v-if="loading" class="books-grid">
-            <div v-for="i in 8" :key="i" class="book-skeleton">
-              <div class="skeleton cover"></div>
-              <div class="skeleton title"></div>
-              <div class="skeleton author"></div>
+      <div v-if="loading" class="books-grid" :class="{ loading: true }">
+        <div v-for="i in 10" :key="i" class="book-skeleton">
+          <div class="skeleton cover"></div>
+          <div class="skeleton title"></div>
+          <div class="skeleton author"></div>
+        </div>
+      </div>
+
+      <template v-else-if="books.length">
+        <div v-if="viewMode === 'grid'" class="books-grid">
+          <BookCard
+            v-for="book in books"
+            :key="book.id"
+            :book="book"
+            @click="goToBook(book.id)"
+          />
+        </div>
+        <div v-else class="books-list">
+          <div
+            v-for="book in books"
+            :key="book.id"
+            class="list-item"
+            @click="goToBook(book.id)"
+          >
+            <div class="list-cover">
+              <img
+                v-if="book.coverUrl"
+                :src="book.coverUrl"
+                :alt="book.title"
+              />
+              <div v-else class="list-cover-fallback">
+                {{ book.title.slice(0, 4) }}
+              </div>
+            </div>
+            <div class="list-info">
+              <div class="list-title">{{ book.title }}</div>
+              <div class="list-author">{{ book.author }}</div>
+              <div class="list-desc" v-if="book.description">{{ book.description }}</div>
+            </div>
+            <div class="list-meta">
+              <div class="list-price">¥{{ book.price }}</div>
+              <div v-if="book.avgRating" class="list-rating">★ {{ book.avgRating.toFixed(1) }}</div>
             </div>
           </div>
+        </div>
+      </template>
 
-          <div v-else-if="books.length" class="books-grid">
-            <BookCard
-              v-for="book in books"
-              :key="book.id"
-              :book="book"
-              @click="goToBook(book.id)"
-            />
-          </div>
+      <div v-else class="empty-state">
+        <div class="empty-icon">📭</div>
+        <h3>暂时没有找到符合条件的书籍</h3>
+        <p>试试调整筛选条件，或者浏览我们的</p>
+        <button class="btn-link" @click="changeTag('all')">清除所有筛选</button>
+      </div>
 
-          <div v-else class="empty-state">
-            <span class="empty-icon">📚</span>
-            <h3>暂无书籍</h3>
-            <p>没有找到相关书籍，请尝试其他分类或关键词</p>
-          </div>
-
-          <!-- 分页 -->
-          <div v-if="totalPages > 1" class="pagination">
-            <button
-              class="page-btn prev"
-              :disabled="pageNum === 1"
-              @click="changePage(pageNum - 1)"
-            >
-              ‹
-            </button>
-            <button
-              v-for="page in visiblePages"
-              :key="page"
-              :class="['page-btn', { active: page === pageNum, ellipsis: page === '...' }]"
-              :disabled="page === '...'"
-              @click="page !== '...' && changePage(page)"
-            >
-              {{ page }}
-            </button>
-            <button
-              class="page-btn next"
-              :disabled="pageNum === totalPages"
-              @click="changePage(pageNum + 1)"
-            >
-              ›
-            </button>
-          </div>
-        </main>
+      <div v-if="totalPages > 1" class="pagination">
+        <button class="page-btn" :disabled="pageNum === 1" @click="changePage(pageNum - 1)">
+          ‹ 上一页
+        </button>
+        <button
+          v-for="page in visiblePages"
+          :key="page"
+          :class="['page-btn', { active: page === pageNum, ellipsis: page === '...' }]"
+          :disabled="page === '...'"
+          @click="page !== '...' && changePage(page)"
+        >
+          {{ page }}
+        </button>
+        <button class="page-btn" :disabled="pageNum === totalPages" @click="changePage(pageNum + 1)">
+          下一页 ›
+        </button>
       </div>
     </div>
   </div>
@@ -114,66 +138,93 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { bookApi } from '@/api/book'
-import { categoryApi } from '@/api/category'
 import BookCard from '@/components/business/BookCard.vue'
 
 const router = useRouter()
 const route = useRoute()
 
 const books = ref([])
-const categories = ref([])
 const loading = ref(false)
-const selectedCategoryId = ref(null)
+const activeTags = ref(new Set())
 const sortBy = ref('default')
+const sortOpen = ref(false)
+const viewMode = ref('grid')
 const pageNum = ref(1)
-const pageSize = ref(12)
+const pageSize = ref(20)
 const total = ref(0)
+
+const filterPills = [
+  { key: 'all', label: '全部' },
+  { key: 'discount', label: '今日特价' },
+  { key: 'sale', label: '限时折扣' },
+  { key: 'freeShip', label: '包邮' },
+  { key: 'set', label: '套装' },
+  { key: 'preorder', label: '预售新品' },
+  { key: 'ebook', label: '电子书' }
+]
+
+const sortOptions = [
+  { value: 'default', label: '综合推荐' },
+  { value: 'sales_desc', label: '销量从高到低' },
+  { value: 'price_asc', label: '价格从低到高' },
+  { value: 'price_desc', label: '价格从高到低' },
+  { value: 'publish_desc', label: '出版时间从新到旧' }
+]
+
+const currentSortLabel = computed(() => {
+  const found = sortOptions.find(o => o.value === sortBy.value)
+  return found ? found.label : '综合推荐'
+})
 
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
 
 const visiblePages = computed(() => {
   const pages = []
-  const total = totalPages.value
-  const current = pageNum.value
-
-  if (total <= 7) {
-    for (let i = 1; i <= total; i++) pages.push(i)
+  const tp = totalPages.value
+  const cur = pageNum.value
+  if (tp <= 7) {
+    for (let i = 1; i <= tp; i++) pages.push(i)
+  } else if (cur <= 3) {
+    for (let i = 1; i <= 5; i++) pages.push(i)
+    pages.push('...', tp)
+  } else if (cur >= tp - 2) {
+    pages.push(1, '...')
+    for (let i = tp - 4; i <= tp; i++) pages.push(i)
   } else {
-    if (current <= 3) {
-      for (let i = 1; i <= 5; i++) pages.push(i)
-      pages.push('...')
-      pages.push(total)
-    } else if (current >= total - 2) {
-      pages.push(1)
-      pages.push('...')
-      for (let i = total - 4; i <= total; i++) pages.push(i)
-    } else {
-      pages.push(1)
-      pages.push('...')
-      for (let i = current - 1; i <= current + 1; i++) pages.push(i)
-      pages.push('...')
-      pages.push(total)
-    }
+    pages.push(1, '...')
+    for (let i = cur - 1; i <= cur + 1; i++) pages.push(i)
+    pages.push('...', tp)
   }
   return pages
 })
 
+const toggleSort = () => {
+  sortOpen.value = !sortOpen.value
+}
+
+const closeSort = () => {
+  sortOpen.value = false
+}
+
 const fetchBooks = async () => {
   loading.value = true
+  books.value = []
+  total.value = 0
   try {
     const params = {
       pageNum: pageNum.value,
-      pageSize: pageSize.value
+      pageSize: pageSize.value,
+      sortBy: sortBy.value === 'default' ? '' : sortBy.value
     }
-
+    if (activeTags.value.size > 0) {
+      params.tag = [...activeTags.value].join(',')
+    }
     if (route.query.keyword) {
       params.keyword = route.query.keyword
     }
-
-    if (selectedCategoryId.value) {
-      params.categoryId = selectedCategoryId.value
+    if (route.query.categoryId) {
+      params.categoryId = Number(route.query.categoryId)
     }
-
     const res = await bookApi.getList(params)
     books.value = res.data?.records || []
     total.value = res.data?.total || 0
@@ -184,24 +235,39 @@ const fetchBooks = async () => {
   }
 }
 
-const fetchCategories = async () => {
-  try {
-    const res = await categoryApi.getList()
-    categories.value = res.data || []
-  } catch (error) {
-    console.error('Failed to fetch categories:', error)
+const changeTag = (key) => {
+  if (key === 'all') {
+    activeTags.value = new Set()
+  } else {
+    const next = new Set(activeTags.value)
+    if (next.has(key)) {
+      next.delete(key)
+    } else {
+      next.add(key)
+    }
+    activeTags.value = next
   }
+  pageNum.value = 1
+  fetchBooks()
 }
 
-const selectCategory = (id) => {
-  selectedCategoryId.value = id
+const removeTag = (key) => {
+  const next = new Set(activeTags.value)
+  next.delete(key)
+  activeTags.value = next
   pageNum.value = 1
-  router.replace({ query: id ? { categoryId: id } : {} })
+  fetchBooks()
+}
+
+const clearTags = () => {
+  activeTags.value = new Set()
+  pageNum.value = 1
   fetchBooks()
 }
 
 const changeSort = (sort) => {
   sortBy.value = sort
+  sortOpen.value = false
   fetchBooks()
 }
 
@@ -215,148 +281,255 @@ const goToBook = (id) => {
   router.push(`/book/${id}`)
 }
 
-watch(
-  () => route.query,
-  (query) => {
-    if (query.categoryId) {
-      selectedCategoryId.value = Number(query.categoryId)
-    } else {
-      selectedCategoryId.value = null
-    }
-    pageNum.value = 1
-    fetchBooks()
-  }
-)
+watch(() => route.query, () => {
+  pageNum.value = 1
+  fetchBooks()
+})
 
 onMounted(() => {
-  if (route.query.categoryId) {
-    selectedCategoryId.value = Number(route.query.categoryId)
-  }
-  fetchCategories()
+  document.addEventListener('click', closeSort)
   fetchBooks()
 })
 </script>
 
 <style scoped>
 .books-page {
-  padding: var(--space-8) 0 var(--space-16);
+  padding: var(--space-12) 0 var(--space-16);
+  background: var(--color-bg);
+  min-height: calc(100vh - var(--header-height));
 }
 
-.books-layout {
-  display: flex;
-  gap: var(--space-8);
+.page-container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--space-6);
 }
 
-/* 侧边栏 */
-.sidebar {
-  width: 200px;
-  flex-shrink: 0;
+.page-header {
+  margin-bottom: var(--space-8);
 }
 
-.sidebar-section {
-  position: sticky;
-  top: calc(var(--header-height) + var(--space-8));
-}
-
-.sidebar-section h3 {
+.page-header h1 {
   font-family: var(--font-display);
-  font-size: var(--text-lg);
-  margin-bottom: var(--space-4);
-  padding-bottom: var(--space-3);
-  border-bottom: 2px solid var(--color-vermillion);
+  font-size: var(--text-3xl);
+  color: var(--color-primary);
+  margin-bottom: var(--space-2);
+  letter-spacing: 0.04em;
 }
 
-.category-list {
+.page-subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-light);
+}
+
+.page-subtitle strong {
+  color: var(--color-accent-muted);
+  font-weight: 700;
+}
+
+.filter-pills {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
 }
 
-.category-list li {
-  padding: var(--space-3) var(--space-4);
+.pill {
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
-  border-radius: var(--radius-md);
+  padding: 6px 18px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-divider);
+  background: var(--color-bg-card);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
-.category-list li:hover {
-  background: var(--color-paper-dark);
-  color: var(--color-text-primary);
+.pill:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
-.category-list li.active {
-  background: var(--color-vermillion);
-  color: white;
+.pill.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-bg-warm);
   font-weight: 500;
-}
-
-/* 内容区 */
-.books-content {
-  flex: 1;
-  min-width: 0;
 }
 
 .toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: var(--space-6);
+  padding: var(--space-4) 0;
   margin-bottom: var(--space-6);
-  border-bottom: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-divider);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .result-count {
   font-size: var(--text-sm);
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
-.sort-options {
+.result-count strong {
+  color: var(--color-accent-muted);
+  font-weight: 700;
+}
+
+.active-tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-xs);
+  color: var(--color-bg-warm);
+  background: var(--color-primary);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+}
+
+.remove-tag {
+  cursor: pointer;
+  opacity: 0.7;
+  font-size: 11px;
+}
+
+.remove-tag:hover {
+  opacity: 1;
+}
+
+.clear-all {
+  font-size: var(--text-xs);
+  color: var(--color-text-light);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.clear-all:hover {
+  color: var(--color-accent);
+}
+
+.toolbar-right {
   display: flex;
+  align-items: center;
   gap: var(--space-4);
 }
 
-.sort-options span {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
+.sort-select {
+  position: relative;
   cursor: pointer;
-  padding: var(--space-2) var(--space-3);
+  user-select: none;
+}
+
+.sort-label {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  padding: 6px 12px;
+  border: 1px solid var(--color-divider);
   border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
+  background: var(--color-bg-card);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.sort-options span:hover {
-  color: var(--color-text-primary);
+.sort-arrow {
+  font-size: 10px;
+  color: var(--color-text-light);
 }
 
-.sort-options span.active {
-  color: var(--color-vermillion);
-  background: rgba(201, 64, 67, 0.1);
+.sort-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 180px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.sort-item {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background var(--transition-fast);
+}
+
+.sort-item:hover {
+  background: var(--color-bg-cream);
+}
+
+.sort-item.active {
+  color: var(--color-accent-muted);
   font-weight: 500;
 }
 
-/* 书籍网格 */
-.books-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-6);
+.sort-item .check {
+  color: var(--color-accent);
+  font-weight: 700;
 }
 
-/* 骨架屏 */
+.view-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.view-btn {
+  font-size: 16px;
+  padding: 6px 10px;
+  cursor: pointer;
+  color: var(--color-text-light);
+  transition: all var(--transition-fast);
+}
+
+.view-btn:hover {
+  color: var(--color-text);
+}
+
+.view-btn.active {
+  color: var(--color-accent-muted);
+  background: var(--color-accent-glow);
+}
+
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-5);
+}
+
+.books-grid.loading {
+  pointer-events: none;
+}
+
 .book-skeleton {
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
+  border: 1px solid var(--color-divider);
 }
 
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--color-paper-dark) 25%,
-    var(--color-paper-white) 50%,
-    var(--color-paper-dark) 75%
-  );
+  background: linear-gradient(90deg, var(--color-divider) 25%, var(--color-bg-cream) 50%, var(--color-divider) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-sm);
@@ -382,7 +555,107 @@ onMounted(() => {
   100% { background-position: 200% 0; }
 }
 
-/* 空状态 */
+.books-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--color-divider);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-bg-card);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.list-item:hover {
+  background: var(--color-bg-cream);
+}
+
+.list-cover {
+  width: 80px;
+  flex-shrink: 0;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.list-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.list-cover-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, var(--color-primary-light), var(--color-primary-dark));
+  color: var(--color-bg-warm);
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+.list-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.list-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-base);
+  color: var(--color-text);
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.list-author {
+  font-size: var(--text-xs);
+  color: var(--color-text-light);
+  margin-bottom: 4px;
+}
+
+.list-desc {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.list-meta {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.list-price {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-lg);
+  color: var(--color-accent-muted);
+  margin-bottom: 4px;
+}
+
+.list-rating {
+  font-size: var(--text-xs);
+  color: var(--color-accent);
+}
+
 .empty-state {
   text-align: center;
   padding: var(--space-16) 0;
@@ -391,20 +664,36 @@ onMounted(() => {
 .empty-icon {
   font-size: 64px;
   margin-bottom: var(--space-4);
+  opacity: 0.5;
 }
 
 .empty-state h3 {
   font-family: var(--font-display);
   font-size: var(--text-xl);
   margin-bottom: var(--space-2);
+  color: var(--color-text);
 }
 
 .empty-state p {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
 }
 
-/* 分页 */
+.btn-link {
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.btn-link:hover {
+  color: var(--color-accent-muted);
+}
+
 .pagination {
   display: flex;
   justify-content: center;
@@ -418,22 +707,22 @@ onMounted(() => {
   padding: 0 var(--space-3);
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
-  background: var(--color-paper-white);
-  border: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-divider);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .page-btn:hover:not(:disabled) {
-  border-color: var(--color-vermillion);
-  color: var(--color-vermillion);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 .page-btn.active {
-  background: var(--color-vermillion);
-  border-color: var(--color-vermillion);
-  color: white;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-bg-warm);
 }
 
 .page-btn:disabled {
@@ -445,6 +734,13 @@ onMounted(() => {
   border: none;
   background: transparent;
   cursor: default;
+  color: var(--color-text-light);
+}
+
+@media (max-width: 1200px) {
+  .books-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 @media (max-width: 1024px) {
@@ -454,31 +750,25 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
-  .books-layout {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-  }
-
-  .sidebar-section {
-    position: static;
-  }
-
-  .category-list {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-  }
-
-  .category-list li {
-    padding: var(--space-2) var(--space-4);
-    background: var(--color-paper-white);
-  }
-
   .books-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+  .toolbar-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .filter-pills {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: var(--space-2);
+  }
+  .pill {
+    flex-shrink: 0;
   }
 }
 </style>

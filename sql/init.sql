@@ -38,6 +38,7 @@ CREATE TABLE `book` (
     `publish_date` DATE COMMENT '出版日期',
     `price` DECIMAL(10,2) NOT NULL COMMENT '价格',
     `stock` INT DEFAULT 0 COMMENT '库存',
+    `sales` INT DEFAULT 0 COMMENT '销量',
     `category_id` BIGINT COMMENT '分类ID',
     `description` TEXT COMMENT '简介',
     `cover_url` VARCHAR(500) COMMENT '封面图',
@@ -155,8 +156,8 @@ INSERT INTO `user` (`username`, `password`, `email`, `role`) VALUES
 ('admin', '$2a$10$2AXXtLtX/U.0S9fhNXZW3OM7l3VyAMNulKCbuD86ZWQdhdOYJI89C', 'admin@bookstore.com', 'admin');
 
 -- 插入测试书籍
-INSERT INTO `book` (`isbn`, `title`, `author`, `publisher`, `price`, `stock`, `category_id`, `description`, `cover_url`) VALUES
-('978-7-111-54742-2', 'Java核心技术卷I', '凯·S·霍斯特曼', '机械工业出版社', 119.00, 100, 3, 'Java技术经典参考书', '/pictures/Java核心技术.jpg'),
-('978-7-115-42835-7', 'Python编程：从入门到实践', '埃里克·马瑟斯', '人民邮电出版社', 79.00, 80, 3, 'Python入门经典', '/pictures/python编程.jpg'),
-('978-7-5322-5000-2', '三体', '刘慈欣', '重庆出版社', 68.00, 50, 2, '科幻巨著', '/pictures/三体.jpg'),
-('978-7-5443-7010-3', '活着', '余华', '作家出版社', 35.00, 60, 1, '当代经典小说', '/pictures/活着.jpg');
+INSERT INTO `book` (`isbn`, `title`, `author`, `publisher`, `price`, `stock`, `sales`, `category_id`, `description`, `cover_url`) VALUES
+('978-7-111-54742-2', 'Java核心技术卷I', '凯·S·霍斯特曼', '机械工业出版社', 119.00, 100, 3200, 3, 'Java技术经典参考书', '/pictures/Java核心技术.jpg'),
+('978-7-115-42835-7', 'Python编程：从入门到实践', '埃里克·马瑟斯', '人民邮电出版社', 79.00, 80, 5600, 3, 'Python入门经典', '/pictures/python编程.jpg'),
+('978-7-5322-5000-2', '三体', '刘慈欣', '重庆出版社', 68.00, 50, 12800, 2, '科幻巨著', '/pictures/三体.jpg'),
+('978-7-5443-7010-3', '活着', '余华', '作家出版社', 35.00, 60, 9800, 1, '当代经典小说', '/pictures/活着.jpg');

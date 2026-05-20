@@ -20,6 +20,11 @@ const routes = [
     meta: { guest: true }
   },
   {
+    path: '/categories',
+    name: 'CategoryBrowse',
+    component: () => import('@/views/user/CategoryBrowse.vue')
+  },
+  {
     path: '/books',
     name: 'Books',
     component: () => import('@/views/user/Books.vue')

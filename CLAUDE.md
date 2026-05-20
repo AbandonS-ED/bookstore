@@ -135,6 +135,40 @@ MyBatis-Plus 雪花算法生成 **19位 Long 类型 ID**，直接序列化到 JS
 
 **涉及文件（9个VO、3个DTO、3个ServiceImpl、2个Entity）**
 
+### 前端页面结构
+
+```
+src/views/user/
+├── Home.vue              # 首页
+├── Books.vue             # 书籍列表（支持分类过滤、排序）
+├── CategoryBrowse.vue    # 分类卡片页（新增）
+├── BookDetail.vue        # 书籍详情
+├── Cart.vue              # 购物车
+├── OrderConfirm.vue      # 订单确认
+├── Orders.vue            # 订单列表
+├── OrderDetail.vue       # 订单详情
+├── Login.vue             # 登录
+├── Register.vue          # 注册
+├── User.vue              # 个人中心
+└── Settings.vue          # 设置页
+
+src/views/admin/
+├── AdminHome.vue         # 管理后台首页
+├── AdminBooks.vue        # 书籍管理
+├── AdminCategories.vue   # 分类管理
+├── AdminOrders.vue       # 订单管理
+├── AdminUsers.vue        # 用户管理
+└── AdminReviews.vue      # 评论管理
+```
+
+### 分类浏览流程
+
+导航栏"分类浏览" → `CategoryBrowse.vue`（树形分类卡片）→ 点击分类/子分类标签 → 跳转 `/books?categoryId=X`（自动过滤）
+
+### 书籍排序
+
+支持 `sortBy` 参数：`price_asc`（价格升序）、`price_desc`（价格降序）、`new`（最新）
+
 ### 前端 API 结构（关键）
 
 **双 axios 实例设计**：
@@ -178,6 +212,7 @@ cancelled(已取消)   refunded(已退款)
 
 ## 开发注意事项
 
+- **不要随意提交代码到 GitHub** — 只有用户明确说"提交"时才提交
 - `BookstoreApplication` 使用 `@MapperScan("com.example.bookstore.mapper")` 自动扫描Mapper
 - SQL中 `order` 表名需用反引号包裹（保留字）
 - 密码使用BCrypt加密（见 `SecurityUtils`），密钥从 `application.yml` 的 `jwt.secret` 读取

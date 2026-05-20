@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
 public class BookVO {
@@ -20,9 +21,13 @@ public class BookVO {
 
     private String publisher;
 
+    private LocalDate publishDate;
+
     private BigDecimal price;
 
     private Integer stock;
+
+    private Integer sales;
 
     @JsonSerialize(using = ToStringSerializer.class)
     private Long categoryId;
@@ -32,4 +37,8 @@ public class BookVO {
     private String coverUrl;
 
     private Integer status;
+
+    private Double avgRating;
+
+    private Integer reviewCount;
 }

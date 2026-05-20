@@ -1,43 +1,58 @@
 :root {
-  /* 主色调 - 墨色 */
-  --color-ink: #1a1a1a;
-  --color-ink-light: #333333;
-  --color-ink-muted: #666666;
+  --color-primary: #4A3526;
+  --color-primary-mid: #5C4434;
+  --color-primary-light: #7A6252;
+  --color-primary-dark: #2E1F15;
+  --color-primary-abyss: #1C120C;
 
-  /* 背景色 - 宣纸系 */
-  --color-paper: #f8f6f1;
-  --color-paper-white: #fefefe;
-  --color-paper-dark: #f0ece5;
+  --color-bg: #EDE6D6;
+  --color-bg-warm: #E5DDD0;
+  --color-bg-card: #F5F0E8;
+  --color-bg-cream: #F8F4ED;
 
-  /* 点缀色 - 朱砂红 */
-  --color-vermillion: #c94043;
-  --color-vermillion-light: #e8585b;
-  --color-vermillion-dark: #a63336;
+  --color-accent: #C09A4B;
+  --color-accent-light: #D4B06A;
+  --color-accent-muted: #A68638;
+  --color-accent-glow: rgba(192, 154, 75, 0.12);
+  --color-accent-subtle: rgba(192, 154, 75, 0.08);
 
-  /* 辅助色 - 竹青 */
-  --color-bamboo: #7a9e7e;
-  --color-bamboo-light: #9ab89d;
+  --color-text: #2B1D14;
+  --color-text-secondary: #6B5B4E;
+  --color-text-light: #9B8B7E;
 
-  /* 辅助色 - 古铜 */
-  --color-copper: #b08d57;
-  --color-copper-light: #c9a96e;
+  --color-divider: rgba(74, 53, 38, 0.1);
+  --color-divider-strong: rgba(74, 53, 38, 0.18);
+  --color-shadow: rgba(44, 30, 20, 0.08);
+  --color-shadow-heavy: rgba(44, 30, 20, 0.16);
+  --color-shadow-deep: rgba(30, 18, 10, 0.25);
+  --color-shadow-deeper: rgba(30, 18, 10, 0.35);
 
-  /* 边框色 */
-  --color-border: #e5e3df;
-  --color-border-light: #f0ece5;
+  --color-vermillion: #C09A4B;
+  --color-vermillion-light: #D4B06A;
+  --color-vermillion-dark: #A68638;
+  --color-bamboo: #7A8E7A;
+  --color-bamboo-light: #9AAC9A;
+  --color-copper: #A68638;
+  --color-copper-light: #C09A4B;
 
-  /* 文字层级 */
-  --color-text-primary: #1a1a1a;
-  --color-text-secondary: #666666;
-  --color-text-muted: #999999;
-  --color-text-inverse: #fefefe;
+  --color-ink: #2B1D14;
+  --color-ink-light: #5C4434;
+  --color-ink-muted: #9B8B7E;
+  --color-paper: #EDE6D6;
+  --color-paper-white: #F5F0E8;
+  --color-paper-dark: #E5DDD0;
+  --color-border: rgba(74, 53, 38, 0.1);
+  --color-border-light: rgba(74, 53, 38, 0.06);
 
-  /* 字体 */
+  --color-text-primary: #2B1D14;
+  --color-text-secondary: #6B5B4E;
+  --color-text-muted: #9B8B7E;
+  --color-text-inverse: #F5F0E8;
+
   --font-display: 'Noto Serif SC', 'Songti SC', serif;
   --font-body: 'Noto Sans SC', 'PingFang SC', sans-serif;
   --font-accent: 'Crimson Pro', 'Georgia', serif;
 
-  /* 字号 */
   --text-xs: 12px;
   --text-sm: 14px;
   --text-base: 16px;
@@ -48,7 +63,6 @@
   --text-4xl: 36px;
   --text-5xl: 48px;
 
-  /* 间距 */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -60,26 +74,22 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  /* 圆角 */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-full: 9999px;
 
-  /* 阴影 */
-  --shadow-sm: 0 1px 2px rgba(26, 26, 26, 0.05);
-  --shadow-md: 0 4px 12px rgba(26, 26, 26, 0.08);
-  --shadow-lg: 0 8px 24px rgba(26, 26, 26, 0.12);
-  --shadow-xl: 0 16px 48px rgba(26, 26, 26, 0.16);
+  --shadow-sm: 0 1px 2px rgba(44, 30, 20, 0.05);
+  --shadow-md: 0 4px 12px rgba(44, 30, 20, 0.08);
+  --shadow-lg: 0 8px 24px rgba(44, 30, 20, 0.12);
+  --shadow-xl: 0 16px 48px rgba(44, 30, 20, 0.16);
 
-  /* 过渡 */
   --transition-fast: 150ms ease;
   --transition-base: 200ms ease;
   --transition-slow: 300ms ease;
   --transition-slower: 400ms ease-out;
 
-  /* 最大内容宽度 */
   --max-width: 1280px;
-  --header-height: 72px;
+  --header-height: 68px;
 }

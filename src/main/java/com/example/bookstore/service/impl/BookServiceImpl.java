@@ -18,7 +18,12 @@ import com.example.bookstore.vo.BookVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,10 +38,35 @@ public class BookServiceImpl implements BookService {
     public PageResult<BookVO> pageQuery(BookQueryDTO queryDTO) {
         Page<Book> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
         LambdaQueryWrapper<Book> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Book::getStatus, Constants.BOOK_STATUS_ON);
+        boolean hasPreorder = false;
+
+        if (queryDTO.getTag() != null) {
+            String[] tags = queryDTO.getTag().split(",");
+            for (String t : tags) {
+                switch (t.trim()) {
+                    case "preorder":
+                        hasPreorder = true;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        if (hasPreorder) {
+            wrapper.eq(Book::getStatus, 2);
+        } else {
+            wrapper.eq(Book::getStatus, Constants.BOOK_STATUS_ON);
+        }
+
+        if (queryDTO.getCategoryId() != null) {
+            wrapper.eq(Book::getCategoryId, queryDTO.getCategoryId());
+        }
+
+        applySort(wrapper, queryDTO.getSortBy());
 
         Page<Book> result = bookMapper.selectPage(page, wrapper);
-        List<BookVO> voList = result.getRecords().stream().map(this::convertToVO).collect(Collectors.toList());
+        List<BookVO> voList = convertToVOList(result.getRecords());
 
         PageResult<BookVO> pageResult = new PageResult<>();
         pageResult.setTotal(result.getTotal());
@@ -45,14 +75,43 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public PageResult<BookVO> findByCategory(Long categoryId, Integer pageNum, Integer pageSize) {
+    public PageResult<BookVO> findByCategory(Long categoryId, Integer pageNum, Integer pageSize, String sortBy,
+                                             BigDecimal minPrice, BigDecimal maxPrice, Integer minRating, String timeRange) {
         Page<Book> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Book> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Book::getStatus, Constants.BOOK_STATUS_ON)
                 .eq(Book::getCategoryId, categoryId);
 
+        if (minPrice != null) {
+            wrapper.ge(Book::getPrice, minPrice);
+        }
+        if (maxPrice != null) {
+            wrapper.le(Book::getPrice, maxPrice);
+        }
+
+        if (minRating != null) {
+            double threshold = minRating / 2.0;
+            wrapper.apply("(SELECT COALESCE(AVG(r.rating), 0) FROM review r WHERE r.book_id = book.id AND r.status = {0}) >= {1}",
+                    Constants.REVIEW_SHOW, threshold);
+        }
+
+        if (timeRange != null) {
+            LocalDate cutoff = switch (timeRange) {
+                case "1m" -> LocalDate.now().minusMonths(1);
+                case "3m" -> LocalDate.now().minusMonths(3);
+                case "6m" -> LocalDate.now().minusMonths(6);
+                case "1y" -> LocalDate.now().minusYears(1);
+                default -> null;
+            };
+            if (cutoff != null) {
+                wrapper.ge(Book::getPublishDate, cutoff);
+            }
+        }
+
+        applySort(wrapper, sortBy);
+
         Page<Book> result = bookMapper.selectPage(page, wrapper);
-        List<BookVO> voList = result.getRecords().stream().map(this::convertToVO).collect(Collectors.toList());
+        List<BookVO> voList = convertToVOList(result.getRecords());
 
         PageResult<BookVO> pageResult = new PageResult<>();
         pageResult.setTotal(result.getTotal());
@@ -72,7 +131,7 @@ public class BookServiceImpl implements BookService {
                         .like(Book::getIsbn, keyword));
 
         Page<Book> result = bookMapper.selectPage(page, wrapper);
-        List<BookVO> voList = result.getRecords().stream().map(this::convertToVO).collect(Collectors.toList());
+        List<BookVO> voList = convertToVOList(result.getRecords());
 
         PageResult<BookVO> pageResult = new PageResult<>();
         pageResult.setTotal(result.getTotal());
@@ -124,6 +183,88 @@ public class BookServiceImpl implements BookService {
         return vo;
     }
 
+    private void applySort(LambdaQueryWrapper<Book> wrapper, String sortBy) {
+        if (sortBy == null || sortBy.isEmpty() || "default".equals(sortBy)) return;
+        switch (sortBy) {
+            case "price_asc":
+                wrapper.orderByAsc(Book::getPrice);
+                break;
+            case "price_desc":
+                wrapper.orderByDesc(Book::getPrice);
+                break;
+            case "sales_desc":
+                wrapper.orderByDesc(Book::getSales);
+                break;
+            case "publish_desc":
+                wrapper.orderByDesc(Book::getPublishDate);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private List<BookVO> convertToVOList(List<Book> books) {
+        if (books.isEmpty()) return Collections.emptyList();
+
+        Set<Long> bookIds = books.stream().map(Book::getId).collect(Collectors.toSet());
+
+        Map<Long, double[]> reviewStats = reviewMapper.selectList(
+                new LambdaQueryWrapper<Review>()
+                        .in(Review::getBookId, bookIds)
+                        .eq(Review::getStatus, Constants.REVIEW_SHOW)
+        ).stream()
+                .collect(Collectors.groupingBy(
+                        Review::getBookId,
+                        Collectors.collectingAndThen(
+                                Collectors.toList(),
+                                list -> {
+                                    double avg = list.stream().mapToInt(Review::getRating).average().orElse(0.0);
+                                    return new double[]{avg, list.size()};
+                                }
+                        )
+                ));
+
+        Map<Long, String> categoryNames = books.stream()
+                .map(Book::getCategoryId)
+                .filter(id -> id != null)
+                .distinct()
+                .collect(Collectors.toMap(
+                        id -> id,
+                        id -> {
+                            Category cat = categoryMapper.selectById(id);
+                            return cat != null ? cat.getName() : null;
+                        }
+                ));
+
+        return books.stream().map(book -> {
+            BookVO vo = new BookVO();
+            vo.setId(book.getId());
+            vo.setIsbn(book.getIsbn());
+            vo.setTitle(book.getTitle());
+            vo.setAuthor(book.getAuthor());
+            vo.setPublisher(book.getPublisher());
+            vo.setPublishDate(book.getPublishDate());
+            vo.setPrice(book.getPrice());
+            vo.setStock(book.getStock());
+            vo.setSales(book.getSales());
+            vo.setCategoryId(book.getCategoryId());
+            vo.setCategoryName(categoryNames.get(book.getCategoryId()));
+            vo.setCoverUrl(book.getCoverUrl());
+            vo.setStatus(book.getStatus());
+
+            double[] stats = reviewStats.get(book.getId());
+            if (stats != null) {
+                vo.setAvgRating(stats[0]);
+                vo.setReviewCount((int) stats[1]);
+            } else {
+                vo.setAvgRating(0.0);
+                vo.setReviewCount(0);
+            }
+
+            return vo;
+        }).collect(Collectors.toList());
+    }
+
     private BookVO convertToVO(Book book) {
         BookVO vo = new BookVO();
         vo.setId(book.getId());
@@ -131,8 +272,10 @@ public class BookServiceImpl implements BookService {
         vo.setTitle(book.getTitle());
         vo.setAuthor(book.getAuthor());
         vo.setPublisher(book.getPublisher());
+        vo.setPublishDate(book.getPublishDate());
         vo.setPrice(book.getPrice());
         vo.setStock(book.getStock());
+        vo.setSales(book.getSales());
         vo.setCategoryId(book.getCategoryId());
         vo.setCoverUrl(book.getCoverUrl());
         vo.setStatus(book.getStatus());
@@ -142,6 +285,19 @@ public class BookServiceImpl implements BookService {
             if (category != null) {
                 vo.setCategoryName(category.getName());
             }
+        }
+
+        LambdaQueryWrapper<Review> reviewWrapper = new LambdaQueryWrapper<>();
+        reviewWrapper.eq(Review::getBookId, book.getId()).eq(Review::getStatus, Constants.REVIEW_SHOW);
+        List<Review> reviews = reviewMapper.selectList(reviewWrapper);
+
+        if (!reviews.isEmpty()) {
+            double avgRating = reviews.stream().mapToInt(Review::getRating).average().orElse(0.0);
+            vo.setAvgRating(avgRating);
+            vo.setReviewCount(reviews.size());
+        } else {
+            vo.setAvgRating(0.0);
+            vo.setReviewCount(0);
         }
 
         return vo;

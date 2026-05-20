@@ -3,7 +3,6 @@
     <div class="page-container">
       <h1 class="page-title">我的购物车</h1>
 
-      <!-- 加载状态 -->
       <div v-if="loading" class="cart-loading">
         <div v-for="i in 3" :key="i" class="skeleton-item">
           <div class="skeleton cover"></div>
@@ -15,7 +14,6 @@
         </div>
       </div>
 
-      <!-- 购物车为空 -->
       <div v-else-if="!cartStore.items.length" class="empty-cart">
         <div class="empty-icon">📚</div>
         <h2>购物车空空如也</h2>
@@ -23,7 +21,6 @@
         <router-link to="/books" class="btn-browse">浏览书籍</router-link>
       </div>
 
-      <!-- 购物车内容 -->
       <div v-else class="cart-content">
         <div class="cart-main">
           <div class="cart-items">
@@ -95,7 +92,7 @@ const loading = ref(true)
 const handleUpdateQuantity = async (item, newQuantity) => {
   if (newQuantity < 1) return
   try {
-      await cartApi.update({ id: item.id, quantity: newQuantity })
+    await cartApi.update({ id: item.id, quantity: newQuantity })
     item.quantity = newQuantity
   } catch (error) {
     ElMessage.error('更新数量失败')
@@ -128,7 +125,7 @@ onMounted(async () => {
 .cart-page {
   padding: var(--space-8) 0 var(--space-16);
   min-height: calc(100vh - var(--header-height));
-  background: var(--color-paper);
+  background: var(--color-bg);
 }
 
 .page-container {
@@ -140,10 +137,10 @@ onMounted(async () => {
 .page-title {
   font-family: var(--font-display);
   font-size: var(--text-2xl);
-  color: var(--color-ink);
+  color: var(--color-text);
   margin-bottom: var(--space-8);
   padding-bottom: var(--space-4);
-  border-bottom: 2px solid var(--color-vermillion);
+  border-bottom: 2px solid var(--color-accent);
 }
 
 .cart-loading {
@@ -156,12 +153,13 @@ onMounted(async () => {
   display: flex;
   gap: var(--space-4);
   padding: var(--space-4);
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
+  border: 1px solid var(--color-divider);
 }
 
 .skeleton {
-  background: linear-gradient(90deg, var(--color-paper-dark) 25%, var(--color-paper-white) 50%, var(--color-paper-dark) 75%);
+  background: linear-gradient(90deg, var(--color-divider) 25%, var(--color-bg-cream) 50%, var(--color-divider) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-md);
@@ -202,8 +200,9 @@ onMounted(async () => {
 .empty-cart {
   text-align: center;
   padding: var(--space-16) 0;
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
+  border: 1px solid var(--color-divider);
 }
 
 .empty-icon {
@@ -214,7 +213,7 @@ onMounted(async () => {
 .empty-cart h2 {
   font-family: var(--font-display);
   font-size: var(--text-xl);
-  color: var(--color-ink);
+  color: var(--color-text);
   margin-bottom: var(--space-2);
 }
 
@@ -226,16 +225,18 @@ onMounted(async () => {
 .btn-browse {
   display: inline-block;
   padding: var(--space-3) var(--space-8);
-  background: var(--color-vermillion);
-  color: white;
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-muted) 100%);
+  color: var(--color-primary-abyss);
   text-decoration: none;
   border-radius: var(--radius-md);
-  font-weight: 500;
-  transition: background var(--transition-fast);
+  font-weight: 700;
+  transition: all var(--transition-fast);
+  box-shadow: 0 2px 12px rgba(192,154,75,0.2);
 }
 
 .btn-browse:hover {
-  background: var(--color-vermillion-light);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(192,154,75,0.3);
 }
 
 .cart-content {
@@ -258,8 +259,9 @@ onMounted(async () => {
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-4);
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
+  border: 1px solid var(--color-divider);
   transition: box-shadow var(--transition-fast);
 }
 
@@ -294,6 +296,7 @@ onMounted(async () => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--color-text);
 }
 
 .item-author {
@@ -303,15 +306,15 @@ onMounted(async () => {
 }
 
 .item-price {
-  font-family: var(--font-accent);
+  font-family: var(--font-display);
   font-size: var(--text-lg);
-  color: var(--color-copper);
+  color: var(--color-accent-muted);
 }
 
 .item-quantity {
   display: flex;
   align-items: center;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-divider-strong);
   border-radius: var(--radius-md);
 }
 
@@ -319,14 +322,15 @@ onMounted(async () => {
   width: 32px;
   height: 36px;
   border: none;
-  background: var(--color-paper-dark);
+  background: var(--color-bg-cream);
   font-size: 16px;
   cursor: pointer;
   transition: background var(--transition-fast);
+  color: var(--color-text-secondary);
 }
 
 .item-quantity button:hover:not(:disabled) {
-  background: var(--color-border);
+  background: var(--color-divider);
 }
 
 .item-quantity button:disabled {
@@ -338,6 +342,7 @@ onMounted(async () => {
   width: 40px;
   text-align: center;
   font-size: var(--text-base);
+  color: var(--color-text);
 }
 
 .item-subtotal {
@@ -353,16 +358,16 @@ onMounted(async () => {
 }
 
 .subtotal-value {
-  font-family: var(--font-accent);
+  font-family: var(--font-display);
   font-size: var(--text-lg);
   font-weight: 600;
-  color: var(--color-vermillion);
+  color: var(--color-accent);
 }
 
 .item-remove {
   padding: var(--space-2) var(--space-3);
   background: none;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-divider-strong);
   border-radius: var(--radius-md);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
@@ -371,8 +376,8 @@ onMounted(async () => {
 }
 
 .item-remove:hover {
-  border-color: var(--color-vermillion);
-  color: var(--color-vermillion);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 .cart-sidebar {
@@ -384,9 +389,9 @@ onMounted(async () => {
   position: sticky;
   top: calc(var(--header-height) + var(--space-6));
   padding: var(--space-6);
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-divider);
 }
 
 .order-summary h3 {
@@ -394,7 +399,8 @@ onMounted(async () => {
   font-size: var(--text-lg);
   margin-bottom: var(--space-4);
   padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-divider);
+  color: var(--color-text);
 }
 
 .summary-row {
@@ -409,34 +415,36 @@ onMounted(async () => {
 .summary-row.total {
   margin-top: var(--space-4);
   padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-divider);
   font-weight: 600;
   font-size: var(--text-base);
-  color: var(--color-ink);
+  color: var(--color-text);
 }
 
 .total-amount {
-  font-family: var(--font-accent);
+  font-family: var(--font-display);
   font-size: var(--text-xl);
-  color: var(--color-vermillion);
+  color: var(--color-accent);
 }
 
 .btn-checkout {
   width: 100%;
   padding: var(--space-4);
   margin-top: var(--space-4);
-  background: var(--color-vermillion);
-  color: white;
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-muted) 100%);
+  color: var(--color-primary-abyss);
   border: none;
   border-radius: var(--radius-md);
   font-size: var(--text-base);
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: all var(--transition-fast);
+  box-shadow: 0 2px 12px rgba(192,154,75,0.2);
 }
 
 .btn-checkout:hover {
-  background: var(--color-vermillion-light);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(192,154,75,0.3);
 }
 
 .btn-continue {
@@ -450,7 +458,7 @@ onMounted(async () => {
 }
 
 .btn-continue:hover {
-  color: var(--color-vermillion);
+  color: var(--color-accent);
 }
 
 @media (max-width: 768px) {

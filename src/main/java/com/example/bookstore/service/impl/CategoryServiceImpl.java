@@ -26,7 +26,14 @@ public class CategoryServiceImpl implements CategoryService {
         LambdaQueryWrapper<Category> wrapper = new LambdaQueryWrapper<>();
         wrapper.orderByAsc(Category::getSort);
         List<Category> categories = categoryMapper.selectList(wrapper);
-        return categories.stream().map(this::convertToVO).collect(Collectors.toList());
+        return categories.stream().map(cat -> {
+            CategoryVO vo = convertToVO(cat);
+            Long count = bookMapper.selectCount(
+                new LambdaQueryWrapper<Book>().eq(Book::getCategoryId, cat.getId())
+            );
+            vo.setBookCount(count.intValue());
+            return vo;
+        }).collect(Collectors.toList());
     }
 
     @Override

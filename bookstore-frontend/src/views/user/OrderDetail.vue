@@ -373,7 +373,7 @@ onMounted(() => {
 .order-detail-page {
   padding: var(--space-8) 0 var(--space-16);
   min-height: calc(100vh - var(--header-height));
-  background: var(--color-paper);
+  background: var(--color-bg);
 }
 
 .page-container {
@@ -385,10 +385,10 @@ onMounted(() => {
 .page-title {
   font-family: var(--font-display);
   font-size: var(--text-2xl);
-  color: var(--color-ink);
+  color: var(--color-text);
   margin-bottom: var(--space-8);
   padding-bottom: var(--space-4);
-  border-bottom: 2px solid var(--color-vermillion);
+  border-bottom: 2px solid var(--color-accent);
 }
 
 .detail-loading {
@@ -396,13 +396,13 @@ onMounted(() => {
 }
 
 .skeleton-section {
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
 }
 
 .skeleton {
-  background: linear-gradient(90deg, var(--color-paper-dark) 25%, var(--color-paper-white) 50%, var(--color-paper-dark) 75%);
+  background: linear-gradient(90deg, var(--color-bg-cream) 25%, var(--color-bg-card) 50%, var(--color-bg-cream) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-md);
@@ -424,7 +424,7 @@ onMounted(() => {
 }
 
 .section {
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
   margin-bottom: var(--space-6);
@@ -435,12 +435,12 @@ onMounted(() => {
   font-size: var(--text-lg);
   margin-bottom: var(--space-4);
   padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-divider);
 }
 
 /* Status Progress */
 .status-section {
-  background: linear-gradient(135deg, var(--color-ink) 0%, var(--color-ink-light) 100%);
+  background: linear-gradient(135deg, var(--color-text) 0%, var(--color-primary-abyss) 100%);
   color: white;
 }
 
@@ -481,12 +481,12 @@ onMounted(() => {
 }
 
 .progress-step.completed .step-indicator {
-  background: var(--color-bamboo);
+  background: var(--color-primary);
 }
 
 .progress-step.active .step-indicator {
-  background: var(--color-vermillion);
-  box-shadow: 0 0 0 4px rgba(201, 64, 67, 0.3);
+  background: var(--color-accent);
+  box-shadow: 0 0 0 4px rgba(192, 154, 75, 0.3);
 }
 
 .check-icon {
@@ -512,7 +512,7 @@ onMounted(() => {
 /* Address */
 .address-card {
   padding: var(--space-4);
-  background: var(--color-paper);
+  background: var(--color-bg);
   border-radius: var(--radius-md);
 }
 
@@ -548,7 +548,7 @@ onMounted(() => {
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-3);
-  background: var(--color-paper);
+  background: var(--color-bg);
   border-radius: var(--radius-md);
 }
 
@@ -587,8 +587,8 @@ onMounted(() => {
 }
 
 .item-price {
-  font-family: var(--font-accent);
-  color: var(--color-copper);
+  font-family: var(--font-display);
+  color: var(--color-accent-muted);
   min-width: 70px;
 }
 
@@ -600,9 +600,9 @@ onMounted(() => {
 }
 
 .item-subtotal {
-  font-family: var(--font-accent);
+  font-family: var(--font-display);
   font-weight: 600;
-  color: var(--color-vermillion);
+  color: var(--color-accent);
   min-width: 80px;
   text-align: right;
 }
@@ -622,23 +622,23 @@ onMounted(() => {
 }
 
 .summary-row .order-no {
-  font-family: var(--font-accent);
-  color: var(--color-ink);
+  font-family: var(--font-display);
+  color: var(--color-text);
 }
 
 .summary-row.total {
   margin-top: var(--space-4);
   padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-divider);
   font-weight: 600;
   font-size: var(--text-base);
-  color: var(--color-ink);
+  color: var(--color-text);
 }
 
 .total-amount {
-  font-family: var(--font-accent);
+  font-family: var(--font-display);
   font-size: var(--text-xl);
-  color: var(--color-vermillion);
+  color: var(--color-accent);
 }
 
 /* Actions */
@@ -650,7 +650,7 @@ onMounted(() => {
 
 .pay-hint {
   font-size: var(--text-sm);
-  color: var(--color-vermillion);
+  color: var(--color-accent);
 }
 
 .pay-hint strong {
@@ -674,7 +674,7 @@ onMounted(() => {
 }
 
 .btn-pay {
-  background: var(--color-vermillion);
+  background: var(--color-accent);
   border: none;
   color: white;
 }
@@ -684,18 +684,18 @@ onMounted(() => {
 }
 
 .btn-cancel {
-  background: var(--color-paper-white);
-  border: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-divider);
   color: var(--color-text-secondary);
 }
 
 .btn-cancel:hover {
-  border-color: var(--color-vermillion);
-  color: var(--color-vermillion);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 .btn-logistics {
-  background: var(--color-bamboo);
+  background: var(--color-primary);
   border: none;
   color: white;
 }
@@ -705,7 +705,7 @@ onMounted(() => {
 }
 
 .btn-confirm {
-  background: var(--color-copper);
+  background: var(--color-accent-muted);
   border: none;
   color: white;
 }
@@ -715,14 +715,14 @@ onMounted(() => {
 }
 
 .btn-back {
-  background: var(--color-paper-dark);
-  border: 1px solid var(--color-border);
+  background: var(--color-bg-cream);
+  border: 1px solid var(--color-divider);
   color: var(--color-text-secondary);
 }
 
 .btn-back:hover {
-  border-color: var(--color-copper);
-  color: var(--color-copper);
+  border-color: var(--color-accent-muted);
+  color: var(--color-accent-muted);
 }
 
 /* Payment Methods */
@@ -819,11 +819,11 @@ onMounted(() => {
   display: flex;
   gap: var(--space-4);
   padding-left: var(--space-4);
-  border-left: 2px solid var(--color-border);
+  border-left: 2px solid var(--color-divider);
 }
 
 .logistics-item.latest {
-  border-left-color: var(--color-vermillion);
+  border-left-color: var(--color-accent);
 }
 
 .log-time {
@@ -838,7 +838,7 @@ onMounted(() => {
 }
 
 .logistics-item.latest .log-detail {
-  color: var(--color-ink);
+  color: var(--color-text);
   font-weight: 500;
 }
 

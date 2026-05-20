@@ -314,12 +314,12 @@ onMounted(() => {
 }
 
 .add-btn {
-  background: var(--color-vermillion);
-  border-color: var(--color-vermillion);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .books-table {
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
 }
 
@@ -331,9 +331,9 @@ onMounted(() => {
 }
 
 .price {
-  font-family: var(--font-accent);
+  font-family: var(--font-display);
   font-weight: 600;
-  color: var(--color-copper);
+  color: var(--color-primary);
 }
 
 .pagination-wrapper {

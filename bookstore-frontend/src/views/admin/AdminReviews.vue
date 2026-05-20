@@ -137,7 +137,7 @@ onMounted(() => {
 }
 
 .reviews-table {
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
 }
 
@@ -149,11 +149,11 @@ onMounted(() => {
 
 .star {
   font-size: 14px;
-  color: var(--color-border);
+  color: var(--color-divider);
 }
 
 .star.filled {
-  color: var(--color-copper);
+  color: var(--color-accent);
 }
 
 .pagination-wrapper {

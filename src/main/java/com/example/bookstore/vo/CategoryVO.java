@@ -16,4 +16,6 @@ public class CategoryVO {
     private Long parentId;
 
     private Integer sort;
+
+    private Integer bookCount;
 }

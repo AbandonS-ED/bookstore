@@ -160,18 +160,18 @@ onMounted(() => {
 .page-header h1 {
   font-family: var(--font-display);
   font-size: var(--text-2xl);
-  color: var(--color-ink);
+  color: var(--color-text);
 }
 
 .settings-card {
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
   max-width: 600px;
 }
 
 .settings-section {
   padding: var(--space-8);
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-divider);
 }
 
 .settings-section:last-child {
@@ -181,7 +181,7 @@ onMounted(() => {
 .settings-section h2 {
   font-family: var(--font-display);
   font-size: var(--text-lg);
-  color: var(--color-ink);
+  color: var(--color-text);
   margin-bottom: var(--space-6);
 }
 

@@ -211,14 +211,14 @@ onMounted(() => {
 }
 
 .orders-table {
-  background: var(--color-paper-white);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
 }
 
 .amount {
-  font-family: var(--font-accent);
+  font-family: var(--font-display);
   font-weight: 600;
-  color: var(--color-copper);
+  color: var(--color-primary);
 }
 
 .pagination-wrapper {
@@ -243,9 +243,9 @@ onMounted(() => {
 .detail-section h4 {
   font-size: var(--text-base);
   font-weight: 600;
-  color: var(--color-ink);
+  color: var(--color-text);
   margin-bottom: var(--space-4);
   padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-divider);
 }
 </style>
