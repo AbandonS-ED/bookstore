@@ -268,7 +268,7 @@
 ```
 bookstore-frontend/
 ├── index.html
-├── vite.config.js
+├── vite.config.js                  # Vite配置（代理/api、/admin、/pictures到8081）
 ├── package.json
 ├── public/
 ├── src/

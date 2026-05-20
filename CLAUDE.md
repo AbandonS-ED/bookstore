@@ -50,15 +50,31 @@ npm run dev
 npm run build
 ```
 
-## 数据库初始化
+## 快速启动
 
-运行应用前需先初始化数据库：
+### 1. 数据库初始化
 
 ```bash
 mysql -u root -p < sql/init.sql
 ```
 
 将创建包含8张表的数据库 `bookstore`：`user`、`category`、`book`、`address`、`cart`、`order`、`order_item`、`review`。
+
+### 2. 启动后端（端口 8081）
+
+```bash
+mvn spring-boot:run
+```
+
+### 3. 启动前端（端口 5173）
+
+```bash
+cd bookstore-frontend
+npm install  # 首次运行需安装依赖
+npm run dev
+```
+
+前端开发服务器通过 Vite 代理将 `/api`、`/admin` 和 `/pictures` 请求转发到后端 `http://localhost:8081`。
 
 **默认管理员账号：** 用户名 `admin`，密码 `123456`（BCrypt加密）
 
@@ -93,7 +109,9 @@ com.example.bookstore/
 ### 配置文件
 
 主配置位于 `src/main/resources/application.yml`：
-- 后端服务端口：**8081**（API服务）
+
+- 后端服务端口：**8081**（REST API 服务，纯接口，无前端页面）
+- 前端开发服务器：**5173**（Vite 热重载，通过代理访问后端 API）
 - 数据库：**localhost:3306/bookstore**
 - MyBatis-Plus XML映射：`classpath:mapper/*.xml`
 - CORS已配置允许前端开发服务器（如 localhost:5173）访问
@@ -126,6 +144,7 @@ MyBatis-Plus 雪花算法生成 **19位 Long 类型 ID**，直接序列化到 JS
 **代理规则**（vite.config.js）：
 - `/api/xxx` → 后端 `http://localhost:8081/api/xxx`
 - `/admin/xxx` → 后端 `http://localhost:8081/admin/xxx`（注意路径直接是 `/admin` 不是 `/api/admin`）
+- `/pictures/xxx` → 后端 `http://localhost:8081/pictures/xxx`（封面图片）
 
 前端调用示例：
 ```js
