@@ -95,7 +95,8 @@ com.example.bookstore/
 ├── vo/             # 视图对象（格式化API响应）
 ├── common/         # Result统一响应、Constants常量、BaseEntity基类
 ├── exception/      # BusinessException、GlobalExceptionHandler全局异常处理
-└── util/           # SecurityUtils、OrderNoGenerator、StringUtils、DateUtils
+├── interceptor/    # AuthInterceptor、AdminInterceptor（认证和授权拦截器）
+└── util/           # SecurityUtils、OrderNoGenerator、StringUtils、DateUtils、JwtUtils、AuthContext
 ```
 
 ### 核心设计模式
@@ -167,7 +168,7 @@ src/views/admin/
 
 ### 书籍排序
 
-支持 `sortBy` 参数：`price_asc`（价格升序）、`price_desc`（价格降序）、`new`（最新）
+支持 `sortBy` 参数：`price_asc`（价格升序）、`price_desc`（价格降序）、`sales_desc`（销量从高到低）、`publish_desc`（出版时间从新到旧）
 
 ### 前端 API 结构（关键）
 

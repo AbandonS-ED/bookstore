@@ -33,9 +33,9 @@ MyBatis-Plus 的 `ASSIGN_ID` 生成 19 位 Long，超出 JS 的 `Number.MAX_SAFE
 - **Spring Boot 3.2.5** + **MyBatis-Plus 3.5.6**（`classpath:mapper/*.xml` 已配置但项目中没用 XML 映射文件）
 - **Controller → Service → Mapper**，DTO 入 / VO 出，统一包装为 `Result<T>(code,message,data)`
 - **分页**：书籍查询用 `PageResult<T>(total,records)`；后台管理用 MyBatis-Plus 的 `Page<Entity>`；由 `PaginationInnerInterceptor` 支持
-- **认证**：`AuthInterceptor`（位于 `interceptor/` 包）拦截 `/api/user/*`、`/api/address/**`、`/api/cart/**`、`/api/order/**`、`/api/review/add`、`/admin/**`——验证 JWT（`Authorization: Bearer <token>`），用户信息存到 `AuthContext`（ThreadLocal）
-- **管理员**：`AdminInterceptor` 检查角色是否为 `admin`
-- **密码**：BCrypt（仅 `spring-security-crypto`，没有完整的 Spring Security）；**JWT**：HMAC-SHA384（jjwt 0.12.5），24 小时过期，密钥在 `application.yml` 的 `jwt.secret`
+- **认证**：`AuthInterceptor`（位于 `interceptor/` 包）拦截需登录的路径——验证 JWT（`Authorization: Bearer <token>`），用户信息存到 `AuthContext`（ThreadLocal）
+- **管理员**：`AdminInterceptor` 检查角色是否为 `admin`（拦截 `/admin/` 路径）
+- **JWT**：HMAC-SHA（jjwt 0.12.5），24 小时过期，密钥在 `application.yml` 的 `jwt.secret`
 - **订单状态**：`pending → paid → shipped → delivered → completed`；`pending → cancelled`；`paid/shipped → refunded`（**Constants 中定义了，但服务层没有实现退款逻辑**）
 - **拦截器**放在 `interceptor/` 包下，不在 `config/`
 - `@MapperScan("com.example.bookstore.mapper")` 在 `BookstoreApplication.java` 中
