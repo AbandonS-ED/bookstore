@@ -31,7 +31,7 @@ public class PaymentServiceImpl implements PaymentService {
         if (order == null || !order.getUserId().equals(userId)) {
             throw new BusinessException(1, "订单不存在");
         }
-        if (!Constants.ORDER_STATUS_CREATED.equals(order.getStatus())) {
+        if (!Constants.ORDER_STATUS_CREATED.equals(order.getStatus()) && !Constants.ORDER_STATUS_PENDING.equals(order.getStatus())) {
             throw new BusinessException(1, "订单状态不允许支付");
         }
 

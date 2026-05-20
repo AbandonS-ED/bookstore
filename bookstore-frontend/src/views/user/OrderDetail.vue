@@ -100,13 +100,13 @@
         <div class="section actions-section">
           <div class="actions-content">
             <div class="actions-left">
-              <span v-if="order.status === 'created' || order.status === 'paying'" class="pay-hint">
+              <span v-if="order.status === 'created' || order.status === 'pending' || order.status === 'paying'" class="pay-hint">
                 请在 <strong>{{ order.expireTime }}</strong> 前完成支付，逾期订单将自动取消
               </span>
             </div>
             <div class="actions-right">
               <button
-                v-if="order.status === 'created'"
+                v-if="order.status === 'created' || order.status === 'pending'"
                 class="btn-pay"
                 @click="showPaymentDialog = true"
               >
@@ -120,7 +120,7 @@
                 继续支付
               </button>
               <button
-                v-if="order.status === 'created' || order.status === 'paying'"
+                v-if="order.status === 'created' || order.status === 'pending' || order.status === 'paying'"
                 class="btn-cancel"
                 @click="handleCancel"
               >
@@ -241,25 +241,29 @@ const statusSteps = computed(() => [
   { key: 'delivered', label: '确认收货', time: null }
 ])
 
+const normalizeStatus = (s) => s === 'pending' ? 'created' : s
+
 const statusOrder = ['created', 'paying', 'paid', 'shipped', 'delivered', 'completed', 'cancelled']
 
 const isStepActive = (stepKey) => {
-  if (order.value?.status === 'cancelled') {
+  const status = normalizeStatus(order.value?.status)
+  if (status === 'cancelled') {
     return stepKey === 'created'
   }
-  if (order.value?.status === 'expired') {
+  if (status === 'expired') {
     return stepKey === 'created'
   }
-  const currentIndex = statusOrder.indexOf(order.value?.status)
+  const currentIndex = statusOrder.indexOf(status)
   const stepIndex = statusOrder.indexOf(stepKey)
   return stepIndex === currentIndex
 }
 
 const isStepCompleted = (stepKey) => {
-  if (order.value?.status === 'cancelled' || order.value?.status === 'expired') {
+  const status = normalizeStatus(order.value?.status)
+  if (status === 'cancelled' || status === 'expired') {
     return false
   }
-  const currentIndex = statusOrder.indexOf(order.value?.status)
+  const currentIndex = statusOrder.indexOf(status)
   const stepIndex = statusOrder.indexOf(stepKey)
   return stepIndex < currentIndex
 }

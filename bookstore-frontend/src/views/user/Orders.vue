@@ -206,21 +206,8 @@ const goToDetail = (id) => {
   router.push(`/order/${id}`)
 }
 
-const handlePay = async (id) => {
-  try {
-    await ElMessageBox.confirm('确认支付该订单？', '支付确认', {
-      confirmButtonText: '确认支付',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await orderStore.payOrder(id)
-    ElMessage.success('支付成功')
-    fetchOrders()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('支付失败')
-    }
-  }
+const handlePay = (id) => {
+  router.push(`/order/${id}`)
 }
 
 const handleCancel = async (id) => {
