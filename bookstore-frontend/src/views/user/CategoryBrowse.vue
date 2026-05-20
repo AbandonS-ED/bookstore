@@ -282,7 +282,7 @@ const buildTree = (flatList) => {
   const roots = []
   const orphans = []
   flatList.forEach(cat => {
-    if (cat.parentId === '0' || cat.parentId === 0 || cat.parentId === '' || cat.parentId === null) {
+    if (cat.parentId === '0' || cat.parentId === '' || cat.parentId === null) {
       roots.push(map[cat.id])
     } else if (map[cat.parentId]) {
       map[cat.parentId].children.push(map[cat.id])

@@ -35,7 +35,7 @@ export const useCartStore = defineStore('cart', {
     },
 
     async updateQuantity(bookId, quantity) {
-      const item = this.items.find(i => i.bookId === bookId)
+      const item = this.items.find(i => String(i.bookId) === String(bookId))
       if (!item) return
       await cartApi.update({ id: item.id, quantity })
       item.quantity = quantity
