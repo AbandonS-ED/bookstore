@@ -1,59 +1,90 @@
 <template>
   <div class="admin-layout">
-    <!-- 侧边栏 -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <router-link to="/admin" class="logo">
-          <span class="logo-icon">📚</span>
-          <span class="logo-text">书斋管理</span>
-        </router-link>
+    <!-- Overlay for mobile -->
+    <div class="sidebar-overlay" :class="{ show: sidebarOpen }" @click="sidebarOpen = false"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" :class="{ open: sidebarOpen }">
+      <div class="sidebar-logo">
+        <div class="logo-icon">📖</div>
+        <div>
+          <div class="logo-text">拾光书屋</div>
+          <span class="logo-sub">ADMIN CONSOLE</span>
+        </div>
       </div>
 
       <nav class="sidebar-nav">
-        <router-link
-          v-for="item in menuItems"
-          :key="item.path"
-          :to="item.path"
-          class="nav-item"
-          :class="{ active: isActive(item.path) }"
-        >
-          <span class="nav-icon">{{ item.icon }}</span>
-          <span class="nav-label">{{ item.label }}</span>
-        </router-link>
+        <template v-for="(section, sIdx) in menuSections" :key="sIdx">
+          <div class="sidebar-section">
+            <div class="sidebar-section-title">{{ section.title }}</div>
+            <router-link
+              v-for="item in section.items"
+              :key="item.path"
+              :to="item.path"
+              class="sidebar-item"
+              :class="{ active: isActive(item) }"
+            >
+              <span class="item-icon">{{ item.icon }}</span>
+              <span class="item-label">{{ item.label }}</span>
+              <span v-if="item.badge" class="item-badge" :class="{ warn: item.badgeWarn }">{{ item.badge }}</span>
+            </router-link>
+          </div>
+        </template>
       </nav>
 
-      <div class="sidebar-footer">
-        <div class="admin-info">
-          <div class="admin-avatar">{{ adminUsername?.[0]?.toUpperCase() }}</div>
-          <div class="admin-details">
-            <span class="admin-name">{{ adminUsername }}</span>
-            <span class="admin-role">管理员</span>
+      <div class="sidebar-bottom">
+        <div class="sidebar-user" @click="sidebarOpen = false">
+          <div class="avatar">{{ adminUsername?.[0]?.toUpperCase() }}</div>
+          <div class="user-info">
+            <div class="name">{{ adminUsername }}</div>
+            <div class="role">超级管理员</div>
           </div>
         </div>
-        <router-link to="/" class="back-btn">
-          <span class="back-icon">←</span>
-          <span>返回前台</span>
-        </router-link>
-        <button class="logout-btn" @click="handleLogout">
-          <span>退出登录</span>
-        </button>
+        <div class="sidebar-actions">
+          <router-link to="/" class="action-link">
+            <span class="action-icon">←</span>
+            <span>返回前台</span>
+          </router-link>
+          <button class="action-link logout" @click="handleLogout">
+            <span class="action-icon">⊘</span>
+            <span>退出登录</span>
+          </button>
+        </div>
       </div>
     </aside>
 
-    <!-- 主内容区 -->
-    <div class="main-wrapper">
-      <header class="top-header">
+    <!-- Main -->
+    <div class="main">
+      <!-- Header -->
+      <header class="header">
         <div class="header-left">
-          <h1 class="page-title">{{ currentPageTitle }}</h1>
+          <button class="menu-toggle" @click="sidebarOpen = !sidebarOpen">
+            <span></span><span></span><span></span>
+          </button>
+          <h2>{{ currentPageTitle }}</h2>
+          <div class="breadcrumb">
+            <span>管理后台</span> / <span id="breadcrumbPage">{{ currentSectionTitle }}</span>
+          </div>
         </div>
         <div class="header-right">
-          <span class="header-time">{{ currentTime }}</span>
+          <div class="header-search">
+            <span class="s-icon">🔍</span>
+            <input type="text" placeholder="搜索书籍、订单、用户...">
+          </div>
+          <button class="header-icon-btn" title="通知">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="dot"></span>
+          </button>
+          <button class="header-icon-btn" title="前台预览" @click="router.push('/')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/></svg>
+          </button>
         </div>
       </header>
 
-      <main class="main-content">
+      <!-- Content -->
+      <div class="content">
         <router-view />
-      </main>
+      </div>
     </div>
   </div>
 </template>
@@ -68,41 +99,66 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
-const currentTime = ref('')
-let timeInterval = null
+const sidebarOpen = ref(false)
+
+const handleSidebarResize = () => {
+  if (window.innerWidth > 768) sidebarOpen.value = false
+}
 
 const adminUsername = computed(() => userStore.username)
 
-const menuItems = [
-  { path: '/admin', icon: '📊', label: 'Dashboard', exact: true },
-  { path: '/admin/books', icon: '📚', label: '书籍管理' },
-  { path: '/admin/categories', icon: '📁', label: '分类管理' },
-  { path: '/admin/orders', icon: '📦', label: '订单管理' },
-  { path: '/admin/users', icon: '👥', label: '用户管理' },
-  { path: '/admin/reviews', icon: '💬', label: '评论管理' }
+const menuSections = [
+  {
+    title: '概览',
+    items: [
+      { path: '/admin', icon: '📊', label: '仪表盘', exact: true }
+    ]
+  },
+  {
+    title: '商品管理',
+    items: [
+      { path: '/admin/books', icon: '📚', label: '书籍管理' },
+      { path: '/admin/categories', icon: '📂', label: '分类管理' }
+    ]
+  },
+  {
+    title: '交易管理',
+    items: [
+      { path: '/admin/orders', icon: '🧾', label: '订单管理' }
+    ]
+  },
+  {
+    title: '用户与运营',
+    items: [
+      { path: '/admin/users', icon: '👥', label: '用户管理' },
+      { path: '/admin/reviews', icon: '✍️', label: '评价审核', badge: '12', badgeWarn: true }
+    ]
+  }
 ]
 
 const currentPageTitle = computed(() => {
-  const item = menuItems.find(m => route.path === m.path || (m.path !== '/admin' && route.path.startsWith(m.path)))
-  return item?.label || '管理后台'
+  for (const section of menuSections) {
+    for (const item of section.items) {
+      if (item.path === route.path || (!item.exact && route.path.startsWith(item.path + '/'))) return item.label
+      if (item.exact && route.path === item.path) return item.label
+    }
+  }
+  return '管理后台'
 })
 
-const isActive = (path) => {
-  if (path === '/admin') {
-    return route.path === '/admin'
+const currentSectionTitle = computed(() => {
+  for (const section of menuSections) {
+    for (const item of section.items) {
+      if (item.path === route.path || (!item.exact && route.path.startsWith(item.path + '/'))) return section.title
+      if (item.exact && route.path === item.path) return section.title
+    }
   }
-  return route.path.startsWith(path)
-}
+  return '概览'
+})
 
-const updateTime = () => {
-  const now = new Date()
-  currentTime.value = now.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+const isActive = (item) => {
+  if (item.exact) return route.path === item.path
+  return route.path === item.path || route.path.startsWith(item.path + '/')
 }
 
 const handleLogout = () => {
@@ -112,14 +168,11 @@ const handleLogout = () => {
 }
 
 onMounted(() => {
-  updateTime()
-  timeInterval = setInterval(updateTime, 1000)
+  window.addEventListener('resize', handleSidebarResize)
 })
 
 onUnmounted(() => {
-  if (timeInterval) {
-    clearInterval(timeInterval)
-  }
+  window.removeEventListener('resize', handleSidebarResize)
 })
 </script>
 
@@ -130,241 +183,391 @@ onUnmounted(() => {
   background: var(--color-bg);
 }
 
-/* 侧边栏 */
+/* ── Sidebar ── */
 .sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
   width: 260px;
   background: var(--color-primary-abyss);
-  color: var(--color-text-inverse);
+  border-right: 1px solid rgba(192, 154, 75, 0.08);
   display: flex;
   flex-direction: column;
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
   z-index: 100;
+  overflow-y: auto;
 }
 
-.sidebar-header {
-  padding: var(--space-6);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
+.sidebar::-webkit-scrollbar { width: 3px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 3px; }
 
-.logo {
+.sidebar-logo {
+  padding: 22px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  text-decoration: none;
-  color: var(--color-text-inverse);
+  gap: 12px;
+  flex-shrink: 0;
 }
 
-.logo-icon {
-  font-size: 28px;
+.sidebar-logo .logo-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-muted));
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transform: rotate(-2deg);
+  box-shadow: 0 2px 8px rgba(192, 154, 75, 0.2);
+  flex-shrink: 0;
 }
 
-.logo-text {
+.sidebar-logo .logo-text {
   font-family: var(--font-display);
-  font-size: var(--text-xl);
-  font-weight: 700;
-  letter-spacing: 1px;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--color-bg-warm);
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+}
+
+.sidebar-logo .logo-sub {
+  font-size: 0.55rem;
+  color: rgba(237, 230, 214, 0.3);
+  letter-spacing: 0.12em;
+  display: block;
+  line-height: 1;
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: var(--space-4) 0;
   overflow-y: auto;
+  padding: 4px 0;
 }
 
-.nav-item {
+.sidebar-nav::-webkit-scrollbar { width: 3px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 3px; }
+
+.sidebar-section { padding: 20px 16px 8px; }
+.sidebar-section:first-child { padding-top: 16px; }
+
+.sidebar-section-title {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: rgba(237, 230, 214, 0.25);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0 8px;
+  margin-bottom: 8px;
+}
+
+.sidebar-item {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-6);
-  color: rgba(255, 255, 255, 0.7);
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 2px;
+  font-size: 0.86rem;
+  color: rgba(237, 230, 214, 0.45);
   text-decoration: none;
-  transition: all var(--transition-fast);
-  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.25s;
+  user-select: none;
 }
 
-.nav-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--color-text-inverse);
+.sidebar-item:hover {
+  background: rgba(237, 230, 214, 0.04);
+  color: rgba(237, 230, 214, 0.7);
 }
 
-.nav-item.active {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--color-text-inverse);
-  border-left-color: var(--color-accent);
+.sidebar-item.active {
+  background: rgba(192, 154, 75, 0.1);
+  color: var(--color-accent);
 }
 
-.nav-icon {
-  font-size: 18px;
-  width: 24px;
+.sidebar-item .item-icon {
+  font-size: 1rem;
+  width: 22px;
   text-align: center;
+  flex-shrink: 0;
 }
 
-.nav-label {
-  font-size: var(--text-base);
+.sidebar-item .item-label {
+  font-size: 0.86rem;
   font-weight: 500;
 }
 
-.sidebar-footer {
-  padding: var(--space-4) var(--space-6);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+.sidebar-item .item-badge {
+  margin-left: auto;
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: var(--color-accent);
+  color: var(--color-primary-abyss);
+  padding: 1px 7px;
+  border-radius: 10px;
+  min-width: 20px;
+  text-align: center;
+  line-height: 1.5;
 }
 
-.admin-info {
+.sidebar-item .item-badge.warn {
+  background: var(--color-red);
+  color: #fff;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  flex-shrink: 0;
+}
+
+.sidebar-user {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-4);
+  gap: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-.admin-avatar {
-  width: 40px;
-  height: 40px;
-  background: var(--color-accent);
-  color: white;
-  border-radius: var(--radius-full);
+.sidebar-user:hover { background: rgba(237, 230, 214, 0.04); }
+
+.sidebar-user .avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-primary-mid);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  font-size: var(--text-lg);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-accent-light);
+  border: 2px solid rgba(192, 154, 75, 0.2);
+  flex-shrink: 0;
 }
 
-.admin-details {
+.sidebar-user .user-info .name { font-size: 0.82rem; color: rgba(237, 230, 214, 0.7); font-weight: 500; }
+.sidebar-user .user-info .role { font-size: 0.7rem; color: rgba(237, 230, 214, 0.3); }
+
+.sidebar-actions {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
 }
 
-.admin-name {
-  font-size: var(--text-base);
-  font-weight: 600;
-}
-
-.admin-role {
-  font-size: var(--text-xs);
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.back-btn {
+.action-link {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  width: 100%;
-  padding: var(--space-3) var(--space-4);
-  margin-bottom: var(--space-1);
-  border-radius: var(--radius-md);
-  color: rgba(255, 255, 255, 0.5);
-  font-size: var(--text-sm);
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: rgba(237, 230, 214, 0.3);
   text-decoration: none;
-  transition: all var(--transition-fast);
-}
-
-.back-btn:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--color-text-inverse);
-}
-
-.back-icon {
-  font-size: 14px;
-  opacity: 0.6;
-}
-
-.logout-btn {
-  width: 100%;
-  padding: var(--space-3);
-  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.2s;
+  background: none;
   border: none;
-  border-radius: var(--radius-md);
-  color: var(--color-text-inverse);
-  font-size: var(--text-sm);
   cursor: pointer;
-  transition: background var(--transition-fast);
+  font-family: inherit;
+  width: 100%;
 }
 
-.logout-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
+.action-link:hover { background: rgba(237, 230, 214, 0.04); color: rgba(237, 230, 214, 0.5); }
 
-/* 主内容区 */
-.main-wrapper {
-  flex: 1;
+.action-link .action-icon { font-size: 0.8rem; opacity: 0.5; }
+.action-link.logout:hover { color: var(--color-red); }
+
+/* ── Main ── */
+.main {
   margin-left: 260px;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  width: calc(100% - 260px);
 }
 
-.top-header {
-  height: var(--header-height);
+/* ── Header ── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  height: 64px;
   background: var(--color-bg-card);
   border-bottom: 1px solid var(--color-divider);
-  padding: 0 var(--space-8);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 50;
+  padding: 0 32px;
+  box-shadow: 0 1px 6px var(--color-shadow);
+  flex-shrink: 0;
 }
 
 .header-left {
   display: flex;
   align-items: center;
+  gap: 16px;
 }
 
-.page-title {
+.header-left h2 {
   font-family: var(--font-display);
-  font-size: var(--text-xl);
-  font-weight: 600;
+  font-size: 1.15rem;
+  font-weight: 700;
   color: var(--color-text);
+}
+
+.breadcrumb {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.breadcrumb span { opacity: 0.5; }
+
+.menu-toggle {
+  display: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--color-divider);
+  background: transparent;
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+  transition: all 0.2s;
+}
+
+.menu-toggle:hover { background: var(--color-bg-warm); }
+
+.menu-toggle span {
+  display: block;
+  width: 16px;
+  height: 2px;
+  background: var(--color-text-secondary);
+  border-radius: 1px;
+  transition: all 0.2s;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: 12px;
 }
 
-.header-time {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
+.header-search {
+  display: flex;
+  align-items: center;
+  background: var(--color-bg-warm);
+  border: 1px solid var(--color-divider);
+  border-radius: 8px;
+  padding: 7px 14px;
+  gap: 8px;
+  transition: all 0.3s;
 }
 
-.main-content {
+.header-search:focus-within {
+  border-color: var(--color-primary-mid);
+  box-shadow: 0 0 0 3px rgba(74, 53, 38, 0.06);
+}
+
+.header-search input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.84rem;
+  color: var(--color-text);
+  width: 200px;
+  font-family: var(--font-body);
+}
+
+.header-search input::placeholder { color: var(--color-text-light); }
+
+.header-search .s-icon { color: var(--color-text-light); font-size: 0.88rem; }
+
+.header-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--color-divider);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.header-icon-btn:hover { background: var(--color-bg-warm); border-color: var(--color-divider-strong); }
+
+.header-icon-btn .dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+/* ── Content ── */
+.content {
   flex: 1;
-  padding: var(--space-8);
+  padding: 28px 32px 60px;
 }
 
-/* 响应式 */
-@media (max-width: 1024px) {
+/* ── Overlay ── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 18, 12, 0.5);
+  z-index: 99;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
   .sidebar {
-    width: 80px;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
-  .sidebar-header {
-    padding: var(--space-4);
+  .sidebar.open { transform: translateX(0); }
+
+  .main {
+    margin-left: 0;
+    width: 100%;
   }
 
-  .logo-text {
-    display: none;
-  }
+  .menu-toggle { display: flex; }
 
-  .nav-label {
-    display: none;
-  }
+  .header { padding: 0 16px; }
+  .header-left h2 { font-size: 1rem; }
 
-  .nav-item {
-    justify-content: center;
-    padding: var(--space-4);
-  }
+  .content { padding: 20px 16px 40px; }
 
-  .admin-details {
-    display: none;
-  }
+  .header-search { display: none; }
 
-  .main-wrapper {
-    margin-left: 80px;
-  }
+  .breadcrumb { display: none; }
+
+  .sidebar-overlay { display: block; }
+  .sidebar-overlay.show { opacity: 1; pointer-events: auto; }
 }
 </style>

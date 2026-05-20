@@ -2,11 +2,7 @@
   <div id="app">
     <AppHeader v-if="showHeader" />
     <main class="main-content">
-      <router-view v-slot="{ Component }">
-        <transition name="page" mode="out-in">
-          <component :is="Component" />
-        </transition>
-      </router-view>
+      <router-view />
     </main>
     <AppFooter v-if="showHeader" />
     <ToastContainer :toasts="toasts" />
