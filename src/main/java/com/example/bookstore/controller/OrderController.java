@@ -3,9 +3,12 @@ package com.example.bookstore.controller;
 import com.example.bookstore.common.Result;
 import com.example.bookstore.dto.OrderCreateDTO;
 import com.example.bookstore.dto.OrderQueryDTO;
+import com.example.bookstore.dto.PayApplyDTO;
 import com.example.bookstore.service.OrderService;
+import com.example.bookstore.service.PaymentService;
 import com.example.bookstore.util.AuthContext;
 import com.example.bookstore.vo.OrderVO;
+import com.example.bookstore.vo.PaymentVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +21,7 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final PaymentService paymentService;
 
     @PostMapping("/create")
     public Result<OrderVO> create(@Valid @RequestBody OrderCreateDTO orderCreateDTO) {
@@ -53,5 +57,11 @@ public class OrderController {
     public Result<Void> confirm(@PathVariable Long id) {
         orderService.confirm(AuthContext.getCurrentUserId(), id);
         return Result.success();
+    }
+
+    @PostMapping("/{id}/pay-apply")
+    public Result<PaymentVO> payApply(@PathVariable Long id, @Valid @RequestBody PayApplyDTO payApplyDTO) {
+        PaymentVO payment = paymentService.applyPay(AuthContext.getCurrentUserId(), id, payApplyDTO.getPaymentMethod());
+        return Result.success(payment);
     }
 }

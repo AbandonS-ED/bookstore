@@ -18,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -68,8 +70,9 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderNo(OrderNoGenerator.generate());
         order.setUserId(userId);
         order.setTotalAmount(BigDecimal.ZERO);
-        order.setStatus(Constants.ORDER_STATUS_PENDING);
+        order.setStatus(Constants.ORDER_STATUS_CREATED);
         order.setPayStatus(Constants.PAY_STATUS_UNPAID);
+        order.setExpireTime(LocalDateTime.now().plusMinutes(Constants.ORDER_EXPIRE_MINUTES).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         order.setAddressId(address.getId());
         order.setReceiverName(address.getReceiverName());
         order.setReceiverPhone(address.getPhone());
@@ -113,7 +116,7 @@ public class OrderServiceImpl implements OrderService {
         if (order == null || !order.getUserId().equals(userId)) {
             throw new BusinessException(1, "订单不存在");
         }
-        if (!Constants.ORDER_STATUS_PENDING.equals(order.getStatus())) {
+        if (!Constants.ORDER_STATUS_PAYING.equals(order.getStatus())) {
             throw new BusinessException(1, "订单状态不允许支付");
         }
 
@@ -128,7 +131,7 @@ public class OrderServiceImpl implements OrderService {
         if (order == null || !order.getUserId().equals(userId)) {
             throw new BusinessException(1, "订单不存在");
         }
-        if (!Constants.ORDER_STATUS_PENDING.equals(order.getStatus())) {
+        if (!Constants.ORDER_STATUS_CREATED.equals(order.getStatus()) && !Constants.ORDER_STATUS_PAYING.equals(order.getStatus())) {
             throw new BusinessException(1, "订单状态不允许取消");
         }
 
@@ -198,6 +201,10 @@ public class OrderServiceImpl implements OrderService {
         vo.setReceiverPhone(order.getReceiverPhone());
         vo.setReceiverAddress(order.getReceiverAddress());
         vo.setRemark(order.getRemark());
+        vo.setPaymentId(order.getPaymentId());
+        vo.setPayTime(order.getPayTime());
+        vo.setExpressNo(order.getExpressNo());
+        vo.setExpireTime(order.getExpireTime());
         vo.setCreateTime(order.getCreateTime());
 
         LambdaQueryWrapper<OrderItem> itemWrapper = new LambdaQueryWrapper<>();

@@ -4,8 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.bookstore.common.Constants;
 import com.example.bookstore.common.Result;
+import com.example.bookstore.dto.ShipDTO;
 import com.example.bookstore.entity.Order;
 import com.example.bookstore.mapper.OrderMapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +37,7 @@ public class OrderManageController {
     }
 
     @PutMapping("/{id}/ship")
-    public Result<Void> ship(@PathVariable Long id) {
+    public Result<Void> ship(@PathVariable Long id, @Valid @RequestBody ShipDTO shipDTO) {
         Order order = orderMapper.selectById(id);
         if (order == null) {
             return Result.error(1, "订单不存在");
@@ -44,6 +46,7 @@ public class OrderManageController {
             return Result.error(1, "订单状态不允许发货");
         }
         order.setStatus(Constants.ORDER_STATUS_SHIPPED);
+        order.setExpressNo(shipDTO.getExpressNo());
         orderMapper.updateById(order);
         return Result.success();
     }
@@ -58,6 +61,20 @@ public class OrderManageController {
             return Result.error(1, "订单状态不允许收货");
         }
         order.setStatus(Constants.ORDER_STATUS_DELIVERED);
+        orderMapper.updateById(order);
+        return Result.success();
+    }
+
+    @PutMapping("/{id}/refund")
+    public Result<Void> refund(@PathVariable Long id) {
+        Order order = orderMapper.selectById(id);
+        if (order == null) {
+            return Result.error(1, "订单不存在");
+        }
+        if (!Constants.ORDER_STATUS_PAID.equals(order.getStatus()) && !Constants.ORDER_STATUS_SHIPPED.equals(order.getStatus())) {
+            return Result.error(1, "订单状态不允许退款");
+        }
+        order.setStatus(Constants.ORDER_STATUS_REFUNDED);
         orderMapper.updateById(order);
         return Result.success();
     }

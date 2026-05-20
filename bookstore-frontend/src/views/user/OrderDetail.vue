@@ -100,20 +100,27 @@
         <div class="section actions-section">
           <div class="actions-content">
             <div class="actions-left">
-              <span v-if="order.status === 'pending'" class="pay-hint">
-                请在 <strong>24小时</strong> 内完成支付，逾期订单将自动取消
+              <span v-if="order.status === 'created' || order.status === 'paying'" class="pay-hint">
+                请在 <strong>{{ order.expireTime }}</strong> 前完成支付，逾期订单将自动取消
               </span>
             </div>
             <div class="actions-right">
               <button
-                v-if="order.status === 'pending'"
+                v-if="order.status === 'created'"
                 class="btn-pay"
-                @click="handlePay"
+                @click="showPaymentDialog = true"
               >
                 立即支付
               </button>
               <button
-                v-if="order.status === 'pending'"
+                v-if="order.status === 'paying'"
+                class="btn-pay"
+                @click="handlePay"
+              >
+                继续支付
+              </button>
+              <button
+                v-if="order.status === 'created' || order.status === 'paying'"
                 class="btn-cancel"
                 @click="handleCancel"
               >
@@ -134,7 +141,7 @@
                 确认收货
               </button>
               <router-link
-                v-if="order.status === 'delivered'"
+                v-if="order.status === 'delivered' || order.status === 'completed'"
                 to="/user/orders"
                 class="btn-back"
               >
@@ -144,6 +151,35 @@
           </div>
         </div>
       </div>
+
+      <!-- 支付方式选择弹窗 -->
+      <el-dialog v-model="showPaymentDialog" title="选择支付方式" width="400px">
+        <div class="payment-methods">
+          <div
+            v-for="method in paymentMethods"
+            :key="method.value"
+            class="payment-method"
+            :class="{ selected: selectedPaymentMethod === method.value }"
+            @click="selectedPaymentMethod = method.value"
+          >
+            <div class="method-icon">{{ method.icon }}</div>
+            <div class="method-info">
+              <div class="method-name">{{ method.name }}</div>
+              <div class="method-desc">{{ method.desc }}</div>
+            </div>
+            <div class="method-check" v-if="selectedPaymentMethod === method.value">✓</div>
+          </div>
+        </div>
+        <template #footer>
+          <div class="payment-footer">
+            <div class="payment-amount">支付金额：<span>¥{{ order?.totalAmount }}</span></div>
+            <div class="payment-actions">
+              <el-button @click="showPaymentDialog = false">取消</el-button>
+              <el-button type="primary" @click="handlePayApply" :loading="paying">确认支付</el-button>
+            </div>
+          </div>
+        </template>
+      </el-dialog>
 
       <!-- 物流弹窗 -->
       <el-dialog v-model="showLogistics" title="物流信息" width="500px">
@@ -158,6 +194,10 @@
               <div class="log-time">{{ log.time }}</div>
               <div class="log-detail">{{ log.detail }}</div>
             </div>
+          </div>
+          <div v-else-if="order?.expressNo" class="express-info">
+            <p>物流单号：{{ order.expressNo }}</p>
+            <p class="express-tip">物流信息正在更新中，请稍后查看</p>
           </div>
           <div v-else class="no-logistics">
             <p>暂无物流信息</p>
@@ -183,19 +223,32 @@ const loading = ref(true)
 const order = ref(null)
 const showLogistics = ref(false)
 const logistics = ref([])
+const showPaymentDialog = ref(false)
+const selectedPaymentMethod = ref('alipay')
+const paying = ref(false)
+
+const paymentMethods = [
+  { value: 'alipay', name: '支付宝', icon: '💙', desc: '推荐使用支付宝支付' },
+  { value: 'wechat', name: '微信支付', icon: '🟢', desc: '推荐使用微信支付' },
+  { value: 'card', name: '银行卡', icon: '💳', desc: '支持各大银行卡' }
+]
 
 const statusSteps = computed(() => [
-  { key: 'pending', label: '提交订单', time: order.value?.createTime },
+  { key: 'created', label: '提交订单', time: order.value?.createTime },
+  { key: 'paying', label: '支付中', time: null },
   { key: 'paid', label: '支付成功', time: order.value?.payTime },
-  { key: 'shipped', label: '商品发货', time: order.value?.shipTime },
-  { key: 'delivered', label: '确认收货', time: order.value?.deliverTime }
+  { key: 'shipped', label: '商品发货', time: null },
+  { key: 'delivered', label: '确认收货', time: null }
 ])
 
-const statusOrder = ['pending', 'paid', 'shipped', 'delivered', 'cancelled']
+const statusOrder = ['created', 'paying', 'paid', 'shipped', 'delivered', 'completed', 'cancelled']
 
 const isStepActive = (stepKey) => {
   if (order.value?.status === 'cancelled') {
-    return stepKey === 'pending'
+    return stepKey === 'created'
+  }
+  if (order.value?.status === 'expired') {
+    return stepKey === 'created'
   }
   const currentIndex = statusOrder.indexOf(order.value?.status)
   const stepIndex = statusOrder.indexOf(stepKey)
@@ -203,7 +256,7 @@ const isStepActive = (stepKey) => {
 }
 
 const isStepCompleted = (stepKey) => {
-  if (order.value?.status === 'cancelled') {
+  if (order.value?.status === 'cancelled' || order.value?.status === 'expired') {
     return false
   }
   const currentIndex = statusOrder.indexOf(order.value?.status)
@@ -252,6 +305,28 @@ const handlePay = async () => {
     if (error !== 'cancel') {
       ElMessage.error('支付失败')
     }
+  }
+}
+
+const handlePayApply = async () => {
+  if (!selectedPaymentMethod.value) {
+    ElMessage.warning('请选择支付方式')
+    return
+  }
+  paying.value = true
+  try {
+    // 1. 调用 pay-apply 创建支付记录，订单状态变为 paying
+    await orderStore.payApplyOrder(order.value.id, selectedPaymentMethod.value)
+    showPaymentDialog.value = false
+    // 2. 模拟支付回调，直接将订单设为已支付（实际应该调用支付网关）
+    await orderStore.payOrder(order.value.id)
+    ElMessage.success('支付成功')
+    fetchOrderDetail()
+  } catch (error) {
+    console.error('支付失败:', error)
+    ElMessage.error(error.message || '支付失败')
+  } finally {
+    paying.value = false
   }
 }
 
@@ -650,6 +725,85 @@ onMounted(() => {
   color: var(--color-copper);
 }
 
+/* Payment Methods */
+.payment-methods {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.payment-method {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.payment-method:hover {
+  border-color: var(--color-vermillion);
+}
+
+.payment-method.selected {
+  border-color: var(--color-vermillion);
+  background: rgba(201, 64, 67, 0.05);
+}
+
+.method-icon {
+  font-size: 32px;
+}
+
+.method-info {
+  flex: 1;
+}
+
+.method-name {
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+
+.method-desc {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.method-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-vermillion);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.payment-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.payment-amount {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+}
+
+.payment-amount span {
+  color: var(--color-vermillion);
+  font-weight: 600;
+  font-size: var(--text-lg);
+}
+
+.payment-actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
 /* Logistics */
 .logistics-content {
   padding: var(--space-4);
@@ -691,6 +845,20 @@ onMounted(() => {
 .no-logistics {
   text-align: center;
   padding: var(--space-8);
+  color: var(--color-text-muted);
+}
+
+.express-info {
+  text-align: center;
+  padding: var(--space-6);
+}
+
+.express-info p {
+  margin-bottom: var(--space-2);
+}
+
+.express-tip {
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 

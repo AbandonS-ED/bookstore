@@ -10,6 +10,9 @@ export const orderApi = {
   getDetail(id) {
     return api.get(`/order/${id}`)
   },
+  payApply(id, paymentMethod) {
+    return api.post(`/order/${id}/pay-apply`, { paymentMethod })
+  },
   pay(id) {
     return api.put(`/order/${id}/pay`)
   },

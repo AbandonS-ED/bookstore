@@ -31,4 +31,12 @@ public class Order extends BaseEntity {
     private String receiverAddress;
 
     private String remark;
+
+    private Long paymentId;
+
+    private String payTime;
+
+    private String expressNo;
+
+    private String expireTime;
 }

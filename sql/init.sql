@@ -1,5 +1,4 @@
 -- 网上书店系统 数据库初始化脚本
--- 创建时间：2026/5/18
 
 -- 创建数据库
 CREATE DATABASE IF NOT EXISTS `bookstore` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
@@ -25,7 +24,8 @@ CREATE TABLE `category` (
     `name` VARCHAR(50) NOT NULL COMMENT '分类名称',
     `parent_id` BIGINT DEFAULT 0 COMMENT '父分类ID（0为顶级）',
     `sort` INT DEFAULT 0 COMMENT '排序',
-    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='分类表';
 
 -- 书籍表
@@ -70,6 +70,7 @@ CREATE TABLE `cart` (
     `book_id` BIGINT NOT NULL COMMENT '书籍ID',
     `quantity` INT NOT NULL DEFAULT 1 COMMENT '数量',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     FOREIGN KEY (`user_id`) REFERENCES `user`(`id`),
     FOREIGN KEY (`book_id`) REFERENCES `book`(`id`),
     UNIQUE KEY `uk_user_book` (`user_id`, `book_id`)
@@ -88,14 +89,32 @@ CREATE TABLE `order` (
     `receiver_phone` VARCHAR(20) COMMENT '联系电话',
     `receiver_address` VARCHAR(300) COMMENT '收货地址',
     `remark` VARCHAR(500) COMMENT '备注',
+    `payment_id` BIGINT COMMENT '支付记录ID',
+    `pay_time` DATETIME COMMENT '支付时间',
+    `express_no` VARCHAR(50) COMMENT '物流单号',
+    `expire_time` DATETIME COMMENT '订单过期时间',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     FOREIGN KEY (`user_id`) REFERENCES `user`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单表';
 
+-- 支付记录表
+CREATE TABLE `payment` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `order_id` BIGINT NOT NULL COMMENT '订单ID',
+    `payment_no` VARCHAR(32) NOT NULL UNIQUE COMMENT '支付流水号',
+    `payment_method` VARCHAR(20) COMMENT '支付方式(alipay/wechat/card)',
+    `amount` DECIMAL(10,2) NOT NULL COMMENT '支付金额',
+    `status` VARCHAR(20) DEFAULT 'pending' COMMENT '状态(pending/success/failed/refunded)',
+    `paid_time` DATETIME COMMENT '支付时间',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    FOREIGN KEY (`order_id`) REFERENCES `order`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='支付记录表';
+
 -- 订单明细表
 CREATE TABLE `order_item` (
-    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '明细ID',
     `order_id` BIGINT NOT NULL COMMENT '订单ID',
     `book_id` BIGINT NOT NULL COMMENT '书籍ID',
     `book_title` VARCHAR(200) NOT NULL COMMENT '书名（冗余）',
@@ -117,6 +136,7 @@ CREATE TABLE `review` (
     `content` VARCHAR(500) COMMENT '评论内容',
     `status` TINYINT DEFAULT 1 COMMENT '状态（1显示/0隐藏）',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     FOREIGN KEY (`user_id`) REFERENCES `user`(`id`),
     FOREIGN KEY (`book_id`) REFERENCES `book`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='评论表';

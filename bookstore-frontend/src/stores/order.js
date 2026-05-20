@@ -53,6 +53,11 @@ export const useOrderStore = defineStore('order', {
       if (order) {
         order.status = 'delivered'
       }
+    },
+
+    async payApplyOrder(id, paymentMethod) {
+      const res = await orderApi.payApply(id, paymentMethod)
+      return res.data
     }
   }
 })

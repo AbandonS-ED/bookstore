@@ -30,6 +30,14 @@ public class OrderVO {
 
     private String remark;
 
+    private Long paymentId;
+
+    private String payTime;
+
+    private String expressNo;
+
+    private String expireTime;
+
     private LocalDateTime createTime;
 
     private List<OrderItemVO> items;

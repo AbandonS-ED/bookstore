@@ -27,11 +27,15 @@ export const formatDateTime = (dateTime) => {
 
 export const formatOrderStatus = (status) => {
   const statusMap = {
-    pending: '待付款',
+    created: '待付款',
+    paying: '支付中',
     paid: '待发货',
     shipped: '待收货',
-    delivered: '已完成',
-    cancelled: '已取消'
+    delivered: '已收货',
+    completed: '已完成',
+    cancelled: '已取消',
+    expired: '已过期',
+    refunded: '已退款'
   }
   return statusMap[status] || status
 }
