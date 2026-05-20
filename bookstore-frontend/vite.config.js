@@ -16,9 +16,10 @@ export default defineConfig({
         target: 'http://localhost:8081',
         changeOrigin: true
       },
-      '/admin': {
+      '/admin-api': {
         target: 'http://localhost:8081',
-        changeOrigin: true
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/admin-api/, '/admin')
       },
       '/pictures': {
         target: 'http://localhost:8081',

@@ -76,6 +76,15 @@
             </div>
             <span class="menu-arrow">→</span>
           </router-link>
+
+          <router-link v-if="userStore.isAdmin" to="/admin" class="menu-item">
+            <div class="menu-icon">🔧</div>
+            <div class="menu-content">
+              <h3>管理后台</h3>
+              <p>书籍、订单、用户管理</p>
+            </div>
+            <span class="menu-arrow">→</span>
+          </router-link>
         </div>
 
         <!-- 最近订单 -->

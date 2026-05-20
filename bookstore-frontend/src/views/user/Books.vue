@@ -70,9 +70,10 @@
       <template v-else-if="books.length">
         <div v-if="viewMode === 'grid'" class="books-grid">
           <BookCard
-            v-for="book in books"
+            v-for="(book, idx) in books"
             :key="book.id"
             :book="book"
+            :delay="idx * 50"
             @click="goToBook(book.id)"
           />
         </div>
@@ -113,23 +114,12 @@
         <button class="btn-link" @click="changeTag('all')">清除所有筛选</button>
       </div>
 
-      <div v-if="totalPages > 1" class="pagination">
-        <button class="page-btn" :disabled="pageNum === 1" @click="changePage(pageNum - 1)">
-          ‹ 上一页
-        </button>
-        <button
-          v-for="page in visiblePages"
-          :key="page"
-          :class="['page-btn', { active: page === pageNum, ellipsis: page === '...' }]"
-          :disabled="page === '...'"
-          @click="page !== '...' && changePage(page)"
-        >
-          {{ page }}
-        </button>
-        <button class="page-btn" :disabled="pageNum === totalPages" @click="changePage(pageNum + 1)">
-          下一页 ›
-        </button>
-      </div>
+      <PaginationBar
+        v-if="totalPages > 1"
+        v-model="pageNum"
+        :total-pages="totalPages"
+        :total-items="total"
+      />
     </div>
   </div>
 </template>
@@ -139,6 +129,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { bookApi } from '@/api/book'
 import BookCard from '@/components/business/BookCard.vue'
+import PaginationBar from '@/components/common/PaginationBar.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -177,26 +168,6 @@ const currentSortLabel = computed(() => {
 })
 
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
-
-const visiblePages = computed(() => {
-  const pages = []
-  const tp = totalPages.value
-  const cur = pageNum.value
-  if (tp <= 7) {
-    for (let i = 1; i <= tp; i++) pages.push(i)
-  } else if (cur <= 3) {
-    for (let i = 1; i <= 5; i++) pages.push(i)
-    pages.push('...', tp)
-  } else if (cur >= tp - 2) {
-    pages.push(1, '...')
-    for (let i = tp - 4; i <= tp; i++) pages.push(i)
-  } else {
-    pages.push(1, '...')
-    for (let i = cur - 1; i <= cur + 1; i++) pages.push(i)
-    pages.push('...', tp)
-  }
-  return pages
-})
 
 const toggleSort = () => {
   sortOpen.value = !sortOpen.value
@@ -271,15 +242,14 @@ const changeSort = (sort) => {
   fetchBooks()
 }
 
-const changePage = (page) => {
-  pageNum.value = page
-  fetchBooks()
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
 const goToBook = (id) => {
   router.push(`/book/${id}`)
 }
+
+watch(pageNum, () => {
+  fetchBooks()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+})
 
 watch(() => route.query, () => {
   pageNum.value = 1
@@ -692,49 +662,6 @@ onMounted(() => {
 
 .btn-link:hover {
   color: var(--color-accent-muted);
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-2);
-  margin-top: var(--space-10);
-}
-
-.page-btn {
-  min-width: 40px;
-  height: 40px;
-  padding: 0 var(--space-3);
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.page-btn:hover:not(:disabled) {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-}
-
-.page-btn.active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-bg-warm);
-}
-
-.page-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.page-btn.ellipsis {
-  border: none;
-  background: transparent;
-  cursor: default;
-  color: var(--color-text-light);
 }
 
 @media (max-width: 1200px) {

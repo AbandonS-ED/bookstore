@@ -12,6 +12,7 @@
         <li><router-link to="/" class="nav-link" active-class="active">首页</router-link></li>
         <li><router-link to="/books" class="nav-link" active-class="active">书库</router-link></li>
         <li><router-link to="/categories" class="nav-link" active-class="active">分类浏览</router-link></li>
+        <li><router-link to="/ranking" class="nav-link" active-class="active">排行榜</router-link></li>
       </ul>
       <div class="nav-right">
         <div class="search-box">

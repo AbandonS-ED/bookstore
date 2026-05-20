@@ -30,8 +30,12 @@
             <span class="admin-role">管理员</span>
           </div>
         </div>
+        <router-link to="/" class="back-btn">
+          <span class="back-icon">←</span>
+          <span>返回前台</span>
+        </router-link>
         <button class="logout-btn" @click="handleLogout">
-          <span>退出</span>
+          <span>退出登录</span>
         </button>
       </div>
     </aside>
@@ -241,6 +245,30 @@ onUnmounted(() => {
 .admin-role {
   font-size: var(--text-xs);
   color: rgba(255, 255, 255, 0.6);
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-1);
+  border-radius: var(--radius-md);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-inverse);
+}
+
+.back-icon {
+  font-size: 14px;
+  opacity: 0.6;
 }
 
 .logout-btn {

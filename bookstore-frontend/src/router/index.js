@@ -25,6 +25,11 @@ const routes = [
     component: () => import('@/views/user/CategoryBrowse.vue')
   },
   {
+    path: '/ranking',
+    name: 'Ranking',
+    component: () => import('@/views/user/Ranking.vue')
+  },
+  {
     path: '/books',
     name: 'Books',
     component: () => import('@/views/user/Books.vue')
@@ -91,39 +96,36 @@ const routes = [
   // 管理端
   {
     path: '/admin',
-    name: 'Admin',
     component: () => import('@/views/admin/Admin.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/books',
-    name: 'AdminBooks',
-    component: () => import('@/views/admin/AdminBooks.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/categories',
-    name: 'AdminCategories',
-    component: () => import('@/views/admin/AdminCategories.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/orders',
-    name: 'AdminOrders',
-    component: () => import('@/views/admin/AdminOrders.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/users',
-    name: 'AdminUsers',
-    component: () => import('@/views/admin/AdminUsers.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/reviews',
-    name: 'AdminReviews',
-    component: () => import('@/views/admin/AdminReviews.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true }
+    meta: { requiresAuth: true, requiresAdmin: true },
+    redirect: '/admin/books',
+    children: [
+      {
+        path: 'books',
+        name: 'AdminBooks',
+        component: () => import('@/views/admin/AdminBooks.vue')
+      },
+      {
+        path: 'categories',
+        name: 'AdminCategories',
+        component: () => import('@/views/admin/AdminCategories.vue')
+      },
+      {
+        path: 'orders',
+        name: 'AdminOrders',
+        component: () => import('@/views/admin/AdminOrders.vue')
+      },
+      {
+        path: 'users',
+        name: 'AdminUsers',
+        component: () => import('@/views/admin/AdminUsers.vue')
+      },
+      {
+        path: 'reviews',
+        name: 'AdminReviews',
+        component: () => import('@/views/admin/AdminReviews.vue')
+      }
+    ]
   }
 ]
 

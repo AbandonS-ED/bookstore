@@ -1,30 +1,42 @@
 <template>
-  <div class="book-card" @click="$emit('click')">
+  <div
+    ref="cardRef"
+    :class="['book-card', { 'is-visible': isVisible }]"
+    :style="{ transitionDelay: `${delay}ms` }"
+    @click="$emit('click')"
+  >
     <div class="book-cover">
       <img
         v-if="book.coverUrl"
         :src="book.coverUrl"
         :alt="book.title"
         class="book-cover-img"
+        loading="lazy"
       />
       <div v-else class="book-cover-img book-cover-fallback" :class="coverVariant">
-        {{ book.title.slice(0, 6) }}
+        <span class="cover-title">{{ book.title.slice(0, 4) }}</span>
       </div>
-      <div v-if="book.stock === 0" class="book-badge out">缺货</div>
-      <div class="book-fav" @click.stop>
-        <span class="heart">♡</span>
-      </div>
+
+      <div v-if="badge" class="book-badge" :class="badgeClass">{{ badge }}</div>
+
+      <button class="book-fav" :class="{ active: isFavored }" @click.stop="toggleFav">
+        <span class="heart">{{ isFavored ? '♥' : '♡' }}</span>
+      </button>
     </div>
+
     <div class="book-info">
       <div class="book-title">{{ book.title }}</div>
       <div class="book-author">{{ book.author }}</div>
       <div class="book-meta">
         <div class="book-price">
           ¥{{ book.price }}
-          <span v-if="book.originalPrice" class="original">¥{{ book.originalPrice }}</span>
+          <span v-if="book.originalPrice && book.originalPrice !== book.price" class="original">¥{{ book.originalPrice }}</span>
         </div>
         <div v-if="book.avgRating" class="book-rating">
-          ★ <span>{{ book.avgRating?.toFixed(1) }}</span>
+          <svg class="star-icon" viewBox="0 0 20 20" width="12" height="12">
+            <path d="M10 1l2.39 4.84L17.6 6.7l-3.8 3.7.9 5.24L10 13.2l-4.7 2.44.9-5.24L2.4 6.7l5.21-.86L10 1z" fill="currentColor"/>
+          </svg>
+          <span class="rating-val">{{ book.avgRating?.toFixed(1) }}</span>
         </div>
       </div>
     </div>
@@ -32,23 +44,67 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 const props = defineProps({
-  book: { type: Object, required: true }
+  book: { type: Object, required: true },
+  delay: { type: Number, default: 0 }
 })
 
-defineEmits(['click'])
+const emit = defineEmits(['click'])
 
-const variants = ['cover-1', 'cover-2', 'cover-3', 'cover-4', 'cover-5', 'cover-6', 'cover-7', 'cover-8', 'cover-9', 'cover-10']
+const cardRef = ref(null)
+const isVisible = ref(false)
+const isFavored = ref(false)
+
+const variants = [
+  'cover-1', 'cover-2', 'cover-3', 'cover-4', 'cover-5',
+  'cover-6', 'cover-7', 'cover-8', 'cover-9', 'cover-10',
+  'cover-11', 'cover-12'
+]
 
 const coverVariant = computed(() => {
   const id = props.book.id
-  if (typeof id === 'string') {
-    const num = parseInt(id, 10) || 1
-    return variants[(num - 1) % variants.length]
+  const num = typeof id === 'string' ? parseInt(id, 10) || 1 : (id || 1)
+  return variants[(num - 1) % variants.length]
+})
+
+const badge = computed(() => {
+  if (props.book.badge) return props.book.badge
+  if (props.book.stock === 0) return ''
+  if (props.book.avgRating && props.book.avgRating >= 9) return '经典'
+  if (props.book.sales && props.book.sales > 5000) return '畅销'
+  return ''
+})
+
+const badgeClass = computed(() => {
+  switch (badge.value) {
+    case '畅销': return 'badge-hot'
+    case '新书': return 'badge-new'
+    case '经典': return 'badge-classic'
+    case '热卖': return 'badge-sale'
+    default: return ''
   }
-  return variants[((id || 1) - 1) % variants.length]
+})
+
+const toggleFav = () => {
+  isFavored.value = !isFavored.value
+}
+
+onMounted(() => {
+  if (!cardRef.value) return
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          isVisible.value = true
+        }, props.delay)
+        observer.unobserve(cardRef.value)
+      }
+    },
+    { threshold: 0.1 }
+  )
+  observer.observe(cardRef.value)
 })
 </script>
 
@@ -58,16 +114,27 @@ const coverVariant = computed(() => {
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--color-divider);
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   cursor: pointer;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.book-card.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .book-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-6px);
   box-shadow:
     0 16px 40px var(--color-shadow-heavy),
     0 2px 6px var(--color-shadow);
   border-color: rgba(192,154,75,0.15);
+}
+
+.book-card.is-visible:hover {
+  transform: translateY(-6px);
 }
 
 .book-cover {
@@ -80,10 +147,10 @@ const coverVariant = computed(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.book-card:hover .book-cover-img { transform: scale(1.04); }
+.book-card:hover .book-cover-img { transform: scale(1.06); }
 
 .book-cover-fallback {
   display: flex;
@@ -91,31 +158,35 @@ const coverVariant = computed(() => {
   justify-content: center;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.3rem;
-  color: rgba(237,230,214,0.85);
-  padding: 30px;
+  font-size: 1.2rem;
+  padding: 24px;
   text-align: center;
-  line-height: 1.4;
+  line-height: 1.5;
+}
+
+.cover-title {
+  color: rgba(237,230,214,0.85);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  word-break: break-all;
 }
 
 .book-badge {
   position: absolute;
   top: 12px;
   left: 12px;
-  background: var(--color-accent);
-  color: var(--color-primary-abyss);
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 700;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: 4px;
-  letter-spacing: 0.06em;
-  box-shadow: 0 2px 6px rgba(192,154,75,0.25);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
-.book-badge.out {
-  background: var(--color-primary-dark);
-  color: rgba(237,230,214,0.5);
-}
+.badge-hot { background: #C09A4B; color: #1C120C; }
+.badge-new { background: #5C8856; color: #F5F0E8; }
+.badge-classic { background: #4A6E8A; color: #F5F0E8; }
+.badge-sale { background: #A04040; color: #F5F0E8; }
 
 .book-fav {
   position: absolute;
@@ -124,13 +195,12 @@ const coverVariant = computed(() => {
   width: 32px;
   height: 32px;
   background: rgba(46,31,21,0.55);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(8px);
   border-radius: 50%;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-bg);
-  font-size: 0.85rem;
   cursor: pointer;
   opacity: 0;
   transform: scale(0.85);
@@ -143,11 +213,32 @@ const coverVariant = computed(() => {
 }
 
 .book-fav:hover {
-  background: var(--color-accent);
-  color: var(--color-primary-abyss);
+  background: rgba(192,154,75,0.7);
 }
 
-.heart { line-height: 1; }
+.book-fav.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.book-fav.active .heart {
+  color: #C09A4B;
+}
+
+.heart {
+  font-size: 0.95rem;
+  color: rgba(237,230,214,0.8);
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.book-fav:hover .heart {
+  transform: scale(1.15);
+}
+
+.book-fav.active:hover .heart {
+  transform: scale(1.15);
+}
 
 .book-info {
   padding: 16px 18px 20px;
@@ -198,21 +289,29 @@ const coverVariant = computed(() => {
 .book-rating {
   display: flex;
   align-items: center;
-  gap: 2px;
-  font-size: 0.72rem;
+  gap: 3px;
   color: var(--color-accent);
 }
 
-.book-rating span { color: var(--color-text-light); margin-left: 2px; }
+.rating-val {
+  font-size: 0.72rem;
+  color: var(--color-text-light);
+}
+
+.star-icon {
+  display: block;
+}
 
 .cover-1 { background: linear-gradient(160deg, #5D4037 0%, #3E2723 60%, #2C1A12 100%); }
 .cover-2 { background: linear-gradient(160deg, #6D4C41 0%, #4E342E 100%); }
 .cover-3 { background: linear-gradient(160deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%); }
 .cover-4 { background: linear-gradient(160deg, #3D2B1F 0%, #5C3A21 100%); }
-.cover-5 { background: linear-gradient(160deg, #8B0000 0%, #4A0404 100%); }
+.cover-5 { background: linear-gradient(160deg, #5C1A1A 0%, #3A0A0A 100%); }
 .cover-6 { background: linear-gradient(160deg, #1B3A2D 0%, #0D2818 100%); }
 .cover-7 { background: linear-gradient(160deg, #2C3E50 0%, #1A252F 100%); }
 .cover-8 { background: linear-gradient(160deg, #3C1F3A 0%, #2A1526 100%); }
 .cover-9 { background: linear-gradient(160deg, #8B4513 0%, #5C2D0E 100%); }
-.cover-10 { background: linear-gradient(160deg, #B8860B 0%, #8B6914 100%); }
+.cover-10 { background: linear-gradient(160deg, #4A3A2A 0%, #2A1A0A 100%); }
+.cover-11 { background: linear-gradient(160deg, #2A4A3A 0%, #1A2A1A 100%); }
+.cover-12 { background: linear-gradient(160deg, #3A2A4A 0%, #2A1A3A 100%); }
 </style>

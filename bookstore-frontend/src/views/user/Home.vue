@@ -83,9 +83,10 @@
       </div>
       <div v-else class="books-grid">
         <BookCard
-          v-for="book in books"
+          v-for="(book, idx) in books"
           :key="book.id"
           :book="book"
+          :delay="idx * 60"
           @click="goToBook(book.id)"
         />
       </div>
@@ -126,9 +127,10 @@
       </div>
       <div class="books-grid">
         <BookCard
-          v-for="book in newBooks"
+          v-for="(book, idx) in newBooks"
           :key="book.id"
           :book="book"
+          :delay="idx * 60"
           @click="goToBook(book.id)"
         />
       </div>
