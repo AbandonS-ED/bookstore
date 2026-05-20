@@ -172,7 +172,7 @@
         </div>
         <template #footer>
           <div class="payment-footer">
-            <div class="payment-amount">支付金额：<span>¥{{ order?.totalAmount }}</span></div>
+            <div class="payment-amount">支付金额：<span>¥{{ Number(order?.totalAmount).toFixed(2) }}</span></div>
             <div class="payment-actions">
               <el-button @click="showPaymentDialog = false">取消</el-button>
               <el-button type="primary" @click="handlePayApply" :loading="paying">确认支付</el-button>

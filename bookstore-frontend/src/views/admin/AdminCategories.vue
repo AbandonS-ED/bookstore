@@ -85,6 +85,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { adminApi } from '@/api/admin'
+import { categoryApi } from '@/api/category'
 
 const loading = ref(false)
 const submitLoading = ref(false)

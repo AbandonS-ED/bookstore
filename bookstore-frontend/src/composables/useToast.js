@@ -6,7 +6,7 @@ let id = 0
 export function useToast() {
   const showToast = (message, type = 'ok', duration = 3000) => {
     const toastId = ++id
-    toasts.value.push({ id: toastId, message, type, visible: false })
+    toasts.value.push({ id: toastId, message, type, duration, visible: false })
 
     requestAnimationFrame(() => {
       const t = toasts.value.find(t => t.id === toastId)

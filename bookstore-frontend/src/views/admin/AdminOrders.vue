@@ -18,7 +18,7 @@
       <el-table-column prop="username" label="用户" width="120" />
       <el-table-column prop="totalAmount" label="金额" width="120">
         <template #default="{ row }">
-          <span class="amount">¥{{ row.totalAmount }}</span>
+          <span class="amount">¥{{ Number(row.totalAmount).toFixed(2) }}</span>
         </template>
       </el-table-column>
       <el-table-column prop="status" label="状态" width="120">
@@ -83,9 +83,9 @@
         <div class="detail-section">
           <h4>收货信息</h4>
           <el-descriptions :column="2" border>
-            <el-descriptions-item label="收货人">{{ currentOrder.consignee }}</el-descriptions-item>
-            <el-descriptions-item label="联系电话">{{ currentOrder.phone }}</el-descriptions-item>
-            <el-descriptions-item label="收货地址" :span="2">{{ currentOrder.address }}</el-descriptions-item>
+            <el-descriptions-item label="收货人">{{ currentOrder.receiverName }}</el-descriptions-item>
+            <el-descriptions-item label="联系电话">{{ currentOrder.receiverPhone }}</el-descriptions-item>
+            <el-descriptions-item label="收货地址" :span="2">{{ currentOrder.receiverAddress }}</el-descriptions-item>
           </el-descriptions>
         </div>
 

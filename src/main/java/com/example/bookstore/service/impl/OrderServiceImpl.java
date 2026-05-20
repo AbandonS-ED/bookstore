@@ -54,7 +54,10 @@ public class OrderServiceImpl implements OrderService {
                     throw new BusinessException(1, "购物车记录不存在");
                 }
                 Book book = bookMapper.selectById(cart.getBookId());
-                if (book == null || book.getStatus().equals(Constants.BOOK_STATUS_OFF)) {
+                if (book == null) {
+                    throw new BusinessException(1, "书籍不存在");
+                }
+                if (book.getStatus().equals(Constants.BOOK_STATUS_OFF)) {
                     throw new BusinessException(1, "书籍[" + book.getTitle() + "]已下架");
                 }
                 if (book.getStock() < cart.getQuantity()) {
@@ -126,6 +129,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public void cancel(Long userId, Long orderId) {
         Order order = orderMapper.selectById(orderId);
         if (order == null || !order.getUserId().equals(userId)) {

@@ -265,41 +265,4 @@ public class BookServiceImpl implements BookService {
         }).collect(Collectors.toList());
     }
 
-    private BookVO convertToVO(Book book) {
-        BookVO vo = new BookVO();
-        vo.setId(book.getId());
-        vo.setIsbn(book.getIsbn());
-        vo.setTitle(book.getTitle());
-        vo.setAuthor(book.getAuthor());
-        vo.setPublisher(book.getPublisher());
-        vo.setPublishDate(book.getPublishDate());
-        vo.setPrice(book.getPrice());
-        vo.setStock(book.getStock());
-        vo.setSales(book.getSales());
-        vo.setCategoryId(book.getCategoryId());
-        vo.setCoverUrl(book.getCoverUrl());
-        vo.setStatus(book.getStatus());
-
-        if (book.getCategoryId() != null) {
-            Category category = categoryMapper.selectById(book.getCategoryId());
-            if (category != null) {
-                vo.setCategoryName(category.getName());
-            }
-        }
-
-        LambdaQueryWrapper<Review> reviewWrapper = new LambdaQueryWrapper<>();
-        reviewWrapper.eq(Review::getBookId, book.getId()).eq(Review::getStatus, Constants.REVIEW_SHOW);
-        List<Review> reviews = reviewMapper.selectList(reviewWrapper);
-
-        if (!reviews.isEmpty()) {
-            double avgRating = reviews.stream().mapToInt(Review::getRating).average().orElse(0.0);
-            vo.setAvgRating(avgRating);
-            vo.setReviewCount(reviews.size());
-        } else {
-            vo.setAvgRating(0.0);
-            vo.setReviewCount(0);
-        }
-
-        return vo;
-    }
 }

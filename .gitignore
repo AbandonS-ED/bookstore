@@ -40,5 +40,7 @@ bookstore-frontend/node_modules/
 bookstore-frontend/dist/
 bookstore-frontend/.DS_Store
 
+bookstore-frontend/.vite/
+
 ### Mac OS ###
-.DS_Storebookstore-frontend/.vite/
+.DS_Store

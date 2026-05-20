@@ -140,6 +140,7 @@ import { ElMessage } from 'element-plus'
 import { orderApi } from '@/api/order'
 import { cartApi } from '@/api/cart'
 import { addressApi } from '@/api/address'
+import { bookApi } from '@/api/book'
 import { useCartStore } from '@/stores/cart'
 
 const route = useRoute()
@@ -246,10 +247,9 @@ const initOrderItems = async () => {
     }]
     // Fetch book details
     try {
-      const res = await fetch(`/api/book/${bookId}`)
-      const data = await res.json()
-      if (data.data) {
-        const book = data.data
+      const res = await bookApi.getDetail(bookId)
+      if (res.data) {
+        const book = res.data
         orderItems.value = [{
           bookId: book.id,
           title: book.title,
@@ -293,6 +293,9 @@ const handleSubmit = async () => {
       const addedItem = cartStore.items.find(
         i => String(i.bookId) === route.query.bookId
       )
+      if (!addedItem) {
+        throw new Error('购物车添加失败，请重试')
+      }
       cartItemIds = [addedItem.id]
     } else {
       cartItemIds = cartStore.items.map(item => item.id)

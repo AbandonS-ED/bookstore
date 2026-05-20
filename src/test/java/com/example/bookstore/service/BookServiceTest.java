@@ -82,7 +82,7 @@ class BookServiceTest {
 
         when(bookMapper.selectPage(any(Page.class), any(LambdaQueryWrapper.class))).thenReturn(page);
 
-        PageResult<?> result = bookService.findByCategory(2L, 1, 10);
+        PageResult<?> result = bookService.findByCategory(2L, 1, 10, null, null, null, null, null);
 
         assertNotNull(result);
         assertEquals(1, result.getTotal());

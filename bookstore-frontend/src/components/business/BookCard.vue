@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   book: { type: Object, required: true },
@@ -91,9 +91,11 @@ const toggleFav = () => {
   isFavored.value = !isFavored.value
 }
 
+let observer = null
+
 onMounted(() => {
   if (!cardRef.value) return
-  const observer = new IntersectionObserver(
+  observer = new IntersectionObserver(
     ([entry]) => {
       if (entry.isIntersecting) {
         setTimeout(() => {
@@ -105,6 +107,10 @@ onMounted(() => {
     { threshold: 0.1 }
   )
   observer.observe(cardRef.value)
+})
+
+onUnmounted(() => {
+  if (observer) observer.disconnect()
 })
 </script>
 

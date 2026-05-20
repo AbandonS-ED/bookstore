@@ -92,8 +92,7 @@ const loading = ref(true)
 const handleUpdateQuantity = async (item, newQuantity) => {
   if (newQuantity < 1) return
   try {
-    await cartApi.update({ id: item.id, quantity: newQuantity })
-    item.quantity = newQuantity
+    await cartStore.updateQuantity(item.bookId, newQuantity)
   } catch (error) {
     ElMessage.error('更新数量失败')
   }

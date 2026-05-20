@@ -151,8 +151,7 @@ const handleUpdateRole = async () => {
 
   submitLoading.value = true
   try {
-    // Assuming there's an API to update role
-    // await adminApi.updateUserRole({ id: currentUser.value.id, role: newRole.value })
+    await adminApi.updateUserRole(currentUser.value.id, newRole.value)
     ElMessage.success('角色更新成功')
     roleDialogVisible.value = false
     loadUsers()
@@ -163,20 +162,21 @@ const handleUpdateRole = async () => {
   }
 }
 
-const handleDelete = (id) => {
-  ElMessageBox.confirm('确定要删除该用户吗？此操作不可恢复。', '警告', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(async () => {
-    try {
-      // await adminApi.deleteUser(id)
-      ElMessage.success('删除成功')
-      loadUsers()
-    } catch (error) {
+const handleDelete = async (id) => {
+  try {
+    await ElMessageBox.confirm('确定要删除该用户吗？此操作不可恢复。', '警告', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await adminApi.deleteUser(id)
+    ElMessage.success('删除成功')
+    loadUsers()
+  } catch (error) {
+    if (error !== 'cancel') {
       ElMessage.error(error.message || '删除失败')
     }
-  }).catch(() => {})
+  }
 }
 
 onMounted(() => {

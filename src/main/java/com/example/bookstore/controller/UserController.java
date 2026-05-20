@@ -3,6 +3,7 @@ package com.example.bookstore.controller;
 import com.example.bookstore.common.Result;
 import com.example.bookstore.dto.LoginDTO;
 import com.example.bookstore.dto.PasswordUpdateDTO;
+import com.example.bookstore.dto.ProfileUpdateDTO;
 import com.example.bookstore.dto.RegisterDTO;
 import com.example.bookstore.entity.User;
 import com.example.bookstore.service.UserService;
@@ -52,9 +53,9 @@ public class UserController {
     }
 
     @PutMapping("/profile")
-    public Result<Void> updateProfile(@Valid @RequestBody RegisterDTO registerDTO) {
+    public Result<Void> updateProfile(@Valid @RequestBody ProfileUpdateDTO profileUpdateDTO) {
         Long userId = AuthContext.getCurrentUserId();
-        userService.updateProfile(userId, registerDTO);
+        userService.updateProfile(userId, profileUpdateDTO);
         return Result.success();
     }
 }

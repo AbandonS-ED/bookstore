@@ -110,7 +110,9 @@ const handleUpdateProfile = async () => {
   try {
     await userApi.updateProfile(profileForm.value)
     ElMessage.success('个人信息更新成功')
-    userStore.userInfo.username = profileForm.value.username
+    if (userStore.userInfo) {
+      userStore.userInfo.username = profileForm.value.username
+    }
   } catch (error) {
     ElMessage.error('更新失败')
   } finally {

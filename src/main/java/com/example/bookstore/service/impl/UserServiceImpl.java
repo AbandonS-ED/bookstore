@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.bookstore.common.Constants;
 import com.example.bookstore.dto.LoginDTO;
 import com.example.bookstore.dto.PasswordUpdateDTO;
+import com.example.bookstore.dto.ProfileUpdateDTO;
 import com.example.bookstore.dto.RegisterDTO;
 import com.example.bookstore.entity.User;
 import com.example.bookstore.exception.BusinessException;
@@ -107,17 +108,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateProfile(Long userId, RegisterDTO registerDTO) {
+    public void updateProfile(Long userId, ProfileUpdateDTO profileUpdateDTO) {
         User user = userMapper.selectById(userId);
         if (user == null) {
             throw new BusinessException(1, "用户不存在");
         }
 
-        if (StringUtils.hasText(registerDTO.getEmail())) {
-            user.setEmail(registerDTO.getEmail());
+        if (StringUtils.hasText(profileUpdateDTO.getEmail())) {
+            user.setEmail(profileUpdateDTO.getEmail());
         }
-        if (StringUtils.hasText(registerDTO.getPhone())) {
-            user.setPhone(registerDTO.getPhone());
+        if (StringUtils.hasText(profileUpdateDTO.getPhone())) {
+            user.setPhone(profileUpdateDTO.getPhone());
         }
         userMapper.updateById(user);
     }

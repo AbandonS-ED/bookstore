@@ -381,6 +381,12 @@ const selectCategory = (cat) => {
 
 const clearCategory = () => {
   selectedCategory.value = null
+  priceMin.value = ''
+  priceMax.value = ''
+  selectedRating.value = null
+  selectedTime.value = null
+  sortBy.value = 'default'
+  pageNum.value = 1
   books.value = []
   total.value = 0
 }

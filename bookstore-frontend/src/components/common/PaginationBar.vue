@@ -26,7 +26,7 @@
       下一页 ›
     </button>
 
-    <span class="page-total">共 {{ totalItems || totalPages }} 条</span>
+    <span class="page-total">共 {{ totalItems !== undefined ? totalItems + '条' : totalPages + '页' }}</span>
   </div>
 </template>
 

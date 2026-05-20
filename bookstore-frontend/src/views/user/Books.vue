@@ -125,7 +125,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { bookApi } from '@/api/book'
 import BookCard from '@/components/business/BookCard.vue'
@@ -259,6 +259,10 @@ watch(() => route.query, () => {
 onMounted(() => {
   document.addEventListener('click', closeSort)
   fetchBooks()
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeSort)
 })
 </script>
 
