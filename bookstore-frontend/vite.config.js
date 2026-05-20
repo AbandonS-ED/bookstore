@@ -19,6 +19,10 @@ export default defineConfig({
       '/admin': {
         target: 'http://localhost:8081',
         changeOrigin: true
+      },
+      '/pictures': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
       }
     }
   }

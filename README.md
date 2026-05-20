@@ -59,6 +59,7 @@ bookstore/                          # 后端 Spring Boot 项目
 │   ├── common/                     # 通用类
 │   ├── exception/                  # 异常处理
 │   └── util/                       # 工具类
+├── pictures/                       # 书籍封面图片
 ├── bookstore-frontend/             # 前端 Vue 3 项目
 │   ├── src/
 │   │   ├── views/                  # 页面组件
@@ -67,7 +68,7 @@ bookstore/                          # 后端 Spring Boot 项目
 │   │   ├── stores/                 # Pinia 状态管理
 │   │   ├── api/                    # API 接口封装
 │   │   └── utils/                  # 工具函数
-│   └── vite.config.js             # Vite 配置（代理 /api 和 /admin 到 8081）
+│   └── vite.config.js             # Vite 配置（代理 /api、/admin、/pictures 到 8081）
 └── sql/
     └── init.sql                    # 数据库初始化脚本
 ```
