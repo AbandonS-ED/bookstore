@@ -154,6 +154,19 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
+  if (to.meta.requiresAdmin) {
+    try {
+      await userStore.getUserInfo()
+      if (userStore.userInfo?.role !== 'admin') {
+        next({ name: 'Home' })
+        return
+      }
+    } catch {
+      next({ name: 'Login' })
+      return
+    }
+  }
+
   next()
 })
 

@@ -104,6 +104,7 @@ const handleLogin = async () => {
   loading.value = true
   try {
     await userStore.login(formData)
+    await userStore.getUserInfo()
     ElMessage.success('登录成功')
     const redirect = route.query.redirect || '/'
     router.push(redirect)
