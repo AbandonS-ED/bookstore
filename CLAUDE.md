@@ -58,7 +58,7 @@ npm run build
 mysql -u root -p < sql/init.sql
 ```
 
-将创建包含8张表的数据库 `bookstore`：`user`、`category`、`book`、`address`、`cart`、`order`、`order_item`、`review`。
+将创建包含9张表的数据库 `bookstore`：`user`、`category`、`book`、`address`、`cart`、`order`、`order_item`、`review`、`payment`（支付记录表通过 `sql/migrate.sql` 额外创建）。
 
 ### 2. 启动后端（端口 8081）
 
@@ -134,7 +134,7 @@ MyBatis-Plus 雪花算法生成 **19位 Long 类型 ID**，直接序列化到 JS
 - Entity 基类：`id` 字段添加 `@JsonFormat(shape = JsonFormat.Shape.STRING)` 实现双向转换
 - DTO 类：接收前端字符串 ID，Service 层用 `Long.parseLong()` 转换
 
-**涉及文件（9个VO、3个DTO、3个ServiceImpl、2个Entity）**
+**涉及文件**：10个VO（PaymentVO/BookVO/OrderVO等）、DTO、ServiceImpl、Entity 各自加注解或转换逻辑
 
 ### 前端页面结构
 
@@ -199,9 +199,10 @@ admin.get('/book/list')
 | `book` | 书籍表，含库存、价格、封面 |
 | `address` | 用户收货地址表 |
 | `cart` | 购物车表（user_id + book_id唯一约束） |
-| `order` | 订单主表，含状态、支付状态 |
+| `order` | 订单主表，含状态、支付状态、支付ID、物流单号 |
 | `order_item` | 订单明细表（冗余书籍信息） |
 | `review` | 书籍评论表，评分1-5 |
+| `payment` | 支付记录表，含支付流水号、支付方式、金额、状态 |
 
 ## 订单状态流转
 
