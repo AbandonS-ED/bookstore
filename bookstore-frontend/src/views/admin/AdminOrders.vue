@@ -4,7 +4,7 @@
     <div class="status-tabs">
       <el-radio-group v-model="statusFilter" @change="loadOrders">
         <el-radio-button label="">全部</el-radio-button>
-        <el-radio-button label="pending">待付款</el-radio-button>
+        <el-radio-button label="created">待付款</el-radio-button>
         <el-radio-button label="paid">待发货</el-radio-button>
         <el-radio-button label="shipped">已发货</el-radio-button>
         <el-radio-button label="delivered">已完成</el-radio-button>
@@ -133,6 +133,7 @@ const detailVisible = ref(false)
 const currentOrder = ref(null)
 
 const statusMap = {
+  created: { text: '待付款', type: 'warning' },
   pending: { text: '待付款', type: 'warning' },
   paid: { text: '待发货', type: 'primary' },
   shipped: { text: '已发货', type: 'info' },
@@ -156,25 +157,6 @@ const loadOrders = async () => {
     total.value = res.data?.total || 0
   } catch (error) {
     console.error('Failed to load orders:', error)
-    // Mock data
-    orders.value = [
-      {
-        id: 1,
-        orderNo: 'ORD202401010001',
-        username: '张三',
-        totalAmount: 128.50,
-        status: 'paid',
-        createTime: '2024-01-15 10:30:00',
-        consignee: '张三',
-        phone: '13800138000',
-        address: '北京市朝阳区建国路88号',
-        items: [
-          { bookTitle: '活着', price: 49.00, quantity: 2, subtotal: 98.00 },
-          { bookTitle: '围城', price: 30.50, quantity: 1, subtotal: 30.50 }
-        ]
-      }
-    ]
-    total.value = 1
   } finally {
     loading.value = false
   }

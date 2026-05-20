@@ -220,7 +220,7 @@ onMounted(() => {
 
 <style scoped>
 .admin-categories {
-  max-width: 1200px;
+  max-width: 1400px;
 }
 
 .toolbar {

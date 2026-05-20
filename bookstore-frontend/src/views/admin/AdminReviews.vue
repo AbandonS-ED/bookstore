@@ -2,7 +2,7 @@
   <div class="admin-reviews">
     <!-- 操作栏 -->
     <div class="toolbar">
-      <span class="review-count">共 {{ total }} 条评论</span>
+      <span class="toolbar-title">共 {{ total }} 条评论</span>
     </div>
 
     <!-- 评论表格 -->
@@ -65,34 +65,6 @@ const loadReviews = async () => {
     total.value = res.data?.total || 0
   } catch (error) {
     console.error('Failed to load reviews:', error)
-    // Mock data
-    reviews.value = [
-      {
-        id: 1,
-        bookTitle: '活着',
-        username: 'reader123',
-        rating: 5,
-        content: '这本书让我深刻体会到了生命的意义，余华的笔触太细腻了，强烈推荐！',
-        createTime: '2024-01-20 15:30:00'
-      },
-      {
-        id: 2,
-        bookTitle: '围城',
-        username: 'booklover',
-        rating: 4,
-        content: '经典之作，方鸿渐的形象深入人心，不过结局有点让人唏嘘。',
-        createTime: '2024-01-18 09:15:00'
-      },
-      {
-        id: 3,
-        bookTitle: '三体',
-        username: 'scifi_fan',
-        rating: 5,
-        content: '科幻巅峰之作，想象力太丰富了，看完之后久久不能平静。',
-        createTime: '2024-01-15 20:45:00'
-      }
-    ]
-    total.value = 3
   } finally {
     loading.value = false
   }
@@ -131,7 +103,7 @@ onMounted(() => {
   margin-bottom: var(--space-6);
 }
 
-.review-count {
+.toolbar-title {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
 }

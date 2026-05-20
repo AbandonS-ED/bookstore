@@ -1,5 +1,10 @@
 <template>
   <div class="admin-users">
+    <!-- 操作栏 -->
+    <div class="toolbar">
+      <span class="toolbar-title">共 {{ total }} 个用户</span>
+    </div>
+
     <!-- 用户表格 -->
     <el-table :data="users" v-loading="loading" stripe class="users-table">
       <el-table-column prop="username" label="用户名" width="150" />
@@ -115,28 +120,6 @@ const loadUsers = async () => {
     total.value = res.data?.total || 0
   } catch (error) {
     console.error('Failed to load users:', error)
-    // Mock data
-    users.value = [
-      {
-        id: 1,
-        username: 'admin',
-        email: 'admin@bookstore.com',
-        phone: '13800138000',
-        role: 'admin',
-        status: 1,
-        createTime: '2024-01-01 10:00:00'
-      },
-      {
-        id: 2,
-        username: 'user1',
-        email: 'user1@example.com',
-        phone: '13900139000',
-        role: 'user',
-        status: 1,
-        createTime: '2024-01-15 14:30:00'
-      }
-    ]
-    total.value = 2
   } finally {
     loading.value = false
   }
@@ -204,6 +187,18 @@ onMounted(() => {
 <style scoped>
 .admin-users {
   max-width: 1400px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+
+.toolbar-title {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .users-table {
