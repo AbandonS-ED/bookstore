@@ -368,8 +368,11 @@ const handleConfirm = async () => {
   }
 }
 
-onMounted(() => {
-  fetchOrderDetail()
+onMounted(async () => {
+  await fetchOrderDetail()
+  if (route.query.pay === '1') {
+    showPaymentDialog.value = true
+  }
 })
 </script>
 

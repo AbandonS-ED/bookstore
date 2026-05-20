@@ -291,7 +291,7 @@ const handleSubmit = async () => {
         parseInt(route.query.quantity) || 1
       )
       const addedItem = cartStore.items.find(
-        i => i.bookId === parseInt(route.query.bookId)
+        i => String(i.bookId) === route.query.bookId
       )
       cartItemIds = [addedItem.id]
     } else {
@@ -311,7 +311,7 @@ const handleSubmit = async () => {
     }
 
     ElMessage.success('订单提交成功')
-    router.push(`/order/success?orderId=${orderId}`)
+    router.push(`/order/${orderId}?pay=1`)
   } catch (error) {
     ElMessage.error('订单提交失败')
   } finally {
