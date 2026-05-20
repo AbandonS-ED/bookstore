@@ -57,3 +57,4 @@ MyBatis-Plus 的 `ASSIGN_ID` 生成 19 位 Long，超出 JS 的 `Number.MAX_SAFE
 - `OrderVO` 是扁平字段 `receiverName`/`receiverPhone`/`receiverAddress`，**不是** 嵌套的 `address.receiver`
 - 购物车更新接口传 `{id, quantity}`（购物车记录 ID），**不是** `{bookId, quantity}`
 - 创建订单接口传 `{cartItemIds: [购物车记录ID], addressId}`，**不是** `{items: [{bookId, quantity}]}`
+- **"立即购买"走购物车**：`BookDetail.vue` 的"立即购买"跳到 `/order/confirm?bookId=X&quantity=Y`，`OrderConfirm.vue` 的 `handleSubmit` 会先调 `cartStore.addToCart` 再取 cart ID 下单，而不是直接从空 cart 取数据（否则 `cartItemIds` 为空，后端 `@NotEmpty` 拒绝）

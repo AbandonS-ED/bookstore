@@ -283,15 +283,29 @@ const handleSubmit = async () => {
 
   submitting.value = true
   try {
+    let cartItemIds
+
+    if (route.query.bookId) {
+      await cartStore.addToCart(
+        parseInt(route.query.bookId),
+        parseInt(route.query.quantity) || 1
+      )
+      const addedItem = cartStore.items.find(
+        i => i.bookId === parseInt(route.query.bookId)
+      )
+      cartItemIds = [addedItem.id]
+    } else {
+      cartItemIds = cartStore.items.map(item => item.id)
+    }
+
     const orderData = {
       addressId: selectedAddressId.value,
-      cartItemIds: cartStore.items.map(item => item.id)
+      cartItemIds
     }
 
     const res = await orderApi.create(orderData)
     const orderId = res.data?.id || res.data?.orderId
 
-    // Clear cart if from cart
     if (!route.query.bookId) {
       await cartStore.clearCart()
     }
