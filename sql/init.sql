@@ -59,6 +59,7 @@ CREATE TABLE `address` (
     `detail_address` VARCHAR(200) NOT NULL COMMENT '详细地址',
     `is_default` TINYINT DEFAULT 0 COMMENT '是否默认',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     FOREIGN KEY (`user_id`) REFERENCES `user`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='收货地址表';
 

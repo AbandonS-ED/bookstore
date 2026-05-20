@@ -35,7 +35,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderVO create(Long userId, OrderCreateDTO orderCreateDTO) {
-        Address address = addressMapper.selectById(orderCreateDTO.getAddressId());
+        Long addressId = Long.parseLong(orderCreateDTO.getAddressId());
+        Address address = addressMapper.selectById(addressId);
         if (address == null || !address.getUserId().equals(userId)) {
             throw new BusinessException(1, "收货地址不存在");
         }
@@ -44,7 +45,8 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal totalAmount = BigDecimal.ZERO;
 
         if (orderCreateDTO.getCartItemIds() != null && !orderCreateDTO.getCartItemIds().isEmpty()) {
-            for (Long cartId : orderCreateDTO.getCartItemIds()) {
+            for (String cartIdStr : orderCreateDTO.getCartItemIds()) {
+                Long cartId = Long.parseLong(cartIdStr);
                 Cart cart = cartMapper.selectById(cartId);
                 if (cart == null || !cart.getUserId().equals(userId)) {
                     throw new BusinessException(1, "购物车记录不存在");

@@ -208,7 +208,10 @@
 
 ### 阶段七：前端开发（Vue 3）
 
-待定（前端独立项目）
+✅
+- [x] 用户端页面开发
+- [x] 管理端页面开发
+- [x] 前后端联调
 
 ---
 
@@ -225,3 +228,8 @@
 | 2026/5/18 | a753142 | fix: 移除BookServiceImpl中未使用的BaseMapper导入 |
 | 2026/5/19 | 901a185 | feat: 完善前端功能并修复多项问题 |
 | 2026/5/19 | ddf5dd2 | feat: 推送更新至远程仓库 |
+| 2026/5/20 | 0561e0b | fix: add @JsonSerialize to all VO id fields for BigInt precision |
+| 2026/5/20 | 1e861dd | fix: change DTO id types to String for BigInt precision; fix order confirm sends cartItemIds |
+| 2026/5/20 | c3636be | fix: 添加 CartUpdateDTO 缺失的 NotBlank 导入 |
+| 2026/5/20 | ba81179 | fix: comprehensive BigInt precision fix for all ID fields in VOs, DTOs, entities |
+| 2026/5/20 | 5ecd5b5 | fix: cart update sends wrong field bookId instead of id |

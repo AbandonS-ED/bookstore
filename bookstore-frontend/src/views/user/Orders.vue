@@ -48,12 +48,17 @@
                 <div
                   v-for="(item, index) in order.items?.slice(0, 3)"
                   :key="item.id || index"
-                  class="item-thumb"
+                  class="item-preview"
                 >
-                  <img :src="item.coverUrl || '/placeholder-book.png'" :alt="item.title" />
+                  <img :src="item.coverUrl || '/placeholder-book.png'" :alt="item.bookTitle" class="preview-cover" />
+                  <div class="preview-info">
+                    <p class="preview-title">{{ item.bookTitle }}</p>
+                    <p class="preview-meta">{{ item.bookAuthor }} x{{ item.quantity }}</p>
+                    <p class="preview-price">¥{{ item.price?.toFixed(2) }}</p>
+                  </div>
                 </div>
                 <div v-if="order.items?.length > 3" class="more-items">
-                  +{{ order.items.length - 3 }}
+                  还有 {{ order.items.length - 3 }} 件商品
                 </div>
               </div>
               <div class="order-summary">
@@ -411,40 +416,62 @@ onMounted(() => {
 .order-body {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding: var(--space-4) 0;
 }
 
 .order-items-preview {
   display: flex;
-  gap: var(--space-2);
-  align-items: center;
+  flex-direction: column;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
 }
 
-.item-thumb {
+.item-preview {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.preview-cover {
   width: 50px;
   height: 65px;
   border-radius: var(--radius-sm);
-  overflow: hidden;
+  object-fit: cover;
   flex-shrink: 0;
 }
 
-.item-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.preview-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.preview-title {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preview-meta {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.preview-price {
+  font-size: var(--text-sm);
+  color: var(--color-vermillion);
 }
 
 .more-items {
-  width: 50px;
-  height: 65px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-paper-dark);
-  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   color: var(--color-text-muted);
+  padding: var(--space-1) 0;
 }
 
 .order-summary {

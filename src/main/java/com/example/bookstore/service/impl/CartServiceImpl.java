@@ -27,7 +27,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void add(Long userId, CartAddDTO cartAddDTO) {
-        Book book = bookMapper.selectById(cartAddDTO.getBookId());
+        Book book = bookMapper.selectById(Long.parseLong(cartAddDTO.getBookId()));
         if (book == null) {
             throw new BusinessException(1, "书籍不存在");
         }
@@ -39,7 +39,7 @@ public class CartServiceImpl implements CartService {
         }
 
         LambdaQueryWrapper<Cart> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Cart::getUserId, userId).eq(Cart::getBookId, cartAddDTO.getBookId());
+        wrapper.eq(Cart::getUserId, userId).eq(Cart::getBookId, Long.parseLong(cartAddDTO.getBookId()));
         Cart existingCart = cartMapper.selectOne(wrapper);
 
         if (existingCart != null) {
@@ -48,7 +48,7 @@ public class CartServiceImpl implements CartService {
         } else {
             Cart cart = new Cart();
             cart.setUserId(userId);
-            cart.setBookId(cartAddDTO.getBookId());
+            cart.setBookId(Long.parseLong(cartAddDTO.getBookId()));
             cart.setQuantity(cartAddDTO.getQuantity());
             cartMapper.insert(cart);
         }
@@ -56,7 +56,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void updateQuantity(Long userId, CartUpdateDTO cartUpdateDTO) {
-        Cart cart = cartMapper.selectById(cartUpdateDTO.getId());
+        Cart cart = cartMapper.selectById(Long.parseLong(cartUpdateDTO.getId()));
         if (cart == null) {
             throw new BusinessException(1, "购物车记录不存在");
         }

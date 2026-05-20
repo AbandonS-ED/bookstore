@@ -35,11 +35,10 @@ export const useCartStore = defineStore('cart', {
     },
 
     async updateQuantity(bookId, quantity) {
-      await cartApi.update({ bookId, quantity })
       const item = this.items.find(i => i.bookId === bookId)
-      if (item) {
-        item.quantity = quantity
-      }
+      if (!item) return
+      await cartApi.update({ id: item.id, quantity })
+      item.quantity = quantity
     },
 
     async removeItem(id) {

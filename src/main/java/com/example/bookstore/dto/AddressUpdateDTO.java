@@ -8,8 +8,8 @@ import lombok.Data;
 @Data
 public class AddressUpdateDTO {
 
-    @NotNull(message = "地址ID不能为空")
-    private Long id;
+    @NotBlank(message = "地址ID不能为空")
+    private String id;
 
     @NotBlank(message = "收货人不能为空")
     @Size(max = 50, message = "收货人姓名不超过50字")

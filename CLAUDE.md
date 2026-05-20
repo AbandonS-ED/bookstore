@@ -106,28 +106,35 @@ com.example.bookstore/
 - `AuthContext` 使用 ThreadLocal 存储当前用户信息
 - 密码使用 `BCryptPasswordEncoder` 加密，不可逆
 
-### 数据库表结构
+### BigInt 精度问题（重要）
 
-| 表名 | 用途 |
-|------|------|
-| `user` | 用户表，包含角色（user/admin） |
-| `category` | 分类表（支持层级，通过parent_id） |
-| `book` | 书籍表，含库存、价格、封面 |
-| `address` | 用户收货地址表 |
-| `cart` | 购物车表（user_id + book_id唯一约束） |
-| `order` | 订单主表，含状态、支付状态 |
-| `order_item` | 订单明细表（冗余书籍信息） |
-| `review` | 书籍评论表，评分1-5 |
+MyBatis-Plus 雪花算法生成 **19位 Long 类型 ID**，直接序列化到 JSON 时 JavaScript 会丢失精度（JS Number 最大安全整数约 16 位）。
 
-## 前端结构
+**修复方案：**
+- VO 类：所有 Long 类型 ID 字段添加 `@JsonSerialize(using = ToStringSerializer.class)`
+- Entity 基类：`id` 字段添加 `@JsonFormat(shape = JsonFormat.Shape.STRING)` 实现双向转换
+- DTO 类：接收前端字符串 ID，Service 层用 `Long.parseLong()` 转换
 
-- **Vue 3 + Vite** 项目位于 `bookstore-frontend/`
-- 组件化开发，Vue Router 路由管理
-- **API 层采用双 axios 实例**：
-  - `src/api/index.js` - 用户端API，`baseURL: '/api'`，经 vite 代理转发到 `http://localhost:8081`
-  - `src/api/admin.js` - 管理端API，`baseURL: '/api'`，请求 `/api/admin/xxx` 经代理转发到后端 `/admin/xxx`
-- vite 代理配置：同时代理 `/api` 和 `/admin` 到后端 `http://localhost:8081`
-- 后台接口路径：`/admin/xxx`（不是 `/api/admin/xxx`）
+**涉及文件（9个VO、3个DTO、3个ServiceImpl、2个Entity）**
+
+### 前端 API 结构（关键）
+
+**双 axios 实例设计**：
+- `src/api/index.js` → 用户端 API，`baseURL: '/api'`
+- `src/api/admin.js` → 管理端 API，`baseURL: '/api'`
+
+**代理规则**（vite.config.js）：
+- `/api/xxx` → 后端 `http://localhost:8081/api/xxx`
+- `/admin/xxx` → 后端 `http://localhost:8081/admin/xxx`（注意路径直接是 `/admin` 不是 `/api/admin`）
+
+前端调用示例：
+```js
+// 用户端
+api.get('/user/info')
+
+// 管理端（admin.js自动加前缀 /admin）
+admin.get('/book/list')
+```
 
 ## 数据库表
 

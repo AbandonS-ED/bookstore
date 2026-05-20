@@ -87,7 +87,8 @@
       "Bash(taskkill //F //PID 22184)",
       "Bash(taskkill //F //PID 7976)",
       "Bash(taskkill //F //PID 21888)",
-      "Bash(findstr \"TableField\")"
+      "Bash(findstr \"TableField\")",
+      "Bash(findstr \":8081 :5173\")"
     ],
     "additionalDirectories": [
       "d:\\桌面\\bookstore\\.idea"

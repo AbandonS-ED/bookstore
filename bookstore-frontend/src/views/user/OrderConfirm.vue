@@ -285,10 +285,7 @@ const handleSubmit = async () => {
   try {
     const orderData = {
       addressId: selectedAddressId.value,
-      items: orderItems.value.map(item => ({
-        bookId: item.bookId,
-        quantity: item.quantity
-      }))
+      cartItemIds: cartStore.items.map(item => item.id)
     }
 
     const res = await orderApi.create(orderData)

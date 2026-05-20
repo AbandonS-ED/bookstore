@@ -1,5 +1,7 @@
 package com.example.bookstore.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -8,6 +10,7 @@ import java.time.LocalDate;
 @Data
 public class BookDetailVO {
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     private String isbn;
@@ -24,6 +27,7 @@ public class BookDetailVO {
 
     private Integer stock;
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long categoryId;
 
     private String categoryName;

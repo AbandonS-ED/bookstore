@@ -39,12 +39,10 @@
           <h2 class="section-title">收货地址</h2>
           <div class="address-card">
             <div class="address-header">
-              <span class="receiver">{{ order.address?.receiver }}</span>
-              <span class="phone">{{ order.address?.phone }}</span>
+              <span class="receiver">{{ order.receiverName }}</span>
+              <span class="phone">{{ order.receiverPhone }}</span>
             </div>
-            <p class="address-detail">
-              {{ order.address?.province }}{{ order.address?.city }}{{ order.address?.district }}{{ order.address?.detail }}
-            </p>
+            <p class="address-detail">{{ order.receiverAddress }}</p>
           </div>
         </div>
 
@@ -58,11 +56,11 @@
               class="order-item"
             >
               <div class="item-cover">
-                <img :src="item.coverUrl || '/placeholder-book.png'" :alt="item.title" />
+                <img :src="item.coverUrl || '/placeholder-book.png'" :alt="item.bookTitle" />
               </div>
               <div class="item-info">
-                <h4 class="item-title">{{ item.title }}</h4>
-                <p class="item-author">{{ item.author }}</p>
+                <h4 class="item-title">{{ item.bookTitle }}</h4>
+                <p class="item-author">{{ item.bookAuthor }}</p>
               </div>
               <div class="item-price">¥{{ item.price }}</div>
               <div class="item-quantity">x{{ item.quantity }}</div>
