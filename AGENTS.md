@@ -17,7 +17,7 @@ MyBatis-Plus `ASSIGN_ID` 生成 19 位 Long，超出 JS `Number.MAX_SAFE_INTEGER
 
 | 层级 | 做法 | 示例 |
 |-------|---------|---------|
-| **VO**（响应） | Long ID 字段加 `@JsonSerialize(using = ToStringSerializer.class)` | 10 个 VO 中 9 个已加；**`PaymentVO.id` / `PaymentVO.orderId` 缺少——疑似 bug** |
+| **VO**（响应） | Long ID 字段加 `@JsonSerialize(using = ToStringSerializer.class)` | 10 个 VO 全部已加（PaymentVO/BookVO/OrderVO 等）|
 | **Entity**（响应 + admin `@RequestBody`） | `BaseEntity.id`、`Book.categoryId`、`Category.parentId` 加 `@JsonFormat(shape = JsonFormat.Shape.STRING)` | 双向转换 |
 | **DTO**（请求体） | ID 字段用 `String` 而非 `Long` | `OrderCreateDTO.cartItemIds: List<String>`、`CartUpdateDTO.id: String` |
 | **Service** | `Long.parseLong(dto.getId())` 转回 Long | `AddressServiceImpl.update()` |
