@@ -63,6 +63,14 @@ public class BookServiceImpl implements BookService {
             wrapper.eq(Book::getCategoryId, queryDTO.getCategoryId());
         }
 
+        if (queryDTO.getKeyword() != null && !queryDTO.getKeyword().isBlank()) {
+            wrapper.and(w -> w.like(Book::getTitle, queryDTO.getKeyword())
+                    .or()
+                    .like(Book::getAuthor, queryDTO.getKeyword())
+                    .or()
+                    .like(Book::getIsbn, queryDTO.getKeyword()));
+        }
+
         applySort(wrapper, queryDTO.getSortBy());
 
         Page<Book> result = bookMapper.selectPage(page, wrapper);
@@ -158,6 +166,7 @@ public class BookServiceImpl implements BookService {
         vo.setCategoryId(book.getCategoryId());
         vo.setDescription(book.getDescription());
         vo.setCoverUrl(book.getCoverUrl());
+        vo.setQuote(book.getQuote());
         vo.setStatus(book.getStatus());
 
         if (book.getCategoryId() != null) {
@@ -203,6 +212,49 @@ public class BookServiceImpl implements BookService {
         }
     }
 
+    @Override
+    public List<BookVO> getRanking(String type, String period) {
+        LambdaQueryWrapper<Book> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Book::getStatus, Constants.BOOK_STATUS_ON);
+
+        if ("new".equals(type) && period != null) {
+            LocalDate cutoff = getPeriodCutoff(period);
+            if (cutoff != null) {
+                wrapper.ge(Book::getPublishDate, cutoff);
+            }
+        }
+
+        switch (type) {
+            case "new":
+                wrapper.orderByDesc(Book::getPublishDate);
+                break;
+            case "rating":
+                break;
+            default:
+                wrapper.orderByDesc(Book::getSales);
+                break;
+        }
+
+        List<Book> books = bookMapper.selectList(wrapper);
+        List<BookVO> voList = convertToVOList(books);
+
+        if ("rating".equals(type)) {
+            voList.sort((a, b) -> Double.compare(b.getAvgRating(), a.getAvgRating()));
+        }
+
+        return voList;
+    }
+
+    private LocalDate getPeriodCutoff(String period) {
+        return switch (period) {
+            case "week" -> LocalDate.now().minusWeeks(1);
+            case "month" -> LocalDate.now().minusMonths(1);
+            case "quarter" -> LocalDate.now().minusMonths(3);
+            case "year" -> LocalDate.now().minusYears(1);
+            default -> null;
+        };
+    }
+
     private List<BookVO> convertToVOList(List<Book> books) {
         if (books.isEmpty()) return Collections.emptyList();
 
@@ -224,17 +276,18 @@ public class BookServiceImpl implements BookService {
                         )
                 ));
 
-        Map<Long, String> categoryNames = books.stream()
+        List<Long> categoryIds = books.stream()
                 .map(Book::getCategoryId)
                 .filter(id -> id != null)
                 .distinct()
-                .collect(Collectors.toMap(
-                        id -> id,
-                        id -> {
-                            Category cat = categoryMapper.selectById(id);
-                            return cat != null ? cat.getName() : null;
-                        }
-                ));
+                .collect(Collectors.toList());
+        Map<Long, String> categoryNames;
+        if (!categoryIds.isEmpty()) {
+            categoryNames = categoryMapper.selectBatchIds(categoryIds).stream()
+                    .collect(Collectors.toMap(Category::getId, Category::getName));
+        } else {
+            categoryNames = Collections.emptyMap();
+        }
 
         return books.stream().map(book -> {
             BookVO vo = new BookVO();
@@ -250,6 +303,7 @@ public class BookServiceImpl implements BookService {
             vo.setCategoryId(book.getCategoryId());
             vo.setCategoryName(categoryNames.get(book.getCategoryId()));
             vo.setCoverUrl(book.getCoverUrl());
+            vo.setQuote(book.getQuote());
             vo.setStatus(book.getStatus());
 
             double[] stats = reviewStats.get(book.getId());

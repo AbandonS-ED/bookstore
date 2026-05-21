@@ -36,6 +36,8 @@ public class BookDetailVO {
 
     private String coverUrl;
 
+    private String quote;
+
     private Integer status;
 
     private Double avgRating;

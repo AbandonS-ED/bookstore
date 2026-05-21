@@ -44,6 +44,8 @@ public class Book extends BaseEntity {
 
     private String coverUrl;
 
+    private String quote;
+
     private Integer status;
 
     private Integer sales;

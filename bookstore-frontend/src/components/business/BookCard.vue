@@ -4,17 +4,21 @@
     :class="['book-card', { 'is-visible': isVisible }]"
     :style="{ transitionDelay: `${delay}ms` }"
     @click="$emit('click')"
+    @mouseenter="isHovered = true"
+    @mouseleave="isHovered = false"
   >
     <div class="book-cover">
       <img
-        v-if="book.coverUrl"
+        v-if="book.coverUrl && !coverError"
         :src="book.coverUrl"
         :alt="book.title"
         class="book-cover-img"
         loading="lazy"
+        @error="coverError = true"
       />
-      <div v-else class="book-cover-img book-cover-fallback" :class="coverVariant">
-        <span class="cover-title">{{ book.title.slice(0, 4) }}</span>
+      <div v-if="!book.coverUrl || coverError" class="book-cover-img book-cover-fallback" :style="fallbackStyle">
+        <span class="cover-title">{{ book.title }}</span>
+        <span class="cover-author">{{ book.author }}</span>
       </div>
 
       <div v-if="badge" class="book-badge" :class="badgeClass">{{ badge }}</div>
@@ -22,6 +26,20 @@
       <button class="book-fav" :class="{ active: isFavored }" @click.stop="toggleFav">
         <span class="heart">{{ isFavored ? '♥' : '♡' }}</span>
       </button>
+
+      <transition name="quote-fade">
+        <div v-if="book.quote && isHovered" class="book-quote-overlay">
+          <div class="quote-content">
+            <svg class="quote-mark quote-mark-left" viewBox="0 0 24 24" width="20" height="20">
+              <path d="M6 17h3l2-4V7H5v6h3l-2 4zm8 0h3l2-4V7h-6v6h3l-2 4z" fill="currentColor"/>
+            </svg>
+            <p class="quote-text">{{ book.quote }}</p>
+            <svg class="quote-mark quote-mark-right" viewBox="0 0 24 24" width="20" height="20">
+              <path d="M18 7h-3l-2 4v6h6v-6h-3l2-4zm-8 0H7L5 11v6h6v-6H8l2-4z" fill="currentColor"/>
+            </svg>
+          </div>
+        </div>
+      </transition>
     </div>
 
     <div class="book-info">
@@ -56,18 +74,12 @@ const emit = defineEmits(['click'])
 const cardRef = ref(null)
 const isVisible = ref(false)
 const isFavored = ref(false)
+const isHovered = ref(false)
+const coverError = ref(false)
 
-const variants = [
-  'cover-1', 'cover-2', 'cover-3', 'cover-4', 'cover-5',
-  'cover-6', 'cover-7', 'cover-8', 'cover-9', 'cover-10',
-  'cover-11', 'cover-12'
-]
+import { getCoverStyle } from '@/utils/cover'
 
-const coverVariant = computed(() => {
-  const id = props.book.id
-  const num = typeof id === 'string' ? parseInt(id, 10) || 1 : (id || 1)
-  return variants[(num - 1) % variants.length]
-})
+const fallbackStyle = computed(() => getCoverStyle(props.book.id))
 
 const badge = computed(() => {
   if (props.book.badge) return props.book.badge
@@ -160,20 +172,33 @@ onUnmounted(() => {
 
 .book-cover-fallback {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.2rem;
-  padding: 24px;
+  padding: 30px;
   text-align: center;
-  line-height: 1.5;
+  box-shadow:
+    0 30px 60px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(192,154,75,0.08);
+  border-left: 3px solid rgba(192,154,75,0.12);
+  border-radius: 6px;
 }
 
 .cover-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.8rem;
   color: rgba(237,230,214,0.85);
   text-shadow: 0 1px 4px rgba(0,0,0,0.2);
   word-break: break-all;
+  line-height: 1.3;
+  margin-bottom: 12px;
+}
+
+.cover-author {
+  font-size: 0.85rem;
+  color: rgba(237,230,214,0.55);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 .book-badge {
@@ -187,6 +212,7 @@ onUnmounted(() => {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 2;
 }
 
 .badge-hot { background: #C09A4B; color: #1C120C; }
@@ -211,6 +237,7 @@ onUnmounted(() => {
   opacity: 0;
   transform: scale(0.85);
   transition: all 0.3s ease;
+  z-index: 3;
 }
 
 .book-card:hover .book-fav {
@@ -244,6 +271,85 @@ onUnmounted(() => {
 
 .book-fav.active:hover .heart {
   transform: scale(1.15);
+}
+
+.book-quote-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(28, 18, 12, 0.92) 0%,
+    rgba(44, 31, 21, 0.88) 50%,
+    rgba(28, 18, 12, 0.95) 100%
+  );
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.quote-content {
+  position: relative;
+  text-align: center;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.quote-mark {
+  color: rgba(192, 154, 75, 0.6);
+  flex-shrink: 0;
+}
+
+.quote-mark-left {
+  margin-bottom: 8px;
+  align-self: flex-start;
+  margin-left: -4px;
+}
+
+.quote-mark-right {
+  margin-top: 8px;
+  align-self: flex-end;
+  margin-right: -4px;
+}
+
+.quote-text {
+  font-family: 'Noto Serif SC', 'STSong', 'SimSun', serif;
+  font-size: 0.85rem;
+  line-height: 1.8;
+  color: rgba(237, 230, 214, 0.95);
+  text-align: justify;
+  margin: 0;
+  max-height: 100%;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.quote-fade-enter-active {
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.quote-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.55, 0, 1, 0.45);
+}
+
+.quote-fade-enter-from {
+  opacity: 0;
+  transform: scale(1.05);
+}
+
+.quote-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
 }
 
 .book-info {
@@ -307,17 +413,4 @@ onUnmounted(() => {
 .star-icon {
   display: block;
 }
-
-.cover-1 { background: linear-gradient(160deg, #5D4037 0%, #3E2723 60%, #2C1A12 100%); }
-.cover-2 { background: linear-gradient(160deg, #6D4C41 0%, #4E342E 100%); }
-.cover-3 { background: linear-gradient(160deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%); }
-.cover-4 { background: linear-gradient(160deg, #3D2B1F 0%, #5C3A21 100%); }
-.cover-5 { background: linear-gradient(160deg, #5C1A1A 0%, #3A0A0A 100%); }
-.cover-6 { background: linear-gradient(160deg, #1B3A2D 0%, #0D2818 100%); }
-.cover-7 { background: linear-gradient(160deg, #2C3E50 0%, #1A252F 100%); }
-.cover-8 { background: linear-gradient(160deg, #3C1F3A 0%, #2A1526 100%); }
-.cover-9 { background: linear-gradient(160deg, #8B4513 0%, #5C2D0E 100%); }
-.cover-10 { background: linear-gradient(160deg, #4A3A2A 0%, #2A1A0A 100%); }
-.cover-11 { background: linear-gradient(160deg, #2A4A3A 0%, #1A2A1A 100%); }
-.cover-12 { background: linear-gradient(160deg, #3A2A4A 0%, #2A1A3A 100%); }
 </style>
