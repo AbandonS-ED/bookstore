@@ -67,8 +67,9 @@ src/composables/     # Vue组合式函数
 
 ### 静态资源
 
-- `pictures/` 目录存放书籍封面图片
+- `pictures/` 目录存放书籍封面图片，后端通过 `/pictures/*` 提供静态资源服务
 - Vite 代理 `/pictures/*` 到后端 `localhost:8081/pictures/*`
+- 书籍封面占位符使用 `getCoverStyle(bookId)` 生成渐变背景
 
 ### Vite 代理规则
 
@@ -77,6 +78,8 @@ src/composables/     # Vue组合式函数
 | `/api/*` | `localhost:8081/api/*` |
 | `/admin/*` | `localhost:8081/admin/*` |
 | `/pictures/*` | `localhost:8081/pictures/*`（封面图片）|
+
+**前端 API 路径约定**：用户端用 `/book/`（单数），管理端用 `/admin/`
 
 ### 认证与授权
 
@@ -123,6 +126,12 @@ cancelled(已取消)   refunded(已退款)
 - `BaseEntity` 提供 id（雪花算法）、createTime、updateTime
 - 密码使用 BCrypt 加密，密钥从 `application.yml` 的 `jwt.secret` 读取
 - 订单号通过 `OrderNoGenerator` 生成
+
+## 排行榜 API（getRanking）
+
+- `type`: `sales`（畅销）、`rating`（评分）、`new`（新书）
+- `period`: `all`、`week`、`month`、`quarter`、`year`（**仅 new 类型真正使用**，其他类型 period 参数暂未生效）
+- 建议返回时加 `limit 20` 限制数量
 
 ## 文档
 
