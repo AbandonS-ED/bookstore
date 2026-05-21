@@ -15,7 +15,9 @@ import com.example.bookstore.vo.ReviewVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,6 +48,15 @@ public class ReviewServiceImpl implements ReviewService {
                 .orderByDesc(Review::getCreateTime);
         List<Review> reviews = reviewMapper.selectList(wrapper);
 
+        List<Long> userIds = reviews.stream().map(Review::getUserId).distinct().collect(Collectors.toList());
+        Map<Long, String> usernames;
+        if (!userIds.isEmpty()) {
+            usernames = userMapper.selectBatchIds(userIds).stream()
+                    .collect(Collectors.toMap(User::getId, User::getUsername));
+        } else {
+            usernames = Collections.emptyMap();
+        }
+
         return reviews.stream().map(review -> {
             ReviewVO vo = new ReviewVO();
             vo.setId(review.getId());
@@ -55,10 +66,7 @@ public class ReviewServiceImpl implements ReviewService {
             vo.setContent(review.getContent());
             vo.setCreateTime(review.getCreateTime());
 
-            User user = userMapper.selectById(review.getUserId());
-            if (user != null) {
-                vo.setUsername(user.getUsername());
-            }
+            vo.setUsername(usernames.get(review.getUserId()));
             return vo;
         }).collect(Collectors.toList());
     }
@@ -70,6 +78,15 @@ public class ReviewServiceImpl implements ReviewService {
                 .orderByDesc(Review::getCreateTime);
         List<Review> reviews = reviewMapper.selectList(wrapper);
 
+        List<Long> bookIds = reviews.stream().map(Review::getBookId).distinct().collect(Collectors.toList());
+        Map<Long, Book> bookMap;
+        if (!bookIds.isEmpty()) {
+            bookMap = bookMapper.selectBatchIds(bookIds).stream()
+                    .collect(Collectors.toMap(Book::getId, b -> b));
+        } else {
+            bookMap = Collections.emptyMap();
+        }
+
         return reviews.stream().map(review -> {
             ReviewVO vo = new ReviewVO();
             vo.setId(review.getId());
@@ -79,7 +96,7 @@ public class ReviewServiceImpl implements ReviewService {
             vo.setContent(review.getContent());
             vo.setCreateTime(review.getCreateTime());
 
-            Book book = bookMapper.selectById(review.getBookId());
+            Book book = bookMap.get(review.getBookId());
             if (book != null) {
                 vo.setBookTitle(book.getTitle());
                 vo.setBookCoverUrl(book.getCoverUrl());

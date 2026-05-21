@@ -154,7 +154,8 @@ INSERT INTO `category` (`name`, `parent_id`, `sort`) VALUES
 
 -- 插入管理员账号 (密码: 123456, BCrypt加密)
 INSERT INTO `user` (`username`, `password`, `email`, `role`) VALUES
-('admin', '$2a$10$2AXXtLtX/U.0S9fhNXZW3OM7l3VyAMNulKCbuD86ZWQdhdOYJI89C', 'admin@bookstore.com', 'admin');
+('admin', '$2a$10$2AXXtLtX/U.0S9fhNXZW3OM7l3VyAMNulKCbuD86ZWQdhdOYJI89C', 'admin@bookstore.com', 'admin'),
+('testuser', '$2a$10$2AXXtLtX/U.0S9fhNXZW3OM7l3VyAMNulKCbuD86ZWQdhdOYJI89C', 'test@bookstore.com', 'user');
 
 -- 插入测试书籍
 INSERT INTO `book` (`isbn`, `title`, `author`, `publisher`, `price`, `stock`, `sales`, `category_id`, `description`, `cover_url`, `quote`) VALUES
@@ -185,3 +186,18 @@ INSERT INTO `book` (`isbn`, `title`, `author`, `publisher`, `price`, `stock`, `s
 ('978-7-5402-3616-0', '杀死一只知更鸟', '哈珀·李', '人民文学出版社', 39.00, 80, 17000, 1, '关于正义与勇气的成长小说', '/pictures/杀死一只知更鸟.jpg', '你永远不可能真正了解一个人，除非你从他的角度去看问题。'),
 ('978-7-5354-5424-9', '1984', '乔治·奥威尔', '南海出版公司', 42.00, 70, 15000, 2, '反乌托邦经典，对极权主义的深刻洞察', '/pictures/1984.jpg', '战争即和平，自由即奴役，无知即力量。'),
 ('978-7-5442-4535-7', '霍乱时期的爱情', '加西亚·马尔克斯', '上海译文出版社', 49.00, 65, 12000, 1, '马尔克斯爱情巨著', '/pictures/霍乱时期的爱情.jpg', '爱情首先是一种本能，要么生下来就会，要么永远都不会。');
+
+-- 插入测试评论（用户 testuser, id=2）
+INSERT INTO `review` (`user_id`, `book_id`, `rating`, `content`, `status`) VALUES
+(2, 3, 5, '刘慈欣的想象力令人叹为观止，黑暗森林法则让人不寒而栗。强烈推荐！', 1),
+(2, 3, 4, '格局宏大，但人物塑造稍显单薄。瑕不掩瑜的国产科幻巅峰。', 1),
+(2, 4, 5, '每次读都有不同的感受。活着的意义就是活着本身，余华写得太深刻了。', 1),
+(2, 4, 4, '看哭了三次。在那个年代，活着本身就是一种勇气。', 1),
+(2, 5, 5, '马尔克斯的魔幻现实主义杰作，家族七代的轮回，读完后久久不能平静。', 1),
+(2, 6, 4, '小时候读是童话，长大后读是哲理。重要的东西用眼睛是看不见的。', 1),
+(2, 10, 5, '平凡的世界里不平凡的人生。孙少平的身影让我看到了无数奋斗者的影子。', 1),
+(2, 14, 4, '东野圭吾难得的温情之作，几个故事环环相扣，读完心里暖暖的。', 1),
+(2, 15, 5, '"为你，千千万万遍"——这句话让我泪崩。关于赎罪与救赎的最好的故事。', 1),
+(2, 1, 4, 'Java入门经典，讲解透彻，示例丰富。就是太厚了，适合当工具书。', 1),
+(2, 2, 5, 'Python入门最好的书之一，从基础到项目循序渐进，很适合零基础读者。', 1),
+(2, 11, 5, '东野圭吾的巅峰之作，雪穗和亮司的共生关系写得太绝了，结局震撼。', 1);

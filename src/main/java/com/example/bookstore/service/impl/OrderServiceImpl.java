@@ -21,7 +21,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,6 +46,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         List<Cart> cartItems = new ArrayList<>();
+        Map<Long, Book> bookCache = new HashMap<>();
         BigDecimal totalAmount = BigDecimal.ZERO;
 
         if (orderCreateDTO.getCartItemIds() != null && !orderCreateDTO.getCartItemIds().isEmpty()) {
@@ -53,7 +56,7 @@ public class OrderServiceImpl implements OrderService {
                 if (cart == null || !cart.getUserId().equals(userId)) {
                     throw new BusinessException(1, "购物车记录不存在");
                 }
-                Book book = bookMapper.selectById(cart.getBookId());
+                Book book = bookCache.computeIfAbsent(cart.getBookId(), bookMapper::selectById);
                 if (book == null) {
                     throw new BusinessException(1, "书籍不存在");
                 }
@@ -84,7 +87,7 @@ public class OrderServiceImpl implements OrderService {
         orderMapper.insert(order);
 
         for (Cart cart : cartItems) {
-            Book book = bookMapper.selectById(cart.getBookId());
+            Book book = bookCache.get(cart.getBookId());
 
             int affected = bookMapper.decreaseStock(book.getId(), cart.getQuantity());
             if (affected == 0) {
@@ -114,6 +117,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public void pay(Long userId, Long orderId) {
         Order order = orderMapper.selectById(orderId);
         if (order == null || !order.getUserId().equals(userId)) {

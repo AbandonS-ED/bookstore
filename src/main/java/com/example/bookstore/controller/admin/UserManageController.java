@@ -2,6 +2,7 @@ package com.example.bookstore.controller.admin;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.bookstore.common.Constants;
 import com.example.bookstore.common.Result;
 import com.example.bookstore.entity.User;
 import com.example.bookstore.mapper.UserMapper;
@@ -32,7 +33,7 @@ public class UserManageController {
         if (user == null) {
             return Result.error(1, "用户不存在");
         }
-        user.setStatus(0);
+        user.setStatus(Constants.STATUS_DISABLED);
         userMapper.updateById(user);
         return Result.success();
     }
@@ -43,7 +44,7 @@ public class UserManageController {
         if (user == null) {
             return Result.error(1, "用户不存在");
         }
-        user.setStatus(1);
+        user.setStatus(Constants.STATUS_NORMAL);
         userMapper.updateById(user);
         return Result.success();
     }

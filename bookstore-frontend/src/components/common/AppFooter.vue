@@ -6,7 +6,6 @@
           <div class="logo-icon">📖</div>
           <div>
             书斋
-            <span class="logo-text-sub">SHUZHAI BOOKS</span>
           </div>
         </div>
         <p>用阅读点亮时光。书斋精选万册好书，从经典文学到前沿新知，让好书触手可及。</p>
@@ -39,7 +38,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2026 书斋网上书店 · 课程设计项目</span>
+      <span>© 2026 书斋 · 课程设计项目</span>
       <span>用心选书，温暖每一个阅读时刻</span>
     </div>
   </footer>

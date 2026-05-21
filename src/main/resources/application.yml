@@ -23,6 +23,9 @@ jwt:
   secret: "bookstore-secret-key-for-jwt-token-generation-2024"
   expiration: 86400000
 
+callback:
+  secret: "bookstore-callback-secret-2024"
+
 logging:
   level:
     com.example.bookstore: debug

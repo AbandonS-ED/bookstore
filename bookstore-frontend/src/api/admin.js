@@ -60,8 +60,8 @@ export const adminApi = {
   getOrderList(params) {
     return request.get('/order/list', { params })
   },
-  shipOrder(id) {
-    return request.put(`/order/${id}/ship`)
+  shipOrder(id, expressNo) {
+    return request.put(`/order/${id}/ship`, { expressNo })
   },
   deliverOrder(id) {
     return request.put(`/order/${id}/deliver`)

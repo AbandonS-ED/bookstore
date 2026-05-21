@@ -10,7 +10,7 @@ export const reviewApi = {
   },
 
   add(data) {
-    return api.post('/review', data)
+    return api.post('/review/add', data)
   },
 
   delete(id) {

@@ -6,6 +6,7 @@ import com.example.bookstore.vo.BookVO;
 import com.example.bookstore.common.PageResult;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public interface BookService {
 
@@ -15,6 +16,8 @@ public interface BookService {
                                       BigDecimal minPrice, BigDecimal maxPrice, Integer minRating, String timeRange);
 
     PageResult<BookVO> search(String keyword, Integer pageNum, Integer pageSize);
+
+    List<BookVO> getRanking(String type, String period);
 
     BookDetailVO getDetail(Long id);
 }

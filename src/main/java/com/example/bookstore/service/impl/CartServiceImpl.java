@@ -65,7 +65,10 @@ public class CartServiceImpl implements CartService {
         }
 
         Book book = bookMapper.selectById(cart.getBookId());
-        if (book != null && book.getStock() < cartUpdateDTO.getQuantity()) {
+        if (book == null) {
+            throw new BusinessException(1, "书籍不存在或已删除");
+        }
+        if (book.getStock() < cartUpdateDTO.getQuantity()) {
             throw new BusinessException(1, "库存不足");
         }
 

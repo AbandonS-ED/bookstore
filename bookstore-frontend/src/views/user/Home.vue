@@ -14,17 +14,9 @@
         </div>
         <div class="hero-visual">
           <div class="book-stack">
-            <div class="floating-book book-1">
-              <div class="fb-title">百年孤独</div>
-              <div class="fb-author">加西亚·马尔克斯</div>
-            </div>
-            <div class="floating-book book-2">
-              <div class="fb-title">小王子</div>
-              <div class="fb-author">圣埃克苏佩里</div>
-            </div>
-            <div class="floating-book book-3">
-              <div class="fb-title">活着</div>
-              <div class="fb-author">余华</div>
+            <div v-for="(book, i) in heroBooks" :key="book.id" :class="['floating-book', `book-${i + 1}`]" @click="goToBook(book.id)" style="cursor:pointer">
+              <div class="fb-title">{{ book.title }}</div>
+              <div class="fb-author">{{ book.author }}</div>
             </div>
           </div>
         </div>
@@ -161,6 +153,7 @@ const router = useRouter()
 const categories = ref([])
 const books = ref([])
 const newBooks = ref([])
+const heroBooks = ref([])
 const loading = ref(true)
 const selectedCategory = ref(null)
 
@@ -189,6 +182,8 @@ onMounted(async () => {
   try {
     const catRes = await categoryApi.getList()
     categories.value = catRes.data || []
+    const rankRes = await bookApi.getRanking({ type: 'sales', period: 'all' })
+    heroBooks.value = (rankRes.data || []).slice(0, 3)
   } catch (error) {
     console.error('Failed to load categories:', error)
   }
@@ -421,6 +416,10 @@ onMounted(async () => {
   font-family: var(--font-display);
   font-size: 1.1rem;
   font-weight: 700;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .book-2 .fb-title { color: var(--color-bg-warm); font-size: 0.95rem; }
@@ -430,6 +429,10 @@ onMounted(async () => {
   color: rgba(237,230,214,0.4);
   font-size: 0.72rem;
   margin-top: 8px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .book-2 .fb-author { color: rgba(237,230,214,0.35); }

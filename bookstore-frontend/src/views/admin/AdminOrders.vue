@@ -40,7 +40,7 @@
             size="small"
             type="success"
             link
-            @click="handleShip(row)"
+            @click="openShipDialog(row)"
           >
             发货
           </el-button>
@@ -60,6 +60,19 @@
         @current-change="loadOrders"
       />
     </div>
+
+    <!-- 发货对话框 -->
+    <el-dialog v-model="shipDialogVisible" title="确认发货" width="400px">
+      <el-form ref="shipFormRef" :model="shipForm" :rules="shipRules">
+        <el-form-item label="快递单号" prop="expressNo">
+          <el-input v-model="shipForm.expressNo" placeholder="请输入快递单号" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="shipDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmShip" :loading="shipLoading">确认发货</el-button>
+      </template>
+    </el-dialog>
 
     <!-- 订单详情对话框 -->
     <el-dialog v-model="detailVisible" title="订单详情" width="700px">
@@ -108,7 +121,7 @@
         <el-button
           v-if="currentOrder?.status === 'paid'"
           type="primary"
-          @click="handleShip(currentOrder)"
+          @click="openShipDialog(currentOrder)"
         >
           确认发货
         </el-button>
@@ -118,7 +131,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { adminApi } from '@/api/admin'
 
@@ -129,16 +142,31 @@ const pageNum = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 
+const shipDialogVisible = ref(false)
+const shipLoading = ref(false)
+const shipFormRef = ref(null)
+const shipTargetOrder = ref(null)
+const shipForm = reactive({
+  expressNo: ''
+})
+const shipRules = {
+  expressNo: [{ required: true, message: '请输入快递单号', trigger: 'blur' }]
+}
+
 const detailVisible = ref(false)
 const currentOrder = ref(null)
 
 const statusMap = {
   created: { text: '待付款', type: 'warning' },
   pending: { text: '待付款', type: 'warning' },
+  paying: { text: '支付中', type: 'warning' },
   paid: { text: '待发货', type: 'primary' },
   shipped: { text: '已发货', type: 'info' },
-  delivered: { text: '已完成', type: 'success' },
-  cancelled: { text: '已取消', type: 'danger' }
+  delivered: { text: '已收货', type: 'success' },
+  completed: { text: '已完成', type: 'success' },
+  cancelled: { text: '已取消', type: 'danger' },
+  expired: { text: '已过期', type: 'info' },
+  refunded: { text: '已退款', type: 'danger' }
 }
 
 const getStatusText = (status) => statusMap[status]?.text || status
@@ -167,15 +195,29 @@ const viewDetail = (row) => {
   detailVisible.value = true
 }
 
-const handleShip = async (row) => {
-  try {
-    await adminApi.shipOrder(row.id)
-    ElMessage.success('发货成功')
-    detailVisible.value = false
-    loadOrders()
-  } catch (error) {
-    ElMessage.error(error.message || '发货失败')
-  }
+const openShipDialog = (row) => {
+  shipTargetOrder.value = row
+  shipForm.expressNo = ''
+  shipDialogVisible.value = true
+}
+
+const confirmShip = async () => {
+  if (!shipFormRef.value) return
+  await shipFormRef.value.validate(async (valid) => {
+    if (!valid) return
+    shipLoading.value = true
+    try {
+      await adminApi.shipOrder(shipTargetOrder.value.id, shipForm.expressNo)
+      ElMessage.success('发货成功')
+      shipDialogVisible.value = false
+      detailVisible.value = false
+      loadOrders()
+    } catch (error) {
+      ElMessage.error(error.message || '发货失败')
+    } finally {
+      shipLoading.value = false
+    }
+  })
 }
 
 onMounted(() => {

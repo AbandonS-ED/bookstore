@@ -25,7 +25,8 @@
     <el-table :data="books" v-loading="loading" stripe class="books-table">
       <el-table-column label="封面" width="100">
         <template #default="{ row }">
-          <img :src="row.coverUrl || '/placeholder-book.png'" class="book-cover" />
+          <img v-if="row.coverUrl && !coverErrors[row.id]" :src="row.coverUrl" class="book-cover" @error="coverErrors[row.id] = true" />
+          <div v-else class="book-cover-fallback" :style="getCoverStyle(row.id)"></div>
         </template>
       </el-table-column>
       <el-table-column prop="title" label="书名" min-width="180" />
@@ -141,10 +142,12 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { adminApi } from '@/api/admin'
 import { categoryApi } from '@/api/category'
+import { getCoverStyle } from '@/utils/cover'
 
 const loading = ref(false)
 const submitLoading = ref(false)
 const books = ref([])
+const coverErrors = ref({})
 const categories = ref([])
 const searchKeyword = ref('')
 const pageNum = ref(1)
@@ -327,7 +330,12 @@ onMounted(() => {
   width: 60px;
   height: 80px;
   object-fit: cover;
+}
+.book-cover-fallback {
+  width: 60px;
+  height: 80px;
   border-radius: var(--radius-sm);
+  display: inline-block;
 }
 
 .price {

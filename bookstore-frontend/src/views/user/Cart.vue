@@ -30,7 +30,8 @@
               class="cart-item"
             >
               <div class="item-cover">
-                <img :src="item.coverUrl || '/placeholder-book.png'" :alt="item.title" />
+                <img v-if="item.coverUrl && !coverErrors[item.id]" :src="item.coverUrl" :alt="item.title" @error="coverErrors[item.id] = true" />
+                <div v-else class="item-cover-fallback" :style="getCoverStyle(item.id)"></div>
               </div>
               <div class="item-info">
                 <h3 class="item-title">{{ item.title }}</h3>
@@ -83,11 +84,13 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useCartStore } from '@/stores/cart'
+import { getCoverStyle } from '@/utils/cover'
 import { cartApi } from '@/api/cart'
 
 const router = useRouter()
 const cartStore = useCartStore()
 const loading = ref(true)
+const coverErrors = ref({})
 
 const handleUpdateQuantity = async (item, newQuantity) => {
   if (newQuantity < 1) return
@@ -280,6 +283,11 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+.item-cover-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-md);
 }
 
 .item-info {

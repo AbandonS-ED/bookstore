@@ -58,7 +58,8 @@
               class="order-item"
             >
               <div class="item-cover">
-                <img :src="item.coverUrl || '/placeholder-book.png'" :alt="item.title" />
+                <img v-if="item.coverUrl && !coverErrors[item.bookId || item.id]" :src="item.coverUrl" :alt="item.title" @error="coverErrors[item.bookId || item.id] = true" />
+                <div v-else class="item-cover-fallback" :style="getCoverStyle(item.bookId || item.id)"></div>
               </div>
               <div class="item-info">
                 <h4 class="item-title">{{ item.title }}</h4>
@@ -137,6 +138,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { getCoverStyle } from '@/utils/cover'
 import { orderApi } from '@/api/order'
 import { cartApi } from '@/api/cart'
 import { addressApi } from '@/api/address'
@@ -150,6 +152,7 @@ const cartStore = useCartStore()
 const loading = ref(true)
 const submitting = ref(false)
 const addresses = ref([])
+const coverErrors = ref({})
 const selectedAddressId = ref(null)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
@@ -524,6 +527,11 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+.item-cover-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-sm);
 }
 
 .item-info {

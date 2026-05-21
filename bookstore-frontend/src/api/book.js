@@ -12,5 +12,8 @@ export const bookApi = {
   },
   getByCategory(categoryId, params) {
     return api.get(`/book/category/${categoryId}`, { params })
+  },
+  getRanking(params) {
+    return api.get('/book/ranking', { params })
   }
 }

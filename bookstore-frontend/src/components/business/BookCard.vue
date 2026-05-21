@@ -50,11 +50,14 @@
           ¥{{ book.price }}
           <span v-if="book.originalPrice && book.originalPrice !== book.price" class="original">¥{{ book.originalPrice }}</span>
         </div>
-        <div v-if="book.avgRating" class="book-rating">
-          <svg class="star-icon" viewBox="0 0 20 20" width="12" height="12">
-            <path d="M10 1l2.39 4.84L17.6 6.7l-3.8 3.7.9 5.24L10 13.2l-4.7 2.44.9-5.24L2.4 6.7l5.21-.86L10 1z" fill="currentColor"/>
-          </svg>
-          <span class="rating-val">{{ book.avgRating?.toFixed(1) }}</span>
+        <div class="book-rating">
+          <template v-if="book.avgRating">
+            <svg class="star-icon" viewBox="0 0 20 20" width="12" height="12">
+              <path d="M10 1l2.39 4.84L17.6 6.7l-3.8 3.7.9 5.24L10 13.2l-4.7 2.44.9-5.24L2.4 6.7l5.21-.86L10 1z" fill="currentColor"/>
+            </svg>
+            <span class="rating-val">{{ book.avgRating?.toFixed(1) }}</span>
+          </template>
+          <span v-else class="no-rating">暂无评分</span>
         </div>
       </div>
     </div>
@@ -403,6 +406,12 @@ onUnmounted(() => {
   align-items: center;
   gap: 3px;
   color: var(--color-accent);
+}
+
+.book-rating .no-rating {
+  font-size: 0.7rem;
+  color: var(--color-text-light);
+  font-style: italic;
 }
 
 .rating-val {

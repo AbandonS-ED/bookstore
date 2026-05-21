@@ -38,30 +38,41 @@
       <div class="ranking-content">
         <Transition name="rank-fade" mode="out-in">
           <div :key="activeTab + activePeriod" class="rank-inner">
+            <div v-if="loading" class="ranking-loading">加载中...</div>
+            <div v-if="!loading && books.length === 0" class="ranking-empty">暂无数据</div>
             <div v-if="topThree.length" class="top-three">
-              <div class="top-card second" v-if="topThree[1]">
+              <div class="top-card second" v-if="topThree[1]" @click="goToBook(topThree[1].id)">
                 <div class="top-rank-badge silver">2</div>
-                <div class="top-cover" :class="getCoverClass(topThree[1])">
-                  <div class="top-cover-text">{{ topThree[1].title.slice(0, 4) }}</div>
+                <div class="top-cover">
+                  <img v-if="topThree[1].coverUrl && !coverErrors[topThree[1].id]" :src="topThree[1].coverUrl" :alt="topThree[1].title" class="top-cover-img" @error="coverErrors[topThree[1].id] = true" />
+                  <div v-else class="top-cover-fallback" :style="getCoverStyle(topThree[1].id)">
+                    <span class="top-fallback-title">{{ topThree[1].title }}</span>
+                    <span class="top-fallback-author">{{ topThree[1].author }}</span>
+                  </div>
                   <div class="top-rank-overlay">
                     <span class="top-rank-num">#2</span>
                   </div>
                 </div>
+
                 <div class="top-info">
                   <h3>{{ topThree[1].title }}</h3>
                   <p>{{ topThree[1].author }}</p>
                   <div class="top-price">¥{{ topThree[1].price }}</div>
                   <div class="top-stat">
                     <span class="stat-icon">{{ tabStatLabel }}</span>
-                    {{ topThree[1].statValue }}
+                    {{ getStatValue(topThree[1]) }}
                   </div>
                 </div>
               </div>
 
-              <div class="top-card first" v-if="topThree[0]">
+              <div class="top-card first" v-if="topThree[0]" @click="goToBook(topThree[0].id)">
                 <div class="top-rank-badge gold">1</div>
-                <div class="top-cover first-cover" :class="getCoverClass(topThree[0])">
-                  <div class="top-cover-text">{{ topThree[0].title.slice(0, 4) }}</div>
+                <div class="top-cover first-cover">
+                  <img v-if="topThree[0].coverUrl && !coverErrors[topThree[0].id]" :src="topThree[0].coverUrl" :alt="topThree[0].title" class="top-cover-img" @error="coverErrors[topThree[0].id] = true" />
+                  <div v-else class="top-cover-fallback" :style="getCoverStyle(topThree[0].id)">
+                    <span class="top-fallback-title">{{ topThree[0].title }}</span>
+                    <span class="top-fallback-author">{{ topThree[0].author }}</span>
+                  </div>
                   <div class="top-rank-overlay">
                     <span class="top-rank-num">#1</span>
                   </div>
@@ -72,15 +83,19 @@
                   <div class="top-price">¥{{ topThree[0].price }}</div>
                   <div class="top-stat">
                     <span class="stat-icon">{{ tabStatLabel }}</span>
-                    {{ topThree[0].statValue }}
+                    {{ getStatValue(topThree[0]) }}
                   </div>
                 </div>
               </div>
 
-              <div class="top-card third" v-if="topThree[2]">
+              <div class="top-card third" v-if="topThree[2]" @click="goToBook(topThree[2].id)">
                 <div class="top-rank-badge bronze">3</div>
-                <div class="top-cover" :class="getCoverClass(topThree[2])">
-                  <div class="top-cover-text">{{ topThree[2].title.slice(0, 4) }}</div>
+                <div class="top-cover">
+                  <img v-if="topThree[2].coverUrl && !coverErrors[topThree[2].id]" :src="topThree[2].coverUrl" :alt="topThree[2].title" class="top-cover-img" @error="coverErrors[topThree[2].id] = true" />
+                  <div v-else class="top-cover-fallback" :style="getCoverStyle(topThree[2].id)">
+                    <span class="top-fallback-title">{{ topThree[2].title }}</span>
+                    <span class="top-fallback-author">{{ topThree[2].author }}</span>
+                  </div>
                   <div class="top-rank-overlay">
                     <span class="top-rank-num">#3</span>
                   </div>
@@ -91,7 +106,7 @@
                   <div class="top-price">¥{{ topThree[2].price }}</div>
                   <div class="top-stat">
                     <span class="stat-icon">{{ tabStatLabel }}</span>
-                    {{ topThree[2].statValue }}
+                    {{ getStatValue(topThree[2]) }}
                   </div>
                 </div>
               </div>
@@ -108,8 +123,10 @@
                 <div :class="['rank-num', { 'top-rank': idx < 3 }]">
                   {{ idx + 4 }}
                 </div>
-                <div class="rank-item-cover" :class="getCoverClass(book)">
-                  <span>{{ book.title.slice(0, 3) }}</span>
+                <img v-if="book.coverUrl && !coverErrors[book.id]" :src="book.coverUrl" :alt="book.title" class="rank-item-img" @error="coverErrors[book.id] = true" />
+                <div v-else class="rank-item-cover" :style="getCoverStyle(book.id)">
+                  <span class="rank-fallback-title">{{ book.title }}</span>
+                  <span class="rank-fallback-author">{{ book.author }}</span>
                 </div>
                 <div class="rank-item-info">
                   <div class="rank-item-title">{{ book.title }}</div>
@@ -118,7 +135,7 @@
                 <div class="rank-item-price">¥{{ book.price }}</div>
                 <div class="rank-item-stat">
                   <span class="stat-icon-sm">{{ tabStatIcon }}</span>
-                  {{ book.statValue }}
+                  {{ getStatValue(book) }}
                 </div>
                 <div class="rank-item-rating" v-if="book.avgRating">
                   ★ {{ book.avgRating?.toFixed(1) }}
@@ -127,7 +144,7 @@
             </div>
 
             <div v-if="hasMore" class="load-more">
-              <button class="btn-load" @click="loadMore">加载更多 · 第{{ rankedBooks.length + 4 }}~{{ Math.min(rankedBooks.length + 23, allBooks.length) }}名</button>
+              <button class="btn-load" @click="loadMore">加载更多 · 第{{ rankedBooks.length + 4 }}~{{ Math.min(rankedBooks.length + 23, books.length) }}名</button>
             </div>
           </div>
         </Transition>
@@ -137,17 +154,21 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { bookApi } from '@/api/book'
+import { getCoverStyle } from '@/utils/cover'
 
 const router = useRouter()
 const displayCount = ref(17)
+const books = ref([])
+const loading = ref(false)
+const coverErrors = ref({})
 
 const rankTabs = [
   { key: 'sales', label: '畅销总榜' },
   { key: 'rating', label: '好评榜' },
-  { key: 'new', label: '新锐榜' },
-  { key: 'collection', label: '收藏榜' }
+  { key: 'new', label: '新锐榜' }
 ]
 
 const periods = [
@@ -159,78 +180,43 @@ const periods = [
 ]
 
 const activeTab = ref('sales')
-const activePeriod = ref('week')
+const activePeriod = ref('all')
 
 const tabStatLabel = computed(() => {
-  const map = { sales: '销量', rating: '评分', new: '热度', collection: '收藏' }
+  const map = { sales: '销量', rating: '评分', new: '上架时间' }
   return map[activeTab.value] || '销量'
 })
 
 const tabStatIcon = computed(() => {
-  const map = { sales: '📈', rating: '⭐', new: '🔥', collection: '💛' }
+  const map = { sales: '📈', rating: '⭐', new: '🔥' }
   return map[activeTab.value] || '📊'
 })
 
-const allBooks = computed(() => {
-  const books = []
-  const titles = [
-    '百年孤独', '小王子', '活着', '三体', '红楼梦',
-    '挪威的森林', '围城', '平凡的世界', '白夜行', '月亮与六便士',
-    '人间失格', '解忧杂货店', '追风筝的人', '边城', '骆驼祥子',
-    '呐喊', '家', '茶馆', '雷雨', '子夜',
-    '黄金时代', '沉默的大多数', '杀死一只知更鸟', '1984', '霍乱时期的爱情'
-  ]
-  const authors = [
-    '加西亚·马尔克斯', '安托万·德·圣-埃克苏佩里', '余华', '刘慈欣', '曹雪芹',
-    '村上春树', '钱钟书', '路遥', '东野圭吾', '毛姆',
-    '太宰治', '东野圭吾', '卡勒德·胡赛尼', '沈从文', '老舍',
-    '鲁迅', '巴金', '老舍', '曹禺', '茅盾',
-    '王小波', '王小波', '哈珀·李', '乔治·奥威尔', '加西亚·马尔克斯'
-  ]
-
-  for (let i = 0; i < titles.length; i++) {
-    const rating = (8 + Math.random() * 1.8).toFixed(1)
-    const basePrice = (20 + Math.random() * 80).toFixed(2)
-    let statValue
-    switch (activeTab.value) {
-      case 'rating': statValue = `${rating}分`; break
-      case 'new': statValue = `${Math.floor(200 + Math.random() * 800)}%`; break
-      case 'collection': statValue = `${Math.floor(5000 + Math.random() * 95000)}`; break
-      default: statValue = `${Math.floor(10000 + Math.random() * 190000)}册`
-    }
-
-    books.push({
-      id: i + 1,
-      title: titles[i],
-      author: authors[i],
-      price: Number(basePrice),
-      originalPrice: Number((basePrice * (1 + Math.random() * 0.3)).toFixed(2)),
-      avgRating: Number(rating),
-      statValue,
-      coverColor: (i % 12) + 1
-    })
-  }
-  return books
-})
-
-const sortedBooks = computed(() => {
-  const sorted = [...allBooks.value]
+const getStatValue = (book) => {
   switch (activeTab.value) {
-    case 'rating': return sorted.sort((a, b) => b.avgRating - a.avgRating)
-    case 'new': return sorted.sort((a, b) => parseInt(b.statValue) - parseInt(a.statValue))
-    case 'collection': return sorted.sort((a, b) => parseInt(b.statValue) - parseInt(a.statValue))
-    default: return sorted.sort((a, b) => parseInt(b.statValue) - parseInt(a.statValue))
+    case 'rating': return `${book.avgRating?.toFixed(1) || '0.0'}分`
+    case 'new': return book.publishDate || '近期'
+    default: return `${book.sales || 0}册`
   }
-})
+}
 
-const topThree = computed(() => sortedBooks.value.slice(0, 3))
+const topThree = computed(() => books.value.slice(0, 3))
+const rankedBooks = computed(() => books.value.slice(3, 3 + displayCount.value))
+const hasMore = computed(() => 3 + displayCount.value < books.value.length)
 
-const rankedBooks = computed(() => sortedBooks.value.slice(3, 3 + displayCount.value))
+const loadMore = () => { displayCount.value += 17 }
 
-const hasMore = computed(() => 3 + displayCount.value < sortedBooks.value.length)
-
-const loadMore = () => {
-  displayCount.value += 17
+const fetchRanking = async () => {
+  loading.value = true
+  try {
+    const res = await bookApi.getRanking({ type: activeTab.value, period: activePeriod.value })
+    books.value = res.data || []
+  } catch (e) {
+    console.error('Failed to fetch ranking:', e)
+    books.value = []
+  } finally {
+    loading.value = false
+  }
 }
 
 const switchTab = (tab) => {
@@ -238,15 +224,10 @@ const switchTab = (tab) => {
   displayCount.value = 17
 }
 
-const getCoverClass = (book) => {
-  const variants = [
-    'cover-1', 'cover-2', 'cover-3', 'cover-4', 'cover-5',
-    'cover-6', 'cover-7', 'cover-8', 'cover-9', 'cover-10',
-    'cover-11', 'cover-12'
-  ]
-  const num = typeof book.id === 'string' ? parseInt(book.id, 10) || 1 : (book.id || 1)
-  return variants[(num - 1) % variants.length]
-}
+watch(activeTab, () => { displayCount.value = 17; fetchRanking() })
+watch(activePeriod, () => { displayCount.value = 17; fetchRanking() })
+
+onMounted(fetchRanking)
 
 const goToBook = (id) => router.push(`/book/${id}`)
 </script>
@@ -406,6 +387,7 @@ const goToBook = (id) => router.push(`/book/${id}`)
   border-radius: 14px;
   background: var(--color-bg-card);
   border: 1px solid var(--color-divider);
+  cursor: pointer;
 }
 
 .top-card.first {
@@ -468,6 +450,44 @@ const goToBook = (id) => router.push(`/book/${id}`)
   margin-bottom: 16px;
   overflow: hidden;
   box-shadow: 0 8px 24px var(--color-shadow-heavy);
+}
+
+.top-cover-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.top-cover-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.top-fallback-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: rgba(237,230,214,0.95);
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.top-fallback-author {
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  color: rgba(237,230,214,0.55);
+  line-height: 1.2;
 }
 
 .first-cover {
@@ -569,17 +589,41 @@ const goToBook = (id) => router.push(`/book/${id}`)
   border-radius: 4px;
   flex-shrink: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
+  padding: 4px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.rank-fallback-title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.72rem;
-  color: rgba(237,230,214,0.8);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  font-size: 0.6rem;
+  color: rgba(237,230,214,0.9);
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.rank-fallback-author {
+  font-family: var(--font-body);
+  font-size: 0.5rem;
+  color: rgba(237,230,214,0.5);
+  line-height: 1.1;
 }
 
 .rank-item-cover span {
   text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.rank-item-img {
+  width: 52px;
+  height: 72px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .rank-item-info {
@@ -659,20 +703,6 @@ const goToBook = (id) => router.push(`/book/${id}`)
 .rank-fade-leave-active { transition: all 0.2s ease; }
 .rank-fade-enter-from { opacity: 0; transform: translateY(10px); }
 .rank-fade-leave-to { opacity: 0; transform: translateY(-10px); }
-
-/* Cover gradients */
-.cover-1 { background: linear-gradient(160deg, #5D4037 0%, #3E2723 60%, #2C1A12 100%); }
-.cover-2 { background: linear-gradient(160deg, #6D4C41 0%, #4E342E 100%); }
-.cover-3 { background: linear-gradient(160deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%); }
-.cover-4 { background: linear-gradient(160deg, #3D2B1F 0%, #5C3A21 100%); }
-.cover-5 { background: linear-gradient(160deg, #5C1A1A 0%, #3A0A0A 100%); }
-.cover-6 { background: linear-gradient(160deg, #1B3A2D 0%, #0D2818 100%); }
-.cover-7 { background: linear-gradient(160deg, #2C3E50 0%, #1A252F 100%); }
-.cover-8 { background: linear-gradient(160deg, #3C1F3A 0%, #2A1526 100%); }
-.cover-9 { background: linear-gradient(160deg, #8B4513 0%, #5C2D0E 100%); }
-.cover-10 { background: linear-gradient(160deg, #4A3A2A 0%, #2A1A0A 100%); }
-.cover-11 { background: linear-gradient(160deg, #2A4A3A 0%, #1A2A1A 100%); }
-.cover-12 { background: linear-gradient(160deg, #3A2A4A 0%, #2A1A3A 100%); }
 
 /* Responsive */
 @media (max-width: 1024px) {

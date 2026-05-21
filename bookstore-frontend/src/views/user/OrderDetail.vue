@@ -56,7 +56,8 @@
               class="order-item"
             >
               <div class="item-cover">
-                <img :src="item.coverUrl || '/placeholder-book.png'" :alt="item.bookTitle" />
+                <img v-if="item.coverUrl && !coverErrors[item.id]" :src="item.coverUrl" :alt="item.bookTitle" @error="coverErrors[item.id] = true" />
+                <div v-else class="item-cover-fallback" :style="getCoverStyle(item.id)"></div>
               </div>
               <div class="item-info">
                 <h4 class="item-title">{{ item.bookTitle }}</h4>
@@ -65,6 +66,20 @@
               <div class="item-price">¥{{ item.price }}</div>
               <div class="item-quantity">x{{ item.quantity }}</div>
               <div class="item-subtotal">¥{{ (item.price * item.quantity).toFixed(2) }}</div>
+              <div class="item-review" v-if="showReview || reviewedLoading">
+                <span v-if="reviewedLoading" class="review-link loading">···</span>
+                <router-link
+                  v-else-if="reviewedBooks[item.bookId]"
+                  to=""
+                  class="review-link reviewed"
+                  @click.prevent
+                >已评价</router-link>
+                <router-link
+                  v-else
+                  :to="`/book/${item.bookId}?review=1`"
+                  class="review-link"
+                >去评价</router-link>
+              </div>
             </div>
           </div>
         </div>
@@ -213,19 +228,31 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useOrderStore } from '@/stores/order'
+import { useUserStore } from '@/stores/user'
+import { reviewApi } from '@/api/review'
 import { formatDateTime, formatOrderStatus } from '@/utils/format'
+import { getCoverStyle } from '@/utils/cover'
 
 const route = useRoute()
 const router = useRouter()
 const orderStore = useOrderStore()
+const userStore = useUserStore()
 
 const loading = ref(true)
 const order = ref(null)
 const showLogistics = ref(false)
+const coverErrors = ref({})
 const logistics = ref([])
 const showPaymentDialog = ref(false)
 const selectedPaymentMethod = ref('alipay')
 const paying = ref(false)
+const reviewedBooks = ref({})
+const reviewedLoading = ref(false)
+
+const showReview = computed(() => {
+  const s = order.value?.status
+  return s === 'delivered' || s === 'completed'
+})
 
 const paymentMethods = [
   { value: 'alipay', name: '支付宝', icon: '💙', desc: '推荐使用支付宝支付' },
@@ -368,8 +395,28 @@ const handleConfirm = async () => {
   }
 }
 
+const fetchReviewedBooks = async () => {
+  if (!userStore.isLoggedIn) return
+  reviewedLoading.value = true
+  try {
+    const res = await reviewApi.getMyReviews()
+    const myReviews = res.data || []
+    const map = {}
+    myReviews.forEach(r => { map[r.bookId] = true })
+    reviewedBooks.value = map
+  } catch (error) {
+    console.error('Failed to fetch reviewed books:', error)
+  } finally {
+    reviewedLoading.value = false
+  }
+}
+
 onMounted(async () => {
   await fetchOrderDetail()
+  if (order.value?.status === 'delivered' || order.value?.status === 'completed') {
+    reviewedLoading.value = true
+    await fetchReviewedBooks()
+  }
   if (route.query.pay === '1') {
     showPaymentDialog.value = true
   }
@@ -572,6 +619,11 @@ onMounted(async () => {
   height: 100%;
   object-fit: cover;
 }
+.item-cover-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-sm);
+}
 
 .item-info {
   flex: 1;
@@ -613,6 +665,12 @@ onMounted(async () => {
   min-width: 80px;
   text-align: right;
 }
+.item-review { margin-left: var(--space-3); }
+.review-link { font-size: var(--text-xs); color: var(--color-accent); text-decoration: none; white-space: nowrap; padding: 4px 12px; border: 1px solid var(--color-accent); border-radius: var(--radius-md); transition: all 0.2s ease; }
+.review-link:hover { background: rgba(192,154,75,0.08); }
+.review-link.reviewed { color: var(--color-text-muted); border-color: var(--color-divider-strong); cursor: default; pointer-events: none; }
+.review-link.loading { color: var(--color-text-muted); border-color: var(--color-divider-strong); cursor: default; animation: pulse 1.2s ease infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
 /* Summary */
 .summary-content {

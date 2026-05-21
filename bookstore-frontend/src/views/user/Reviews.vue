@@ -19,7 +19,8 @@
       <div v-else-if="reviews.length" class="review-list">
         <div v-for="review in reviews" :key="review.id" class="review-item">
           <div class="review-book">
-            <img :src="review.bookCoverUrl || '/placeholder-book-sm.svg'" :alt="review.bookTitle" />
+            <img v-if="review.bookCoverUrl && !coverErrors[review.id]" :src="review.bookCoverUrl" :alt="review.bookTitle" @error="coverErrors[review.id] = true" />
+            <div v-else class="review-book-fallback" :style="getCoverStyle(review.bookId)"></div>
             <div class="book-info">
               <h3>{{ review.bookTitle }}</h3>
               <div class="review-stars">
@@ -51,9 +52,11 @@ import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { reviewApi } from '@/api/review'
 import { formatDateTime } from '@/utils/format'
+import { getCoverStyle } from '@/utils/cover'
 
 const reviews = ref([])
 const loading = ref(true)
+const coverErrors = ref({})
 
 const fetchReviews = async () => {
   loading.value = true
@@ -127,6 +130,12 @@ onMounted(() => {
   height: 80px;
   object-fit: cover;
   border-radius: var(--radius-md);
+}
+.review-book-fallback {
+  width: 60px;
+  height: 80px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
 }
 
 .book-info h3 {

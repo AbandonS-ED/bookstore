@@ -1,3 +1,5 @@
+ALTER TABLE `book` ADD COLUMN `quote` VARCHAR(500) COMMENT '书中摘抄名言' AFTER `status`;
+
 ALTER TABLE `order` ADD COLUMN `payment_id` BIGINT COMMENT '支付记录ID' AFTER `remark`;
 ALTER TABLE `order` ADD COLUMN `express_no` VARCHAR(50) COMMENT '物流单号' AFTER `pay_time`;
 ALTER TABLE `order` ADD COLUMN `expire_time` DATETIME COMMENT '订单过期时间' AFTER `express_no`;

@@ -8,7 +8,7 @@
       <div class="sidebar-logo">
         <div class="logo-icon">📖</div>
         <div>
-          <div class="logo-text">拾光书屋</div>
+          <div class="logo-text">书斋</div>
           <span class="logo-sub">ADMIN CONSOLE</span>
         </div>
       </div>

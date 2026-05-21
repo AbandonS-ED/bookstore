@@ -50,7 +50,8 @@
                   :key="item.id || index"
                   class="item-preview"
                 >
-                  <img :src="item.coverUrl || '/placeholder-book.png'" :alt="item.bookTitle" class="preview-cover" />
+                  <img v-if="item.coverUrl && !coverErrors[order.id + '-' + (item.id || index)]" :src="item.coverUrl" :alt="item.bookTitle" class="preview-cover" @error="coverErrors[order.id + '-' + (item.id || index)] = true" />
+                  <div v-else class="preview-cover-fallback" :style="getCoverStyle(item.id || index)"></div>
                   <div class="preview-info">
                     <p class="preview-title">{{ item.bookTitle }}</p>
                     <p class="preview-meta">{{ item.bookAuthor }} x{{ item.quantity }}</p>
@@ -133,6 +134,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { orderApi } from '@/api/order'
 import { useOrderStore } from '@/stores/order'
 import { formatDateTime, formatOrderStatus } from '@/utils/format'
+import { getCoverStyle } from '@/utils/cover'
 
 const router = useRouter()
 const orderStore = useOrderStore()
@@ -140,6 +142,7 @@ const orderStore = useOrderStore()
 const loading = ref(true)
 const orders = ref([])
 const current = ref(1)
+const coverErrors = ref({})
 const pageSize = ref(10)
 const total = ref(0)
 const currentStatus = ref('all')
@@ -426,6 +429,12 @@ onMounted(() => {
   height: 65px;
   border-radius: var(--radius-sm);
   object-fit: cover;
+  flex-shrink: 0;
+}
+.preview-cover-fallback {
+  width: 50px;
+  height: 65px;
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
 }
 

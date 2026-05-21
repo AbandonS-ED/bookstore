@@ -77,9 +77,9 @@
                 <div class="filter-group">
                   <h4 class="filter-label">价格区间</h4>
                   <div class="price-range">
-                    <input v-model="priceMin" type="number" placeholder="¥最低" class="price-input" />
+                    <input v-model="priceMin" type="text" inputmode="decimal" placeholder="¥最低" class="price-input" @input="onPriceInput('min')" />
                     <span class="price-sep">—</span>
-                    <input v-model="priceMax" type="number" placeholder="¥最高" class="price-input" />
+                    <input v-model="priceMax" type="text" inputmode="decimal" placeholder="¥最高" class="price-input" @input="onPriceInput('max')" />
                   </div>
                   <button class="filter-btn" @click="applyPriceFilter">筛选</button>
                 </div>
@@ -211,6 +211,13 @@ const books = ref([])
 
 const priceMin = ref('')
 const priceMax = ref('')
+
+const onPriceInput = (type) => {
+  const val = type === 'min' ? priceMin : priceMax
+  let v = val.value.replace(/[^\d.]/g, '').replace(/^(\d*\.?\d{0,2}).*$/, '$1')
+  if (v.startsWith('.')) v = '0' + v
+  val.value = v
+}
 const selectedRating = ref(null)
 const selectedTime = ref(null)
 
@@ -392,6 +399,11 @@ const clearCategory = () => {
 }
 
 const applyPriceFilter = () => {
+  ;[priceMin, priceMax].forEach(p => {
+    if (p.value !== '' && (isNaN(Number(p.value)) || Number(p.value) < 0)) {
+      p.value = ''
+    }
+  })
   pageNum.value = 1
   fetchBooks()
 }
@@ -686,7 +698,9 @@ onUnmounted(() => {
   border-radius: var(--radius-md);
   outline: none;
   width: 0;
+  -moz-appearance: textfield;
 }
+
 
 .price-input:focus {
   border-color: var(--color-accent);

@@ -5,14 +5,15 @@
         <div class="logo-icon">📖</div>
         <div>
           书斋
-          <span class="logo-text-sub">SHUZHAI BOOKS</span>
         </div>
       </router-link>
       <ul class="nav-links">
         <li><router-link to="/" class="nav-link" active-class="active">首页</router-link></li>
-        <li><router-link to="/books" class="nav-link" active-class="active">书库</router-link></li>
+        <li><router-link to="/books" class="nav-link" active-class="active">全部书籍</router-link></li>
         <li><router-link to="/categories" class="nav-link" active-class="active">分类浏览</router-link></li>
         <li><router-link to="/ranking" class="nav-link" active-class="active">排行榜</router-link></li>
+        <li><router-link to="/new-arrivals" class="nav-link" active-class="active">新书上架</router-link></li>
+        <li><router-link to="/about" class="nav-link" active-class="active">关于我们</router-link></li>
       </ul>
       <div class="nav-right">
         <div class="search-box">

@@ -65,6 +65,11 @@ src/stores/         # Pinia状态管理
 src/composables/     # Vue组合式函数
 ```
 
+### 静态资源
+
+- `pictures/` 目录存放书籍封面图片
+- Vite 代理 `/pictures/*` 到后端 `localhost:8081/pictures/*`
+
 ### Vite 代理规则
 
 | 前端路径 | 后端目标 |

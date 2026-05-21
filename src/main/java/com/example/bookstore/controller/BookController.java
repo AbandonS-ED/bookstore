@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/book")
@@ -28,6 +29,14 @@ public class BookController {
     public Result<BookDetailVO> detail(@PathVariable Long id) {
         BookDetailVO detail = bookService.getDetail(id);
         return Result.success(detail);
+    }
+
+    @GetMapping("/ranking")
+    public Result<List<BookVO>> ranking(
+            @RequestParam(defaultValue = "sales") String type,
+            @RequestParam(defaultValue = "all") String period) {
+        List<BookVO> result = bookService.getRanking(type, period);
+        return Result.success(result);
     }
 
     @GetMapping("/search")
