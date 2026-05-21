@@ -222,9 +222,9 @@ const selectedRating = ref(null)
 const selectedTime = ref(null)
 
 const ratingOptions = [
-  { value: 9, label: '★★★★★ 9分以上' },
-  { value: 8, label: '★★★★☆ 8分以上' },
-  { value: 7, label: '★★★☆☆ 7分以上' }
+  { value: 9, label: '★★★★★ 4.5分以上' },
+  { value: 8, label: '★★★★☆ 4.0分以上' },
+  { value: 7, label: '★★★☆☆ 3.5分以上' }
 ]
 
 const timeOptions = [
@@ -457,75 +457,92 @@ onUnmounted(() => {
 }
 
 .page-hero {
-  background: var(--color-primary-abyss);
-  padding: var(--space-8) 0;
+  background: var(--color-primary-dark);
   position: relative;
+  overflow: hidden;
 }
 
 .page-hero::before {
   content: '';
   position: absolute;
   inset: 0;
+  background:
+    radial-gradient(ellipse at 75% 35%, rgba(192,154,75,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 80%, rgba(92,68,52,0.15) 0%, transparent 45%);
+  pointer-events: none;
+}
+
+.page-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
   background: repeating-linear-gradient(
-    0deg,
+    90deg,
     transparent,
-    transparent 2px,
-    rgba(237, 230, 214, 0.02) 2px,
-    rgba(237, 230, 214, 0.02) 4px
+    transparent 90px,
+    rgba(192,154,75,0.012) 90px,
+    rgba(192,154,75,0.012) 91px
   );
   pointer-events: none;
 }
 
 .hero-container {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  padding: 0 var(--space-6);
   position: relative;
   z-index: 1;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 48px 40px 40px;
 }
 
 .breadcrumb {
-  font-size: var(--text-xs);
-  color: var(--color-text-light);
-  margin-bottom: var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: rgba(237, 230, 214, 0.35);
+  margin-bottom: 16px;
 }
 
 .breadcrumb a {
-  color: var(--color-accent-muted);
+  color: rgba(237, 230, 214, 0.35);
   text-decoration: none;
 }
 
 .breadcrumb a:hover {
-  color: var(--color-accent);
+  color: var(--color-bg-warm);
 }
 
 .breadcrumb .sep {
-  margin: 0 var(--space-2);
+  margin: 0 4px;
   opacity: 0.5;
 }
 
 .page-hero h1 {
-  font-family: var(--font-display);
-  font-size: var(--text-4xl);
+  font-size: 2.2rem;
   color: var(--color-bg-warm);
-  margin-bottom: var(--space-3);
-  letter-spacing: 0.04em;
+  font-weight: 900;
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
 }
 
 .hero-desc {
-  font-size: var(--text-base);
-  color: var(--color-text-light);
-  margin-bottom: var(--space-4);
+  color: rgba(237, 230, 214, 0.4);
+  font-size: 0.93rem;
+  max-width: 600px;
+  margin-bottom: 22px;
 }
 
 .hero-stats {
-  font-size: var(--text-sm);
-  color: var(--color-accent-muted);
+  font-size: 0.78rem;
+  color: rgba(237, 230, 214, 0.32);
+  margin: 0;
 }
 
 .hero-stats strong {
-  color: var(--color-accent);
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--color-accent-light);
 }
 
 .page-body {
@@ -1061,11 +1078,11 @@ onUnmounted(() => {
   .books-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .page-hero {
-    padding: var(--space-8) 0;
+  .hero-container {
+    padding: 32px 20px 28px;
   }
   .page-hero h1 {
-    font-size: var(--text-3xl);
+    font-size: 1.5rem;
   }
 }
 </style>

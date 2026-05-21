@@ -3,7 +3,7 @@
     <!-- PAGE HEADER -->
     <section class="page-header">
       <div class="page-header-inner">
-        <div class="breadcrumb"><span>首页</span><span>/</span><span>新书上架</span></div>
+        <div class="breadcrumb"><router-link to="/">首页</router-link><span class="sep">/</span><span>新书上架</span></div>
         <h1>新书上架</h1>
         <p>每一本新书，都是一扇通往未知世界的门。第一时间发现值得期待的好书。</p>
         <div class="page-header-stats" v-if="stats.total > 0">
@@ -366,16 +366,16 @@ onMounted(() => {
 
 /* ── PAGE HEADER ── */
 .page-header { background: var(--color-primary-dark, #2E1F15); position: relative; overflow: hidden; }
-.page-header::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 80% 40%, rgba(192,154,75,0.06) 0%, transparent 50%), radial-gradient(ellipse at 15% 85%, rgba(92,68,52,0.2) 0%, transparent 45%); pointer-events: none; }
-.page-header::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(192,154,75,0.015) 80px, rgba(192,154,75,0.015) 81px); pointer-events: none; }
-.page-header-inner { position: relative; z-index: 1; max-width: var(--max-width, 1320px); margin: 0 auto; padding: 52px 40px 44px; }
-.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: .8rem; color: rgba(237,230,214,0.35); margin-bottom: 18px; }
-.page-header h1 { font-family: var(--font-display); font-size: 2.4rem; color: var(--color-bg-warm); font-weight: 900; margin-bottom: 8px; letter-spacing: .02em; }
-.page-header-inner > p { color: rgba(237,230,214,0.45); font-size: .95rem; max-width: 600px; }
-.page-header-stats { display: flex; gap: 32px; margin-top: 20px; }
+.page-header::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 30%, rgba(192,154,75,0.06) 0%, transparent 50%), radial-gradient(ellipse at 20% 80%, rgba(92,68,52,0.15) 0%, transparent 45%); pointer-events: none; }
+.page-header::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent, transparent 90px, rgba(192,154,75,0.012) 90px, rgba(192,154,75,0.012) 91px); pointer-events: none; }
+.page-header-inner { position: relative; z-index: 1; max-width: var(--max-width); margin: 0 auto; padding: 48px 40px 40px; }
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: .8rem; color: rgba(237,230,214,0.35); margin-bottom: 16px; }
+.page-header h1 { font-size: 2.2rem; color: var(--color-bg-warm); font-weight: 900; margin-bottom: 8px; letter-spacing: .02em; }
+.page-header-inner > p { color: rgba(237,230,214,0.4); font-size: .93rem; max-width: 600px; margin-bottom: 22px; }
+.page-header-stats { display: flex; gap: 36px; }
 .ph-stat { display: flex; align-items: baseline; gap: 6px; }
-.ph-stat strong { font-family: var(--font-display); font-size: 1.3rem; font-weight: 900; color: var(--color-accent-light, #D4B06A); }
-.ph-stat span { font-size: .8rem; color: rgba(237,230,214,0.35); }
+.ph-stat strong { font-family: var(--font-display); font-size: 1.25rem; font-weight: 900; color: var(--color-accent-light); }
+.ph-stat span { font-size: .78rem; color: rgba(237,230,214,0.32); }
 
 /* ── EDITOR HERO ── */
 .editor-hero { background: var(--color-primary-abyss); position: relative; overflow: hidden; }
@@ -523,7 +523,7 @@ onMounted(() => {
   .coming-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 768px) {
-  .page-header-inner { padding: 36px 20px 32px; }
+  .page-header-inner { padding: 32px 20px 28px; }
   .page-header h1 { font-size: 1.6rem; }
   .filter-section { padding: 20px; }
   .toolbar { padding: 14px 20px; flex-direction: column; gap: 10px; align-items: flex-start; }

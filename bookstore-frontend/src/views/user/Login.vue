@@ -3,12 +3,23 @@
     <div class="auth-container">
       <div class="auth-brand">
         <div class="brand-content">
-          <div class="brand-icon">📖</div>
+          <div class="brand-icon">
+            <span class="icon-book">📖</span>
+          </div>
           <h1 class="brand-title">书斋</h1>
-          <p class="brand-subtitle">SHUZHAI BOOKS</p>
-          <p class="brand-desc">用阅读点亮时光</p>
+          <p class="brand-subtitle">书斋</p>
+          <p class="brand-desc">在快时代，做一家慢书店</p>
+          <div class="brand-divider"></div>
+          <div class="brand-features">
+            <span>128,000+ 图书</span>
+            <span class="dot">·</span>
+            <span>56,000+ 读者</span>
+            <span class="dot">·</span>
+            <span>98.6% 好评</span>
+          </div>
         </div>
         <div class="brand-pattern"></div>
+        <div class="brand-light"></div>
       </div>
 
       <div class="auth-form-wrapper">
@@ -48,14 +59,6 @@
               <span v-if="errors.password" class="error-msg">{{ errors.password }}</span>
             </div>
 
-            <div class="form-options">
-              <label class="remember-me">
-                <input type="checkbox" v-model="rememberMe" />
-                <span>记住我</span>
-              </label>
-              <a href="#" class="forgot-pwd">忘记密码？</a>
-            </div>
-
             <button type="submit" class="btn-submit" :disabled="loading">
               <span v-if="loading" class="loading-spinner"></span>
               <span v-else>登 录</span>
@@ -87,7 +90,6 @@ const userStore = useUserStore()
 const formData = reactive({ username: '', password: '' })
 const errors = reactive({ username: '', password: '' })
 const showPassword = ref(false)
-const rememberMe = ref(false)
 const loading = ref(false)
 
 const validate = () => {
@@ -124,24 +126,26 @@ const handleLogin = async () => {
   justify-content: center;
   background: var(--color-bg);
   padding: var(--space-6);
+  padding-top: calc(var(--space-10) + var(--header-height));
   margin-top: calc(-1 * var(--header-height));
 }
 
 .auth-container {
   width: 100%;
-  max-width: 900px;
+  max-width: 960px;
   display: flex;
   border-radius: var(--radius-xl);
   overflow: hidden;
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-deeper);
   background: var(--color-bg-card);
 }
 
+/* ========= 左侧品牌区 ========= */
 .auth-brand {
-  flex: 1;
-  background: linear-gradient(135deg, var(--color-primary-abyss) 0%, var(--color-primary-dark) 100%);
+  flex: 1.1;
+  background: linear-gradient(160deg, var(--color-primary-abyss) 0%, var(--color-primary-dark) 40%, var(--color-primary-mid) 100%);
   color: var(--color-bg-warm);
-  padding: var(--space-12);
+  padding: var(--space-12) var(--space-10);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -151,63 +155,106 @@ const handleLogin = async () => {
 
 .brand-content {
   position: relative;
-  z-index: 1;
-  text-align: center;
+  z-index: 2;
   animation: fadeInUp 0.6s ease;
 }
 
-.brand-icon {
-  font-size: 48px;
+.icon-book {
+  font-size: 40px;
+  display: inline-block;
   margin-bottom: var(--space-4);
   animation: float 3s ease-in-out infinite;
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
 }
 
 .brand-title {
   font-family: var(--font-display);
   font-size: var(--text-5xl);
   font-weight: 900;
-  letter-spacing: 8px;
+  letter-spacing: 6px;
   color: var(--color-bg-warm);
   margin-bottom: var(--space-2);
 }
 
 .brand-subtitle {
+  font-family: var(--font-accent);
   font-size: var(--text-xs);
-  letter-spacing: 4px;
-  color: rgba(237,230,214,0.35);
-  margin-bottom: var(--space-4);
+  letter-spacing: 5px;
+  color: rgba(237, 230, 214, 0.35);
+  margin-bottom: var(--space-5);
+  text-transform: uppercase;
 }
 
 .brand-desc {
   font-size: var(--text-lg);
-  color: rgba(237,230,214,0.6);
+  color: rgba(237, 230, 214, 0.55);
   font-style: italic;
+  font-family: var(--font-display);
+}
+
+.brand-divider {
+  width: 40px;
+  height: 2px;
+  background: var(--color-accent);
+  margin: var(--space-6) 0;
+  opacity: 0.6;
+  border-radius: 1px;
+}
+
+.brand-features {
+  font-size: var(--text-sm);
+  color: rgba(237, 230, 214, 0.4);
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.dot {
+  opacity: 0.5;
 }
 
 .brand-pattern {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 30% 70%, rgba(192,154,75,0.08) 0%, transparent 60%),
-    radial-gradient(ellipse at 70% 30%, rgba(192,154,75,0.05) 0%, transparent 50%);
+    radial-gradient(ellipse at 20% 80%, rgba(192, 154, 75, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(192, 154, 75, 0.04) 0%, transparent 50%);
+  z-index: 1;
 }
 
+.brand-light {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(ellipse at 30% 60%, rgba(192, 154, 75, 0.03) 0%, transparent 50%);
+  z-index: 0;
+  animation: glow 8s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-10%, 5%); }
+}
+
+/* ========= 右侧表单区 ========= */
 .auth-form-wrapper {
   flex: 1;
-  padding: var(--space-12);
+  padding: var(--space-12) var(--space-10);
   display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--color-bg-card);
 }
 
 .auth-form-container {
   width: 100%;
-  max-width: 320px;
+  max-width: 340px;
   animation: fadeIn 0.5s ease;
 }
 
@@ -219,6 +266,7 @@ const handleLogin = async () => {
 .auth-header h2 {
   font-family: var(--font-display);
   font-size: var(--text-3xl);
+  font-weight: 700;
   color: var(--color-text);
   margin-bottom: var(--space-2);
 }
@@ -264,39 +312,17 @@ const handleLogin = async () => {
   font-size: 18px;
   opacity: 0.6;
   cursor: pointer;
+  padding: 4px;
   transition: opacity var(--transition-fast);
+  line-height: 1;
 }
 
 .toggle-pwd:hover { opacity: 1; }
 
 .error-msg {
   font-size: var(--text-xs);
-  color: var(--color-accent);
-}
-
-.form-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.remember-me {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-}
-
-.remember-me input { accent-color: var(--color-accent); }
-
-.forgot-pwd {
-  font-size: var(--text-sm);
   color: var(--color-accent-muted);
 }
-
-.forgot-pwd:hover { text-decoration: underline; }
 
 .btn-submit {
   width: 100%;
@@ -305,6 +331,7 @@ const handleLogin = async () => {
   color: var(--color-primary-abyss);
   font-size: var(--text-base);
   font-weight: 700;
+  font-family: var(--font-body);
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -313,13 +340,15 @@ const handleLogin = async () => {
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  box-shadow: 0 2px 12px rgba(192,154,75,0.2);
+  box-shadow: 0 2px 12px rgba(192, 154, 75, 0.2);
+  letter-spacing: 0.08em;
+  margin-top: var(--space-2);
 }
 
 .btn-submit:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(192,154,75,0.3);
-  letter-spacing: 0.04em;
+  box-shadow: 0 6px 24px rgba(192, 154, 75, 0.3);
+  letter-spacing: 0.12em;
 }
 
 .btn-submit:active:not(:disabled) { transform: scale(0.98); }
@@ -332,7 +361,7 @@ const handleLogin = async () => {
 .loading-spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid rgba(46,31,21,0.2);
+  border: 2px solid rgba(46, 31, 21, 0.2);
   border-top-color: var(--color-primary-abyss);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -350,14 +379,29 @@ const handleLogin = async () => {
 .link {
   color: var(--color-accent-muted);
   font-weight: 500;
+  transition: color var(--transition-fast);
 }
 
-.link:hover { text-decoration: underline; }
+.link:hover {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
 @media (max-width: 768px) {
-  .auth-container { flex-direction: column; max-width: 420px; }
+  .auth-container { flex-direction: column; max-width: 440px; }
   .auth-brand { padding: var(--space-8); }
   .brand-title { font-size: var(--text-4xl); }
+  .brand-features { font-size: var(--text-xs); }
   .auth-form-wrapper { padding: var(--space-8); }
 }
 </style>

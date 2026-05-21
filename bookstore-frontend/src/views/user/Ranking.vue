@@ -1,154 +1,158 @@
 <template>
   <div class="ranking-page">
-    <section class="ranking-hero">
-      <div class="ranking-hero-inner">
-        <span class="hero-bread">书斋 · 排行榜</span>
-        <h1>书海排行</h1>
-        <p>万千读者用阅读票选出的好书榜单</p>
+    <section class="page-header">
+      <div class="page-header-inner">
+        <div class="rank-bc">
+          <a href="/" @click.prevent="router.push('/')">首页</a>
+          <span class="rank-bc-sep">/</span>
+          <span>排行榜</span>
+        </div>
+        <h1>排行榜</h1>
+        <p class="ph-desc">万千读者的选择，帮你找到值得花时间的好书。基于真实销量、评分和收藏数据每日更新。</p>
+        <div class="page-header-stats">
+          <div class="ph-stat"><strong>{{ rankTabs.length }}</strong><span>个榜单</span></div>
+          <div class="ph-stat"><strong>{{ totalBooks }}</strong><span>上榜书籍</span></div>
+          <div class="ph-stat"><strong>每日</strong><span>实时更新</span></div>
+        </div>
       </div>
     </section>
 
-    <div class="ranking-body">
-      <div class="tab-bar">
-        <div class="tab-bar-inner">
-          <div class="rank-tabs">
-            <button
-              v-for="tab in rankTabs"
-              :key="tab.key"
-              :class="['tab-btn', { active: activeTab === tab.key }]"
-              @click="switchTab(tab.key)"
-            >
-              {{ tab.label }}
-              <span v-if="tab.key === activeTab" class="tab-glow" />
-            </button>
-          </div>
-          <div class="period-tabs">
-            <button
-              v-for="p in periods"
-              :key="p.key"
-              :class="['period-btn', { active: activePeriod === p.key }]"
-              @click="activePeriod = p.key"
-            >
-              {{ p.label }}
-            </button>
-          </div>
+    <div class="ranking-tabs-bar">
+      <div class="ranking-tabs-inner">
+        <div class="ranking-tabs">
+          <button
+            v-for="tab in rankTabs"
+            :key="tab.key"
+            :class="['ranking-tab', { active: activeTab === tab.key }]"
+            @click="switchTab(tab.key)"
+          >
+            {{ tab.icon }} {{ tab.label }}
+          </button>
+        </div>
+        <div class="time-filters">
+          <button
+            v-for="p in periods"
+            :key="p.key"
+            :class="['tf-pill', { active: activePeriod === p.key }]"
+            @click="activePeriod = p.key"
+          >
+            {{ p.label }}
+          </button>
         </div>
       </div>
+    </div>
 
-      <div class="ranking-content">
-        <Transition name="rank-fade" mode="out-in">
-          <div :key="activeTab + activePeriod" class="rank-inner">
-            <div v-if="loading" class="ranking-loading">加载中...</div>
-            <div v-if="!loading && books.length === 0" class="ranking-empty">暂无数据</div>
-            <div v-if="topThree.length" class="top-three">
-              <div class="top-card second" v-if="topThree[1]" @click="goToBook(topThree[1].id)">
-                <div class="top-rank-badge silver">2</div>
-                <div class="top-cover">
-                  <img v-if="topThree[1].coverUrl && !coverErrors[topThree[1].id]" :src="topThree[1].coverUrl" :alt="topThree[1].title" class="top-cover-img" @error="coverErrors[topThree[1].id] = true" />
-                  <div v-else class="top-cover-fallback" :style="getCoverStyle(topThree[1].id)">
-                    <span class="top-fallback-title">{{ topThree[1].title }}</span>
-                    <span class="top-fallback-author">{{ topThree[1].author }}</span>
+    <div class="ranking-body">
+      <Transition name="rank-fade" mode="out-in">
+        <div :key="activeTab + activePeriod" class="tab-content">
+          <div v-if="loading" class="ranking-loading">加载中...</div>
+          <div v-else-if="books.length === 0" class="ranking-empty">暂无数据</div>
+          <template v-else>
+            <section v-if="topThree.length" class="top3-section">
+              <div class="top3-grid">
+                <div v-if="topThree[1]" class="top3-card side" :style="{ animationDelay: '0.05s' }" @click="goToBook(topThree[1].id)">
+                  <div class="top3-rank-badge r2">2</div>
+                  <div class="book-cover">
+                    <img v-if="topThree[1].coverUrl && !coverErrors[topThree[1].id]" class="book-cover-img" :src="topThree[1].coverUrl" :alt="topThree[1].title" @error="coverErrors[topThree[1].id] = true" />
+                    <div v-if="!topThree[1].coverUrl || coverErrors[topThree[1].id]" class="book-cover-img book-cover-fallback" :style="getCoverStyle(topThree[1].id)">
+                      <span class="cover-title">{{ topThree[1].title }}</span>
+                      <span class="cover-author">{{ topThree[1].author }}</span>
+                    </div>
                   </div>
-                  <div class="top-rank-overlay">
-                    <span class="top-rank-num">#2</span>
+                  <div class="book-info">
+                    <div class="book-title">{{ topThree[1].title }}</div>
+                    <div class="book-author">{{ topThree[1].author }}</div>
+                    <div class="book-meta">
+                      <div class="book-price">¥{{ topThree[1].price }}</div>
+                      <div class="book-rating"><span>★ {{ topThree[1].avgRating?.toFixed(1) || '0.0' }}</span></div>
+                    </div>
                   </div>
                 </div>
 
-                <div class="top-info">
-                  <h3>{{ topThree[1].title }}</h3>
-                  <p>{{ topThree[1].author }}</p>
-                  <div class="top-price">¥{{ topThree[1].price }}</div>
-                  <div class="top-stat">
-                    <span class="stat-icon">{{ tabStatLabel }}</span>
-                    {{ getStatValue(topThree[1]) }}
+                <div v-if="topThree[0]" class="top3-card first" :style="{ animationDelay: '0s' }" @click="goToBook(topThree[0].id)">
+                  <div class="top3-rank-badge r1">1</div>
+                  <div class="book-cover">
+                    <img v-if="topThree[0].coverUrl && !coverErrors[topThree[0].id]" class="book-cover-img" :src="topThree[0].coverUrl" :alt="topThree[0].title" @error="coverErrors[topThree[0].id] = true" />
+                    <div v-if="!topThree[0].coverUrl || coverErrors[topThree[0].id]" class="book-cover-img book-cover-fallback" :style="getCoverStyle(topThree[0].id)">
+                      <span class="cover-title">{{ topThree[0].title }}</span>
+                      <span class="cover-author">{{ topThree[0].author }}</span>
+                    </div>
+                  </div>
+                  <div class="book-info">
+                    <div class="book-title">{{ topThree[0].title }}</div>
+                    <div class="book-author">{{ topThree[0].author }}</div>
+                    <div class="book-meta">
+                      <div class="book-price">¥{{ topThree[0].price }}</div>
+                      <div class="book-rating"><span>★ {{ topThree[0].avgRating?.toFixed(1) || '0.0' }}</span></div>
+                    </div>
+                    <div class="book-stat">{{ currentTabConfig.statLabel }}：{{ getStatValue(topThree[0]) }}</div>
+                  </div>
+                </div>
+
+                <div v-if="topThree[2]" class="top3-card side" :style="{ animationDelay: '0.1s' }" @click="goToBook(topThree[2].id)">
+                  <div class="top3-rank-badge r3">3</div>
+                  <div class="book-cover">
+                    <img v-if="topThree[2].coverUrl && !coverErrors[topThree[2].id]" class="book-cover-img" :src="topThree[2].coverUrl" :alt="topThree[2].title" @error="coverErrors[topThree[2].id] = true" />
+                    <div v-if="!topThree[2].coverUrl || coverErrors[topThree[2].id]" class="book-cover-img book-cover-fallback" :style="getCoverStyle(topThree[2].id)">
+                      <span class="cover-title">{{ topThree[2].title }}</span>
+                      <span class="cover-author">{{ topThree[2].author }}</span>
+                    </div>
+                  </div>
+                  <div class="book-info">
+                    <div class="book-title">{{ topThree[2].title }}</div>
+                    <div class="book-author">{{ topThree[2].author }}</div>
+                    <div class="book-meta">
+                      <div class="book-price">¥{{ topThree[2].price }}</div>
+                      <div class="book-rating"><span>★ {{ topThree[2].avgRating?.toFixed(1) || '0.0' }}</span></div>
+                    </div>
                   </div>
                 </div>
               </div>
-
-              <div class="top-card first" v-if="topThree[0]" @click="goToBook(topThree[0].id)">
-                <div class="top-rank-badge gold">1</div>
-                <div class="top-cover first-cover">
-                  <img v-if="topThree[0].coverUrl && !coverErrors[topThree[0].id]" :src="topThree[0].coverUrl" :alt="topThree[0].title" class="top-cover-img" @error="coverErrors[topThree[0].id] = true" />
-                  <div v-else class="top-cover-fallback" :style="getCoverStyle(topThree[0].id)">
-                    <span class="top-fallback-title">{{ topThree[0].title }}</span>
-                    <span class="top-fallback-author">{{ topThree[0].author }}</span>
-                  </div>
-                  <div class="top-rank-overlay">
-                    <span class="top-rank-num">#1</span>
-                  </div>
-                </div>
-                <div class="top-info">
-                  <h3>{{ topThree[0].title }}</h3>
-                  <p>{{ topThree[0].author }}</p>
-                  <div class="top-price">¥{{ topThree[0].price }}</div>
-                  <div class="top-stat">
-                    <span class="stat-icon">{{ tabStatLabel }}</span>
-                    {{ getStatValue(topThree[0]) }}
-                  </div>
-                </div>
-              </div>
-
-              <div class="top-card third" v-if="topThree[2]" @click="goToBook(topThree[2].id)">
-                <div class="top-rank-badge bronze">3</div>
-                <div class="top-cover">
-                  <img v-if="topThree[2].coverUrl && !coverErrors[topThree[2].id]" :src="topThree[2].coverUrl" :alt="topThree[2].title" class="top-cover-img" @error="coverErrors[topThree[2].id] = true" />
-                  <div v-else class="top-cover-fallback" :style="getCoverStyle(topThree[2].id)">
-                    <span class="top-fallback-title">{{ topThree[2].title }}</span>
-                    <span class="top-fallback-author">{{ topThree[2].author }}</span>
-                  </div>
-                  <div class="top-rank-overlay">
-                    <span class="top-rank-num">#3</span>
-                  </div>
-                </div>
-                <div class="top-info">
-                  <h3>{{ topThree[2].title }}</h3>
-                  <p>{{ topThree[2].author }}</p>
-                  <div class="top-price">¥{{ topThree[2].price }}</div>
-                  <div class="top-stat">
-                    <span class="stat-icon">{{ tabStatLabel }}</span>
-                    {{ getStatValue(topThree[2]) }}
-                  </div>
-                </div>
-              </div>
-            </div>
+            </section>
 
             <div class="rank-list">
+              <div class="rank-list-header">
+                <div style="text-align:center;">排名</div>
+                <div>封面</div>
+                <div>书籍</div>
+                <div style="text-align:right;">售价</div>
+                <div style="text-align:center;">评分</div>
+                <div class="rh-stat">{{ currentTabConfig.statLabel }}</div>
+              </div>
               <div
                 v-for="(book, idx) in rankedBooks"
                 :key="book.id"
-                class="rank-item"
+                class="rank-row"
                 :style="{ animationDelay: `${idx * 40}ms` }"
                 @click="goToBook(book.id)"
               >
-                <div :class="['rank-num', { 'top-rank': idx < 3 }]">
+                <div :class="['rank-num', { 'num-top': idx < 3 }]">
                   {{ idx + 4 }}
                 </div>
-                <img v-if="book.coverUrl && !coverErrors[book.id]" :src="book.coverUrl" :alt="book.title" class="rank-item-img" @error="coverErrors[book.id] = true" />
-                <div v-else class="rank-item-cover" :style="getCoverStyle(book.id)">
-                  <span class="rank-fallback-title">{{ book.title }}</span>
-                  <span class="rank-fallback-author">{{ book.author }}</span>
+                <img v-if="book.coverUrl && !coverErrors[book.id]" :src="book.coverUrl" :alt="book.title" class="rank-cover-img" @error="coverErrors[book.id] = true" />
+                <div v-else class="rank-cover-fallback" :style="getCoverStyle(book.id)">
+                  <span class="rc-title">{{ book.title }}</span>
                 </div>
-                <div class="rank-item-info">
-                  <div class="rank-item-title">{{ book.title }}</div>
-                  <div class="rank-item-author">{{ book.author }}</div>
+                <div class="rank-book-info">
+                  <div class="rb-title">{{ book.title }}</div>
+                  <div class="rb-author">{{ book.author }}</div>
                 </div>
-                <div class="rank-item-price">¥{{ book.price }}</div>
-                <div class="rank-item-stat">
-                  <span class="stat-icon-sm">{{ tabStatIcon }}</span>
-                  {{ getStatValue(book) }}
-                </div>
-                <div class="rank-item-rating" v-if="book.avgRating">
-                  ★ {{ book.avgRating?.toFixed(1) }}
+                <div class="rank-price">¥{{ book.price }}</div>
+                <div class="rank-rating">★ {{ book.avgRating?.toFixed(1) || '0.0' }}</div>
+                <div class="rank-stat-col">
+                  <span class="stat-val">{{ getStatValue(book) }}</span>
                 </div>
               </div>
             </div>
 
-            <div v-if="hasMore" class="load-more">
-              <button class="btn-load" @click="loadMore">加载更多 · 第{{ rankedBooks.length + 4 }}~{{ Math.min(rankedBooks.length + 23, books.length) }}名</button>
+            <div v-if="hasMore" class="load-more-wrap">
+              <button class="btn-load-more" @click="loadMore">
+                <span>查看第{{ rankedBooks.length + 4 }}~{{ Math.min(rankedBooks.length + 17, books.length) }}名</span>
+              </button>
             </div>
-          </div>
-        </Transition>
-      </div>
+          </template>
+        </div>
+      </Transition>
     </div>
   </div>
 </template>
@@ -166,10 +170,22 @@ const loading = ref(false)
 const coverErrors = ref({})
 
 const rankTabs = [
-  { key: 'sales', label: '畅销总榜' },
-  { key: 'rating', label: '好评榜' },
-  { key: 'new', label: '新锐榜' }
+  { key: 'sales', label: '畅销总榜', icon: '📈' },
+  { key: 'rating', label: '好评榜', icon: '⭐' },
+  { key: 'new', label: '新锐榜', icon: '🚀' },
+  { key: 'borrow', label: '借阅榜', icon: '📖' },
+  { key: 'collection', label: '收藏榜', icon: '❤️' },
+  { key: 'reputation', label: '口碑上升', icon: '💬' }
 ]
+
+const tabConfig = {
+  sales: { statLabel: '销量', statFormat: v => `${v || 0}册` },
+  rating: { statLabel: '评分', statFormat: v => `${v?.toFixed(1) || '0.0'}分` },
+  new: { statLabel: '上架时间', statFormat: v => v || '近期' },
+  borrow: { statLabel: '借阅量', statFormat: v => `${v || 0}次` },
+  collection: { statLabel: '收藏量', statFormat: v => `${v || 0}` },
+  reputation: { statLabel: '评分', statFormat: v => `${v?.toFixed(1) || '0.0'}分` }
+}
 
 const periods = [
   { key: 'week', label: '本周' },
@@ -182,21 +198,20 @@ const periods = [
 const activeTab = ref('sales')
 const activePeriod = ref('all')
 
-const tabStatLabel = computed(() => {
-  const map = { sales: '销量', rating: '评分', new: '上架时间' }
-  return map[activeTab.value] || '销量'
-})
+const currentTabConfig = computed(() => tabConfig[activeTab.value])
 
-const tabStatIcon = computed(() => {
-  const map = { sales: '📈', rating: '⭐', new: '🔥' }
-  return map[activeTab.value] || '📊'
-})
+const totalBooks = computed(() => books.value.length)
 
 const getStatValue = (book) => {
+  const cfg = currentTabConfig.value
   switch (activeTab.value) {
-    case 'rating': return `${book.avgRating?.toFixed(1) || '0.0'}分`
-    case 'new': return book.publishDate || '近期'
-    default: return `${book.sales || 0}册`
+    case 'rating':
+    case 'reputation':
+      return cfg.statFormat(book.avgRating)
+    case 'new':
+      return cfg.statFormat(book.publishDate)
+    default:
+      return cfg.statFormat(book.sales)
   }
 }
 
@@ -204,7 +219,9 @@ const topThree = computed(() => books.value.slice(0, 3))
 const rankedBooks = computed(() => books.value.slice(3, 3 + displayCount.value))
 const hasMore = computed(() => 3 + displayCount.value < books.value.length)
 
-const loadMore = () => { displayCount.value += 17 }
+const loadMore = () => {
+  displayCount.value += 17
+}
 
 const fetchRanking = async () => {
   loading.value = true
@@ -234,505 +251,609 @@ const goToBook = (id) => router.push(`/book/${id}`)
 
 <style scoped>
 .ranking-page {
-  margin-top: calc(-1 * var(--header-height));
+  background: var(--color-bg);
 }
 
-.ranking-hero {
-  background: var(--color-primary-abyss);
+/* ═══ PAGE HEADER ═══ */
+.page-header {
+  background: var(--color-primary-dark);
   position: relative;
   overflow: hidden;
-  padding: 100px 0 80px;
+  z-index: 1;
 }
 
-.ranking-hero::before {
+.page-header::before {
   content: '';
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 30% 50%, rgba(192,154,75,0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 80%, rgba(92,68,52,0.2) 0%, transparent 40%);
+    radial-gradient(ellipse at 70% 30%, rgba(192,154,75,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 80%, rgba(92,68,52,0.15) 0%, transparent 45%);
   pointer-events: none;
 }
 
-.ranking-hero-inner {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  padding: 0 40px;
+.page-header::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 90px,
+    rgba(192,154,75,0.012) 90px,
+    rgba(192,154,75,0.012) 91px
+  );
+  pointer-events: none;
+}
+
+.page-header-inner {
   position: relative;
   z-index: 1;
-}
-
-.hero-bread {
-  font-size: 0.78rem;
-  color: rgba(192,154,75,0.6);
-  letter-spacing: 0.12em;
-  margin-bottom: 12px;
-  display: block;
-}
-
-.ranking-hero h1 {
-  font-size: 2.6rem;
-  color: var(--color-bg-warm);
-  margin-bottom: 10px;
-}
-
-.ranking-hero p {
-  color: rgba(237,230,214,0.4);
-  font-size: 1rem;
-}
-
-.ranking-body {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 0 40px 80px;
+  padding: 48px 40px 40px;
 }
 
-.tab-bar {
+.rank-bc {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: rgba(237,230,214,0.35);
+  margin-bottom: 16px;
+}
+
+.rank-bc a {
+  color: rgba(237,230,214,0.45);
+  text-decoration: none;
+}
+
+.rank-bc a:hover {
+  color: var(--color-accent);
+}
+
+.rank-bc-sep {
+  margin: 0 4px;
+  opacity: 0.5;
+}
+
+.page-header h1 {
+  font-size: 2.2rem;
+  color: var(--color-bg-warm);
+  font-weight: 900;
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+}
+
+.ph-desc {
+  color: rgba(237,230,214,0.4);
+  font-size: 0.93rem;
+  max-width: 600px;
+  margin-bottom: 22px;
+}
+
+.page-header-stats {
+  display: flex;
+  gap: 36px;
+}
+
+.ph-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.ph-stat strong {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--color-accent-light);
+}
+
+.ph-stat span {
+  font-size: 0.78rem;
+  color: rgba(237,230,214,0.32);
+}
+
+/* ═══ TABS BAR ═══ */
+.ranking-tabs-bar {
   position: sticky;
   top: var(--header-height);
   z-index: 50;
-  background: var(--color-bg);
-  padding: 16px 0;
+  background: var(--color-bg-card);
   border-bottom: 1px solid var(--color-divider);
-  margin-bottom: 40px;
 }
 
-.tab-bar-inner {
+.ranking-tabs-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 40px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
 }
 
-.rank-tabs {
+.ranking-tabs {
   display: flex;
-  gap: 4px;
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-divider);
-  border-radius: 10px;
-  padding: 4px;
+  gap: 0;
+  overflow-x: auto;
 }
 
-.tab-btn {
-  position: relative;
-  padding: 10px 20px;
+.ranking-tab {
+  padding: 16px 18px;
   font-size: 0.88rem;
-  font-weight: 500;
-  color: var(--color-text-secondary);
+  font-weight: 400;
+  color: var(--color-text-light);
   background: transparent;
   border: none;
-  border-radius: 8px;
+  border-bottom: 3px solid transparent;
   cursor: pointer;
-  transition: all 0.3s ease;
+  white-space: nowrap;
+  transition: all 0.25s;
+  font-family: var(--font-body);
+}
+
+.ranking-tab:hover {
+  color: var(--color-text);
+}
+
+.ranking-tab.active {
+  color: var(--color-primary);
+  font-weight: 600;
+  border-bottom-color: var(--color-accent);
+}
+
+.time-filters {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.tf-pill {
+  padding: 6px 14px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-divider-strong);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.25s;
+  user-select: none;
+  color: var(--color-text-secondary);
+  font-weight: 400;
   font-family: var(--font-body);
   white-space: nowrap;
 }
 
-.tab-btn:hover { color: var(--color-text); }
+.tf-pill:hover {
+  border-color: var(--color-primary-mid);
+  color: var(--color-text);
+}
 
-.tab-btn.active {
+.tf-pill.active {
   background: var(--color-primary);
   color: var(--color-bg-warm);
+  border-color: var(--color-primary);
+  font-weight: 500;
 }
 
-.period-tabs {
-  display: flex;
-  gap: 2px;
-  background: var(--color-bg-card);
-  border-radius: 8px;
-  padding: 3px;
-  border: 1px solid var(--color-divider);
+/* ═══ BODY ═══ */
+.ranking-body {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 40px 80px;
 }
 
-.period-btn {
-  padding: 7px 16px;
-  font-size: 0.82rem;
-  color: var(--color-text-light);
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  font-family: var(--font-body);
+.tab-content {
+  animation: fadeIn 0.35s ease;
 }
 
-.period-btn:hover { color: var(--color-text); }
-
-.period-btn.active {
-  background: var(--color-bg-cream);
-  color: var(--color-accent-muted);
-  font-weight: 600;
-}
-
-.rank-inner {
-  animation: fadeIn 0.4s ease;
-}
-
-/* ── Top 3 ── */
-.top-three {
-  display: grid;
-  grid-template-columns: 1fr 1.2fr 1fr;
-  gap: 24px;
-  align-items: start;
-  margin-bottom: 50px;
-}
-
-.top-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.ranking-loading,
+.ranking-empty {
   text-align: center;
+  padding: 80px 20px;
+  color: var(--color-text-light);
+  font-size: 1rem;
+}
+
+/* ═══ TOP 3 ═══ */
+.top3-section {
+  padding: 32px 0 24px;
+}
+
+.top3-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1fr;
+  gap: 28px;
+  align-items: end;
+  max-width: 840px;
+  margin: 0 auto;
+}
+
+.top3-card {
   position: relative;
-  padding: 24px 16px;
-  border-radius: 14px;
   background: var(--color-bg-card);
+  border-radius: 10px;
+  overflow: hidden;
   border: 1px solid var(--color-divider);
+  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   cursor: pointer;
+  opacity: 0;
+  animation: fadeUp 0.45s ease forwards;
 }
 
-.top-card.first {
-  padding-top: 36px;
-  border-color: rgba(192,154,75,0.15);
-  box-shadow: 0 0 0 1px rgba(192,154,75,0.06), 0 8px 32px var(--color-shadow);
-  transform: scale(1.04);
+.top3-card.side {
+  margin-bottom: 20px;
 }
 
-.top-card.second, .top-card.third {
-  margin-top: 20px;
+.top3-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px var(--color-shadow-heavy);
+  border-color: rgba(192,154,75,0.12);
 }
 
-.top-rank-badge {
+.top3-card.first {
+  border-color: rgba(192,154,75,0.2);
+  box-shadow: 0 0 0 1px rgba(192,154,75,0.08), 0 4px 20px var(--color-shadow);
+}
+
+.top3-card.first:hover {
+  box-shadow: 0 16px 40px var(--color-shadow-heavy), 0 0 0 1px rgba(192,154,75,0.2);
+}
+
+.top3-rank-badge {
   position: absolute;
-  top: -16px;
-  width: 44px;
-  height: 44px;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: 0.75rem;
   font-weight: 900;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  line-height: 1;
 }
 
-.top-rank-badge.gold {
-  background: linear-gradient(135deg, #C09A4B, #A68638);
-  color: #1C120C;
-  width: 52px;
-  height: 52px;
-  font-size: 1.3rem;
-  top: -24px;
+.top3-rank-badge.r1 {
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-muted));
+  color: var(--color-primary-abyss);
+  width: 30px;
+  height: 30px;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 10px rgba(192,154,75,0.4);
 }
 
-.top-rank-badge.silver {
-  background: linear-gradient(135deg, #C5C5C5, #9E9E9E);
-  color: #2E1F15;
+.top3-rank-badge.r2 {
+  background: linear-gradient(135deg, #A8A8A8, #7A7A7A);
+  color: var(--color-bg-warm);
 }
 
-.top-rank-badge.bronze {
-  background: linear-gradient(135deg, #CD7F32, #A0522D);
-  color: #F5F0E8;
+.top3-rank-badge.r3 {
+  background: linear-gradient(135deg, #C07A4B, #9A5E36);
+  color: var(--color-bg-warm);
 }
 
-.top-cover {
-  width: 140px;
-  height: 200px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.2rem;
-  color: rgba(237,230,214,0.85);
+.top3-card .book-cover {
   position: relative;
-  margin-bottom: 16px;
   overflow: hidden;
-  box-shadow: 0 8px 24px var(--color-shadow-heavy);
+  aspect-ratio: 3 / 3.6;
 }
 
-.top-cover-img {
-  position: absolute;
-  inset: 0;
+.top3-card .book-cover-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 6px;
-}
-
-.top-cover-fallback {
-  position: absolute;
-  inset: 0;
+  transition: transform 0.45s ease;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 12px;
-  border-radius: 6px;
-  text-align: center;
-}
-
-.top-fallback-title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.85rem;
-  color: rgba(237,230,214,0.95);
+  font-size: 0.95rem;
+  color: rgba(237,230,214,0.85);
+  padding: 20px;
+  text-align: center;
   line-height: 1.3;
-  word-break: break-word;
 }
 
-.top-fallback-author {
-  font-family: var(--font-body);
-  font-size: 0.65rem;
-  color: rgba(237,230,214,0.55);
-  line-height: 1.2;
+.top3-card:hover .book-cover-img {
+  transform: scale(1.04);
 }
 
-.first-cover {
-  width: 160px;
-  height: 230px;
-  font-size: 1.3rem;
-  box-shadow: 0 0 0 2px rgba(192,154,75,0.3), 0 12px 36px var(--color-shadow-deep);
-}
-
-.top-rank-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 8px;
-  background: linear-gradient(transparent, rgba(0,0,0,0.4));
-}
-
-.top-rank-num {
-  font-size: 0.72rem;
-  color: rgba(237,230,214,0.7);
-  font-weight: 400;
-}
-
-.top-info h3 {
-  font-size: 1rem;
-  color: var(--color-text);
-  margin-bottom: 4px;
-}
-
-.top-info p {
-  font-size: 0.8rem;
-  color: var(--color-text-light);
-  margin-bottom: 8px;
-}
-
-.top-price {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.2rem;
-  color: var(--color-accent-muted);
-  margin-bottom: 6px;
-}
-
-.top-stat {
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
-  display: flex;
-  align-items: center;
+.book-cover-fallback {
+  background: linear-gradient(160deg, #5D4037, #3E2723, #2C1A12);
+  flex-direction: column;
   gap: 4px;
-  justify-content: center;
 }
 
-.stat-icon { font-size: 0.75rem; }
-
-/* ── Rank List ── */
-.rank-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  background: var(--color-divider);
-  border: 1px solid var(--color-divider);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.rank-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 14px 20px;
-  background: var(--color-bg-card);
-  cursor: pointer;
-  transition: background 0.2s ease;
-  animation: slideInLeft 0.4s ease backwards;
-}
-
-.rank-item:hover {
-  background: var(--color-bg-cream);
-}
-
-.rank-num {
-  width: 32px;
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--color-text-light);
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.rank-num.top-rank {
-  color: var(--color-accent-muted);
-}
-
-.rank-item-cover {
-  width: 52px;
-  height: 72px;
-  border-radius: 4px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding: 4px;
-  text-align: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-
-.rank-fallback-title {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 0.6rem;
-  color: rgba(237,230,214,0.9);
-  line-height: 1.2;
-  word-break: break-word;
-}
-
-.rank-fallback-author {
-  font-family: var(--font-body);
-  font-size: 0.5rem;
+.cover-author {
   color: rgba(237,230,214,0.5);
-  line-height: 1.1;
+  font-size: 0.65rem;
+  font-family: var(--font-body);
 }
 
-.rank-item-cover span {
-  text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+.top3-card .book-info {
+  padding: 10px 12px 12px;
 }
 
-.rank-item-img {
-  width: 52px;
-  height: 72px;
-  border-radius: 4px;
-  object-fit: cover;
-  flex-shrink: 0;
+.top3-card.first .book-info {
+  padding: 12px 14px 14px;
 }
 
-.rank-item-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.rank-item-title {
+.top3-card .book-title {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.92rem;
+  font-size: 0.85rem;
   color: var(--color-text);
-  margin-bottom: 2px;
+  margin-bottom: 1px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.rank-item-author {
-  font-size: 0.78rem;
+.top3-card.first .book-title {
+  font-size: 0.9rem;
+}
+
+.top3-card .book-author {
+  font-size: 0.7rem;
+  color: var(--color-text-light);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top3-card .book-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.top3-card .book-price {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--color-accent-muted);
+}
+
+.top3-card.first .book-price {
+  font-size: 0.95rem;
+}
+
+.top3-card .book-rating {
+  font-size: 0.68rem;
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.top3-card .book-stat {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-divider);
+  font-size: 0.65rem;
   color: var(--color-text-light);
 }
 
-.rank-item-price {
+/* ═══ RANK LIST ═══ */
+.rank-list {
+  padding: 12px 0 20px;
+}
+
+.rank-list-header {
+  display: grid;
+  grid-template-columns: 50px 80px 1fr 100px 80px 100px;
+  gap: 16px;
+  padding: 10px 20px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--color-text-light);
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--color-divider);
+  margin-bottom: 4px;
+}
+
+.rh-stat {
+  text-align: right;
+}
+
+.rank-row {
+  display: grid;
+  grid-template-columns: 50px 80px 1fr 100px 80px 100px;
+  gap: 16px;
+  padding: 14px 20px;
+  align-items: center;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-divider);
+  border-radius: 10px;
+  margin-bottom: 6px;
+  transition: all 0.3s;
+  cursor: pointer;
+  animation: fadeUp 0.4s ease both;
+}
+
+.rank-row:hover {
+  transform: translateX(4px);
+  box-shadow: 0 8px 24px var(--color-shadow);
+  border-color: rgba(192,154,75,0.12);
+}
+
+.rank-num {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--color-divider-strong);
+  text-align: center;
+}
+
+.rank-row:nth-child(2) .rank-num { color: var(--color-accent); }
+.rank-row:nth-child(3) .rank-num { color: var(--color-primary-mid); }
+.rank-row:nth-child(4) .rank-num { color: var(--color-primary-light); }
+
+.rank-cover-img {
+  width: 56px;
+  height: 76px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.rank-cover-fallback {
+  width: 56px;
+  height: 76px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.55rem;
+  color: rgba(237,230,214,0.7);
+  padding: 6px;
+  text-align: center;
+  background: linear-gradient(160deg, #5D4037, #3E2723);
+}
+
+.rc-title {
+  word-break: break-all;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.rank-book-info {
+  min-width: 0;
+}
+
+.rb-title {
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--color-text);
+  word-break: break-word;
+  line-height: 1.3;
+}
+
+.rb-author {
+  font-size: 0.76rem;
+  color: var(--color-text-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rank-price {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
   color: var(--color-accent-muted);
-  flex-shrink: 0;
-  min-width: 60px;
   text-align: right;
 }
 
-.rank-item-stat {
-  font-size: 0.78rem;
-  color: var(--color-text-secondary);
-  flex-shrink: 0;
-  min-width: 70px;
-  text-align: right;
-}
-
-.stat-icon-sm { margin-right: 3px; }
-
-.rank-item-rating {
+.rank-rating {
   font-size: 0.78rem;
   color: var(--color-accent);
-  min-width: 50px;
-  text-align: right;
-  flex-shrink: 0;
-}
-
-.load-more {
   display: flex;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
   justify-content: center;
-  margin-top: 32px;
 }
 
-.btn-load {
-  padding: 12px 36px;
-  font-size: 0.9rem;
+.rank-stat-col {
+  font-size: 0.82rem;
   color: var(--color-text-secondary);
+  text-align: right;
+}
+
+.rank-stat-col .stat-val {
+  font-weight: 500;
+}
+
+/* ═══ LOAD MORE ═══ */
+.load-more-wrap {
+  padding: 8px 0 20px;
+  text-align: center;
+}
+
+.btn-load-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 48px;
   background: var(--color-bg-card);
-  border: 1px solid var(--color-divider-strong);
-  border-radius: 8px;
+  border: 1.5px solid var(--color-divider-strong);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
   cursor: pointer;
-  transition: all 0.3s ease;
   font-family: var(--font-body);
+  transition: all 0.3s;
 }
 
-.btn-load:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-  background: rgba(192,154,75,0.04);
+.btn-load-more:hover {
+  border-color: var(--color-primary-mid);
+  color: var(--color-text);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px var(--color-shadow);
 }
 
+/* ═══ ANIMATIONS ═══ */
 .rank-fade-enter-active { transition: all 0.35s ease; }
 .rank-fade-leave-active { transition: all 0.2s ease; }
 .rank-fade-enter-from { opacity: 0; transform: translateY(10px); }
 .rank-fade-leave-to { opacity: 0; transform: translateY(-10px); }
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .top-three { grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .top-card.first { transform: none; }
-  .first-cover { width: 140px; height: 200px; }
-}
-
-@media (max-width: 768px) {
-  .ranking-hero { padding: 60px 0 50px; }
-  .ranking-hero h1 { font-size: 1.8rem; }
-  .ranking-body { padding: 0 20px 60px; }
-  .tab-bar-inner { flex-direction: column; gap: 12px; }
-  .rank-tabs { width: 100%; overflow-x: auto; }
-  .tab-btn { flex-shrink: 0; }
-  .period-tabs { width: 100%; justify-content: center; }
-  .top-three { grid-template-columns: 1fr; gap: 20px; }
-  .top-card.second, .top-card.third { margin-top: 0; }
-  .rank-item { flex-wrap: wrap; gap: 10px; }
-  .rank-item-stat { min-width: auto; }
-  .rank-item-rating { display: none; }
-}
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-15px); }
-  to { opacity: 1; transform: translateX(0); }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 1024px) {
+  .top3-grid { gap: 20px; }
+  .top3-card.side { margin-bottom: 14px; }
+  .rank-list-header,
+  .rank-row { grid-template-columns: 40px 64px 1fr 80px 70px; gap: 12px; }
+  .rh-stat,
+  .rank-stat-col { display: none; }
+}
+
+@media (max-width: 768px) {
+  .page-header-inner { padding: 32px 20px 28px; }
+  .page-header h1 { font-size: 1.5rem; }
+  .page-header-stats { gap: 20px; }
+  .ranking-tabs-inner { padding: 0 16px; flex-direction: column; gap: 0; }
+  .ranking-tab { padding: 14px 12px; font-size: 0.82rem; }
+  .time-filters { padding: 8px 0 12px; gap: 4px; flex-wrap: wrap; justify-content: center; }
+  .tf-pill { padding: 5px 12px; font-size: 0.76rem; }
+  .ranking-body { padding: 0 20px 60px; }
+  .top3-section { padding: 16px 0 10px; }
+  .top3-grid { max-width: 100%; grid-template-columns: 1fr; gap: 12px; }
+  .top3-card.side { margin-bottom: 0; }
+  .rank-list { padding: 10px 0 16px; }
+  .rank-list-header { display: none; }
+  .rank-row { grid-template-columns: 36px 52px 1fr; gap: 10px; padding: 12px 14px; }
+  .rank-price,
+  .rank-rating,
+  .rank-stat-col { display: none; }
 }
 </style>
