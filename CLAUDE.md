@@ -67,24 +67,22 @@ src/composables/     # Vue组合式函数
 
 ### 静态资源
 
-- `pictures/` 目录存放书籍封面图片，后端通过 `/pictures/*` 提供静态资源服务
-- Vite 代理 `/pictures/*` 到后端 `localhost:8081/pictures/*`
+- `pictures/` 目录存放书籍封面图片，后端通过 `/pictures/**` 提供静态资源服务
+- Vite 代理 `/pictures` 到后端 `localhost:8081/pictures`
 - 书籍封面占位符使用 `getCoverStyle(bookId)` 生成渐变背景
 
-### Vite 代理规则
+### Vite 代理规则（`vite.config.js`）
 
-| 前端路径 | 后端目标 |
-|-----------|---------|
-| `/api/*` | `localhost:8081/api/*` |
-| `/admin/*` | `localhost:8081/admin/*` |
-| `/pictures/*` | `localhost:8081/pictures/*`（封面图片）|
-
-**前端 API 路径约定**：用户端用 `/book/`（单数），管理端用 `/admin/`
+| 前端路径 | 后端目标 | 说明 |
+|----------|---------|------|
+| `/api` | `localhost:8081/api` | 用户 API 透传 |
+| `/admin-api` | `localhost:8081/admin` | **路径重写** `/admin-api` → `/admin` |
+| `/pictures` | `localhost:8081/pictures` | 封面图静态资源 |
 
 ### 认证与授权
 
-- `AuthInterceptor` 拦截 `/api/` 验证 JWT Token
-- `AdminInterceptor` 拦截 `/admin/` 验证管理员角色
+- `AuthInterceptor` 拦截特定路径（`/api/user/info`、`/api/user/password`、`/api/user/profile`、`/api/address/**`、`/api/cart/**`、`/api/order/**`、`/api/review/add`、`/admin/**`）验证 JWT Token，设 `AuthContext` ThreadLocal
+- `AdminInterceptor` 拦截 `/admin/**` 验证管理员角色
 - `AuthContext` 使用 ThreadLocal 存储当前用户
 
 ## BigInt 精度问题（重要）
@@ -114,18 +112,22 @@ MyBatis-Plus 雪花算法生成 **19位 Long 类型 ID**，超出 JS `Number.MAX
 
 ## 订单状态流转
 
+完整状态定义见 `Constants.java`：
 ```
-pending(待付款) → paid(已付款) → shipped(已发货) → delivered(已收货) → completed(已完成)
-    ↓                ↓
-cancelled(已取消)   refunded(已退款)
+created(已创建) → paying(支付中) → paid(已付款) → shipped(已发货) → delivered(已收货) → completed(已完成)
+   ↓ (过期)        ↓ (取消)
+expired          cancelled
+                           paid/shipped → refunded(已退款)
 ```
 
 ## 关键约束
 
 - SQL 中 `order` 表名必须加反引号（MySQL保留字）
-- `BaseEntity` 提供 id（雪花算法）、createTime、updateTime
+- `BaseEntity` 提供 id（雪花算法，`@JsonFormat(Shape.STRING)` 字符串化）、createTime、updateTime
 - 密码使用 BCrypt 加密，密钥从 `application.yml` 的 `jwt.secret` 读取
 - 订单号通过 `OrderNoGenerator` 生成
+- `.gitignore` 排除了 `application.yml` + `application-local.yml`，数据库密码放 `application-local.yml`（从 `.example` 复制）
+- Admin 管理控制器（BookManageController、OrderManageController、UserManageController、ReviewManageController）**直接注入 Mapper**，不走 Service 层，仅 `CategoryManageController` 走 Service
 
 ## 排行榜 API（getRanking）
 

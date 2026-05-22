@@ -68,7 +68,7 @@ bookstore/                          # 后端 Spring Boot 项目
 │   │   ├── stores/                 # Pinia 状态管理
 │   │   ├── api/                    # API 接口封装
 │   │   └── utils/                  # 工具函数
-│   └── vite.config.js             # Vite 配置（代理 /api、/admin、/pictures 到 8081）
+│   └── vite.config.js             # Vite 配置（代理 /api、/admin-api→/admin、/pictures 到 8081）
 └── sql/
     └── init.sql                    # 数据库初始化脚本
 ```
@@ -82,6 +82,7 @@ bookstore/                          # 后端 Spring Boot 项目
 - `cart` - 购物车表
 - `order` - 订单表
 - `order_item` - 订单明细表
+- `payment` - 支付记录表
 - `review` - 评论表
 
 ## 技术方案

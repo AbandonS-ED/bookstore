@@ -370,19 +370,19 @@ const toggleExpand = (cat) => {
   } else {
     next.add(id)
     if (cat.children && cat.children.length) {
-      selectCategory(cat.children[0])
+      selectCategory(cat.children[0], false)
     } else {
-      selectCategory(cat)
+      selectCategory(cat, false)
     }
   }
   expandedIds.value = next
 }
 
-const selectCategory = (cat) => {
+const selectCategory = (cat, closeDrawer = true) => {
   selectedCategory.value = cat
   pageNum.value = 1
   sortBy.value = 'default'
-  drawerOpen.value = false
+  if (closeDrawer) drawerOpen.value = false
   fetchBooks()
 }
 
@@ -586,7 +586,18 @@ onUnmounted(() => {
   background: var(--color-bg-card);
   border: 1px solid var(--color-divider);
   border-radius: var(--radius-xl);
-  overflow: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  max-height: calc(100vh - var(--header-height) - var(--space-8) * 2);
+}
+
+.sidebar-inner::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-inner::-webkit-scrollbar-thumb {
+  background: var(--color-divider-strong);
+  border-radius: 2px;
 }
 
 .sidebar-section {
@@ -1052,6 +1063,7 @@ onUnmounted(() => {
     max-width: 80vw;
     height: 100vh;
     overflow-y: auto;
+    overscroll-behavior: contain;
     border-radius: 0;
     border: none;
   }
