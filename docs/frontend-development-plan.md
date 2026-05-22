@@ -46,6 +46,11 @@
 | 注册 | `/register` | 用户注册 |
 | 书籍列表 | `/books` | 分类筛选、搜索、分页 |
 | 书籍详情 | `/book/:id` | 书籍信息、评分、评论、加入购物车 |
+| 排行榜 | `/ranking` | 畅销榜/评分榜/新书榜，支持时间维度筛选 |
+| 新品上架 | `/new-arrivals` | 新书展示 |
+| 分类浏览 | `/category-browse` | 多条件筛选（分类/价格/评分） |
+| 关于我们 | `/about` | 团队介绍、品牌故事 |
+| 我的收藏 | `/favorites` | 收藏书籍列表，含降价提示 |
 | 购物车 | `/cart` | 购物车商品列表、数量修改、结算 |
 | 订单确认 | `/order/confirm` | 确认订单、选择地址 |
 | 订单列表 | `/orders` | 用户订单列表 |
@@ -122,7 +127,23 @@
 | `/api/review/book/{bookId}` | GET | - | `{code, message, data: ReviewVO[]}` |
 | `/api/review/{id}` | DELETE | - | `{code, message, data: null}` |
 
-### 3.7 管理接口
+### 3.7 收藏接口
+
+| 接口 | 方法 | 参数 | 响应 |
+|------|------|------|------|
+| `/api/favorite/add` | POST | `{bookId}` | `{code, message, data: null}` |
+| `/api/favorite/{bookId}` | DELETE | - | `{code, message, data: null}` |
+| `/api/favorite/list` | GET | - | `{code, message, data: FavoriteVO[]}` |
+| `/api/favorite/check/{bookId}` | GET | - | `{code, message, data: Boolean}` |
+| `/api/favorite/ids` | GET | - | `{code, message, data: Set<Long>}` |
+
+### 3.8 排行榜接口
+
+| 接口 | 方法 | 参数 | 响应 |
+|------|------|------|------|
+| `/api/book/ranking` | GET | `type: sales/rating/new, period: all/week/month/quarter/year` | `{code, message, data: BookVO[]}` |
+
+### 3.8 管理接口
 
 | 接口 | 方法 | 参数 | 响应 |
 |------|------|------|------|
@@ -260,6 +281,7 @@
 | `useCartStore` | 购物车列表、数量、总价 |
 | `useCategoryStore` | 分类树、当前选中分类 |
 | `useOrderStore` | 订单列表、当前订单 |
+| `useFavoriteStore` | 收藏列表、已收藏书籍ID集合 |
 
 ---
 

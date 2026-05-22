@@ -7,7 +7,7 @@
 ## 项目信息
 
 - 技术栈：Java 17 + Spring Boot 3.2.5 + MyBatis-Plus 3.5.6 + Vue 3 + MySQL 8.0
-- 数据库：bookstore（8张表）
+- 数据库：bookstore（10张表）
 - 后端端口：8081
 - 开发周期：2026/5/18 - 2026/5/30
 
@@ -49,6 +49,7 @@
 - [x] Order.java（订单实体）
 - [x] OrderItem.java（订单明细实体）
 - [x] Review.java（评论实体）
+- [x] Favorite.java（收藏实体）
 
 ---
 
@@ -62,6 +63,7 @@
 - [x] OrderMapper.java
 - [x] OrderItemMapper.java
 - [x] ReviewMapper.java
+- [x] FavoriteMapper.java
 
 ---
 
@@ -133,6 +135,13 @@
   - [x] 获取书籍评论
   - [x] 删除评论
 
+- [x] FavoriteService + FavoriteServiceImpl
+  - [x] 添加收藏（保存 favorited_price）
+  - [x] 取消收藏
+  - [x] 获取收藏列表（含降价提示）
+  - [x] 检查是否已收藏
+  - [x] 获取已收藏书籍ID集合
+
 ---
 
 ### 阶段六：Controller 控制层 ✅
@@ -151,6 +160,7 @@
   - GET /api/book/{id}
   - GET /api/book/search
   - GET /api/book/category/{categoryId}
+  - GET /api/book/ranking
 
 - [x] CategoryController.java
   - GET /api/category/list
@@ -175,6 +185,13 @@
   - POST /api/review/add
   - GET /api/review/book/{bookId}
   - DELETE /api/review/{id}
+
+- [x] FavoriteController.java
+  - POST /api/favorite/add
+  - DELETE /api/favorite/{bookId}
+  - GET /api/favorite/list
+  - GET /api/favorite/check/{bookId}
+  - GET /api/favorite/ids
 
 #### 管理 Controller（admin/）
 
@@ -209,9 +226,22 @@
 ### 阶段七：前端开发（Vue 3）
 
 ✅
-- [x] 用户端页面开发
+
+- [x] 用户端页面开发（Home/Books/BookDetail/Cart/Order*/Login/Register/Ranking/NewArrivals/Favorites/CategoryBrowse/About）
 - [x] 管理端页面开发
 - [x] 前后端联调
+
+### 阶段八：新增功能页面 ✅
+
+- [x] 排行榜页面（Ranking.vue）— 畅销榜/评分榜/新书榜 + 时间维度筛选
+- [x] 新品上架页面（NewArrivals.vue）— 新书展示
+- [x] 收藏页面（Favorites.vue）— 降价提示、筛选器
+- [x] 分类浏览页面（CategoryBrowse.vue）— 多条件筛选
+- [x] 关于我们页面（About.vue）— 团队介绍
+
+### 阶段九：前端状态管理补充 ✅
+
+- [x] Pinia stores/favorite.js — 收藏状态管理
 
 ---
 
