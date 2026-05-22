@@ -41,6 +41,12 @@ public class BookController {
         return Result.success(result);
     }
 
+    @GetMapping("/coming-soon")
+    public Result<List<BookVO>> comingSoon() {
+        List<BookVO> result = bookService.getComingSoon();
+        return Result.success(result);
+    }
+
     @GetMapping("/search")
     public Result<PageResult<BookVO>> search(
             @RequestParam String keyword,

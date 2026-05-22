@@ -64,8 +64,10 @@ public class BookServiceImpl implements BookService {
             }
         }
 
-        if (hasPreorder) {
-            wrapper.eq(Book::getStatus, 2);
+        if (queryDTO.getStatus() != null) {
+            wrapper.eq(Book::getStatus, queryDTO.getStatus());
+        } else if (hasPreorder) {
+            wrapper.eq(Book::getStatus, Constants.BOOK_STATUS_PREORDER);
         } else {
             wrapper.eq(Book::getStatus, Constants.BOOK_STATUS_ON);
         }
@@ -262,6 +264,9 @@ public class BookServiceImpl implements BookService {
             case "publish_desc":
                 wrapper.orderByDesc(Book::getPublishDate);
                 break;
+            case "rating_desc":
+                wrapper.apply("ORDER BY (SELECT COALESCE(AVG(r.rating), 0) FROM review r WHERE r.book_id = book.id AND r.status = {0}) DESC", Constants.REVIEW_SHOW);
+                break;
             default:
                 break;
         }
@@ -285,6 +290,9 @@ public class BookServiceImpl implements BookService {
                 break;
             case "rating":
                 break;
+            case "collection":
+                wrapper.orderByDesc(Book::getFavoritedCount);
+                break;
             default:
                 wrapper.orderByDesc(Book::getSales);
                 break;
@@ -298,6 +306,16 @@ public class BookServiceImpl implements BookService {
         }
 
         return voList;
+    }
+
+    @Override
+    public List<BookVO> getComingSoon() {
+        LambdaQueryWrapper<Book> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Book::getStatus, Constants.BOOK_STATUS_COMING)
+                .isNotNull(Book::getExpectedShelfDate)
+                .orderByAsc(Book::getExpectedShelfDate);
+        List<Book> books = bookMapper.selectList(wrapper);
+        return convertToVOList(books);
     }
 
     private LocalDate getPeriodCutoff(String period) {
@@ -353,13 +371,16 @@ public class BookServiceImpl implements BookService {
             vo.setPublisher(book.getPublisher());
             vo.setPublishDate(book.getPublishDate());
             vo.setPrice(book.getPrice());
+            vo.setOrigPrice(book.getOrigPrice());
             vo.setStock(book.getStock());
             vo.setSales(book.getSales());
+            vo.setFavoritedCount(book.getFavoritedCount());
             vo.setCategoryId(book.getCategoryId());
             vo.setCategoryName(categoryNames.get(book.getCategoryId()));
             vo.setCoverUrl(book.getCoverUrl());
             vo.setQuote(book.getQuote());
             vo.setStatus(book.getStatus());
+            vo.setExpectedShelfDate(book.getExpectedShelfDate());
 
             double[] stats = reviewStats.get(book.getId());
             if (stats != null) {

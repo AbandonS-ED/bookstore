@@ -55,6 +55,22 @@ export const useOrderStore = defineStore('order', {
       }
     },
 
+    async refundOrder(id) {
+      await orderApi.applyRefund(id)
+      const order = this.orders.find(o => o.id === id)
+      if (order) {
+        order.status = 'refunding'
+      }
+    },
+
+    async afterSaleOrder(id) {
+      await orderApi.applyAfterSale(id)
+      const order = this.orders.find(o => o.id === id)
+      if (order) {
+        order.status = 'after_sale'
+      }
+    },
+
     async payApplyOrder(id, paymentMethod) {
       const res = await orderApi.payApply(id, paymentMethod)
       return res.data

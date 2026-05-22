@@ -59,6 +59,18 @@ public class OrderController {
         return Result.success();
     }
 
+    @PutMapping("/{id}/apply-refund")
+    public Result<Void> applyRefund(@PathVariable Long id) {
+        orderService.applyRefund(AuthContext.getCurrentUserId(), id);
+        return Result.success();
+    }
+
+    @PutMapping("/{id}/apply-after-sale")
+    public Result<Void> applyAfterSale(@PathVariable Long id) {
+        orderService.applyAfterSale(AuthContext.getCurrentUserId(), id);
+        return Result.success();
+    }
+
     @PostMapping("/{id}/pay-apply")
     public Result<PaymentVO> payApply(@PathVariable Long id, @Valid @RequestBody PayApplyDTO payApplyDTO) {
         PaymentVO payment = paymentService.applyPay(AuthContext.getCurrentUserId(), id, payApplyDTO.getPaymentMethod());

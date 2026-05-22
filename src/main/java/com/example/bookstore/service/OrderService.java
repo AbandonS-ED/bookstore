@@ -16,6 +16,10 @@ public interface OrderService {
 
     void confirm(Long userId, Long orderId);
 
+    void applyRefund(Long userId, Long orderId);
+
+    void applyAfterSale(Long userId, Long orderId);
+
     List<OrderVO> getList(Long userId, OrderQueryDTO queryDTO);
 
     OrderVO getDetail(Long userId, Long orderId);

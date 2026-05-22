@@ -4,14 +4,19 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.bookstore.common.Result;
 import com.example.bookstore.entity.Book;
+import com.example.bookstore.entity.Category;
 import com.example.bookstore.entity.OrderItem;
 import com.example.bookstore.entity.Review;
 import com.example.bookstore.mapper.BookMapper;
+import com.example.bookstore.mapper.CategoryMapper;
 import com.example.bookstore.mapper.OrderItemMapper;
 import com.example.bookstore.mapper.ReviewMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/admin/book")
@@ -21,6 +26,7 @@ public class BookManageController {
     private final BookMapper bookMapper;
     private final ReviewMapper reviewMapper;
     private final OrderItemMapper orderItemMapper;
+    private final CategoryMapper categoryMapper;
 
     @PostMapping("/add")
     public Result<Void> add(@Valid @RequestBody Book book) {
@@ -73,6 +79,17 @@ public class BookManageController {
         wrapper.orderByDesc(Book::getCreateTime);
         Page<Book> page = new Page<>(pageNum, pageSize);
         Page<Book> result = bookMapper.selectPage(page, wrapper);
+
+        if (result.getRecords() != null && !result.getRecords().isEmpty()) {
+            Map<Long, String> categoryMap = categoryMapper.selectList(null).stream()
+                .collect(Collectors.toMap(Category::getId, Category::getName));
+            result.getRecords().forEach(book -> {
+                if (book.getCategoryId() != null) {
+                    book.setCategoryName(categoryMap.get(book.getCategoryId()));
+                }
+            });
+        }
+
         return Result.success(result);
     }
 }

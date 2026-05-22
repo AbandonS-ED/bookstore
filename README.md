@@ -78,7 +78,9 @@ bookstore/                          # 后端 Spring Boot 项目
 
 - `user` - 用户表
 - `category` - 分类表
-- `book` - 书籍表（含划线原价、书中名言）
+- `book` - 书籍表（含划线原价、书中名言，含 author_id 外键关联作者）
+- `author` - 作者表（含 bio/国籍/生卒年/奖项）
+- `book_chapter` - 目录表（书籍章节+页码）
 - `favorite` - 收藏表（含收藏时价格）
 - `address` - 收货地址表
 - `cart` - 购物车表
@@ -87,6 +89,17 @@ bookstore/                          # 后端 Spring Boot 项目
 - `payment` - 支付记录表
 - `review` - 评论表
 
+## 书籍详情页
+
+详情页包含 **4 个标签页**：
+
+| 标签 | 内容 |
+|------|------|
+| 简介 | 书籍 description 字段，多段落描述 |
+| 作者 | 作者 bio/国籍/生卒年/奖项标签 |
+| 目录 | 书籍章节列表（含页码点线装饰） |
+| 评论 | 读者评分和评论列表 |
+
 ## 技术方案
 
-详见 [docs/analysis/03_技术方案.md](docs/analysis/03_技术方案.md)
+详见 [docs/analysis/01_需求分析.md](docs/analysis/01_需求分析.md)

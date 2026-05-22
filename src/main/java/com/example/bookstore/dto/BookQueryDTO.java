@@ -11,6 +11,8 @@ public class BookQueryDTO {
 
     private String tag;
 
+    private Integer status;
+
     private String sortBy;
 
     private Integer pageNum = 1;

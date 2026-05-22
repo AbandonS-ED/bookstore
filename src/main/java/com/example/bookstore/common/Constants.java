@@ -13,6 +13,8 @@ public interface Constants {
     // ========== 书籍状态 ==========
     Integer BOOK_STATUS_ON = 1;   // 上架
     Integer BOOK_STATUS_OFF = 0;  // 下架
+    Integer BOOK_STATUS_PREORDER = 2;  // 预售
+    Integer BOOK_STATUS_COMING = 3;    // 即将上架
 
     // ========== 地址默认状态 ==========
     Integer ADDRESS_DEFAULT = 1;    // 默认地址
@@ -32,6 +34,8 @@ public interface Constants {
     String ORDER_STATUS_COMPLETED = "completed";   // 已完成
     String ORDER_STATUS_CANCELLED = "cancelled";   // 已取消
     String ORDER_STATUS_EXPIRED = "expired";       // 已过期
+    String ORDER_STATUS_REFUNDING = "refunding";   // 退款中（待审核）
+    String ORDER_STATUS_AFTER_SALE = "after_sale"; // 售后中（待审核）
     String ORDER_STATUS_REFUNDED = "refunded";     // 已退款
 
     // ========== 支付状态 ==========
@@ -56,5 +60,8 @@ public interface Constants {
     //    ↓           ↓
     //  expired   cancelled（从 created/paying 可取消）
     // shipped → delivered → completed（确认收货）
-    // paid/shipped → refunded（退款）
+    // paid/shipped → refunding（用户申请退款）
+    // refunding → refunded（管理员同意）/ paid（管理员拒绝）
+    // completed → after_sale（用户申请售后）
+    // after_sale → refunded（管理员同意）/ completed（管理员拒绝）
 }

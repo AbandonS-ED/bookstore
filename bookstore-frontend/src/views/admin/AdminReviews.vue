@@ -18,8 +18,11 @@
       </el-table-column>
       <el-table-column prop="content" label="评论内容" min-width="300" show-overflow-tooltip />
       <el-table-column prop="createTime" label="评论时间" width="180" />
-      <el-table-column label="操作" width="120" fixed="right">
+      <el-table-column label="操作" width="180" fixed="right">
         <template #default="{ row }">
+          <el-button size="small" type="warning" link @click="handleHide(row.id)">
+            隐藏
+          </el-button>
           <el-button size="small" type="danger" link @click="handleDelete(row.id)">
             删除
           </el-button>
@@ -83,7 +86,24 @@ const handleDelete = (id) => {
     } catch (error) {
       ElMessage.error(error.message || '删除失败')
     }
-  }).catch(() => {})
+  })  .catch(() => {})
+}
+
+const handleHide = async (id) => {
+  try {
+    await ElMessageBox.confirm('确定要隐藏该评论吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await adminApi.hideReview(id)
+    ElMessage.success('已隐藏')
+    loadReviews()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.message || '操作失败')
+    }
+  }
 }
 
 onMounted(() => {

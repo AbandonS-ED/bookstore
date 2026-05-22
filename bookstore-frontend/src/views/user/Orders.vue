@@ -73,23 +73,47 @@
             <div class="order-footer">
               <div class="footer-left">
                 <span v-if="order.status === 'pending'" class="pay-hint">请尽快完成支付</span>
+                <span v-else-if="order.status === 'paid'" class="ship-hint">等待卖家发货</span>
                 <span v-else-if="order.status === 'shipped'" class="ship-hint">商品正在配送中</span>
+                <span v-else-if="order.status === 'refunding'" class="refund-hint">退款审核中</span>
+                <span v-else-if="order.status === 'after_sale'" class="after-sale-hint">售后处理中</span>
                 <span v-else-if="order.status === 'delivered'" class="complete-hint">感谢您的购买</span>
               </div>
               <div class="footer-actions">
                 <button
-                  v-if="order.status === 'pending'"
+                  v-if="order.status === 'created' || order.status === 'pending' || order.status === 'paying'"
                   class="btn-pay"
                   @click.stop="handlePay(order.id)"
                 >
                   立即支付
                 </button>
                 <button
-                  v-if="order.status === 'pending'"
+                  v-if="order.status === 'created' || order.status === 'pending' || order.status === 'paying'"
                   class="btn-cancel"
                   @click.stop="handleCancel(order.id)"
                 >
                   取消订单
+                </button>
+                <button
+                  v-if="order.status === 'paid' || order.status === 'shipped'"
+                  class="btn-cancel"
+                  @click.stop="handleRefund(order.id)"
+                >
+                  申请退款
+                </button>
+                <button
+                  v-if="order.status === 'delivered' || order.status === 'completed'"
+                  class="btn-cancel"
+                  @click.stop="handleAfterSale(order.id)"
+                >
+                  申请售后
+                </button>
+                <button
+                  v-if="order.status === 'shipped'"
+                  class="btn-confirm"
+                  @click.stop="handleConfirm(order.id)"
+                >
+                  确认收货
                 </button>
               </div>
             </div>
@@ -153,6 +177,8 @@ const statusTabs = [
   { label: '待发货', value: 'paid', count: null },
   { label: '待收货', value: 'shipped', count: null },
   { label: '已完成', value: 'delivered', count: null },
+  { label: '退款审核', value: 'refunding', count: null },
+  { label: '售后处理', value: 'after_sale', count: null },
   { label: '已取消', value: 'cancelled', count: null }
 ]
 
@@ -226,6 +252,57 @@ const handleCancel = async (id) => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('取消失败')
+    }
+  }
+}
+
+const handleConfirm = async (id) => {
+  try {
+    await ElMessageBox.confirm('确认已收到商品？', '确认收货', {
+      confirmButtonText: '确认收货',
+      cancelButtonText: '再看看',
+      type: 'info'
+    })
+    await orderStore.confirmOrder(id)
+    ElMessage.success('已确认收货')
+    fetchOrders()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('操作失败')
+    }
+  }
+}
+
+const handleRefund = async (id) => {
+  try {
+    await ElMessageBox.confirm('确认申请退款？退款后订单将无法恢复。', '申请退款', {
+      confirmButtonText: '确认退款',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await orderStore.refundOrder(id)
+    ElMessage.success('退款申请已提交')
+    fetchOrders()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('退款失败')
+    }
+  }
+}
+
+const handleAfterSale = async (id) => {
+  try {
+    await ElMessageBox.confirm('确认申请售后？提交后请等待管理员审核。', '申请售后', {
+      confirmButtonText: '确认申请',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await orderStore.afterSaleOrder(id)
+    ElMessage.success('售后申请已提交')
+    fetchOrders()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('申请失败')
     }
   }
 }
@@ -548,6 +625,21 @@ onMounted(() => {
 .btn-cancel:hover {
   border-color: var(--color-accent);
   color: var(--color-accent);
+}
+
+.btn-confirm {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background: var(--color-primary);
+  border: none;
+  color: white;
+}
+
+.btn-confirm:hover {
+  opacity: 0.85;
 }
 
 .empty-orders {

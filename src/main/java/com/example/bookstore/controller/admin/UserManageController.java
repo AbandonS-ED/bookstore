@@ -9,6 +9,8 @@ import com.example.bookstore.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/admin/user")
 @RequiredArgsConstructor
@@ -46,6 +48,31 @@ public class UserManageController {
         }
         user.setStatus(Constants.STATUS_NORMAL);
         userMapper.updateById(user);
+        return Result.success();
+    }
+
+    @PutMapping("/{id}/role")
+    public Result<Void> updateRole(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        User user = userMapper.selectById(id);
+        if (user == null) {
+            return Result.error(1, "用户不存在");
+        }
+        String role = body.get("role");
+        if (role == null || (!role.equals("user") && !role.equals("admin"))) {
+            return Result.error(1, "无效的角色");
+        }
+        user.setRole(role);
+        userMapper.updateById(user);
+        return Result.success();
+    }
+
+    @DeleteMapping("/{id}")
+    public Result<Void> delete(@PathVariable Long id) {
+        User user = userMapper.selectById(id);
+        if (user == null) {
+            return Result.error(1, "用户不存在");
+        }
+        userMapper.deleteById(id);
         return Result.success();
     }
 }

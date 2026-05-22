@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { ElMessage } from 'element-plus'
 
 const request = axios.create({
   baseURL: '/admin-api',
@@ -17,7 +18,14 @@ request.interceptors.request.use((config) => {
 })
 
 request.interceptors.response.use(
-  (response) => response.data,
+  (response) => {
+    const res = response.data
+    if (res.code !== 200) {
+      ElMessage.error(res.message || '操作失败')
+      return Promise.reject(new Error(res.message || '操作失败'))
+    }
+    return res
+  },
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
@@ -66,27 +74,20 @@ export const adminApi = {
   deliverOrder(id) {
     return request.put(`/order/${id}/deliver`)
   },
-
-  // 用户管理
-  getUserList(params) {
-    return request.get('/user/list', { params })
+  refundOrder(id) {
+    return request.put(`/order/${id}/refund`)
   },
-  disableUser(id) {
-    return request.put(`/user/${id}/disable`)
+  approveRefund(id) {
+    return request.put(`/order/${id}/approve-refund`)
   },
-  enableUser(id) {
-    return request.put(`/user/${id}/enable`)
+  rejectRefund(id) {
+    return request.put(`/order/${id}/reject-refund`)
   },
-
-  // 评论管理
-  getReviewList(params) {
-    return request.get('/review/list', { params })
+  approveAfterSale(id) {
+    return request.put(`/order/${id}/approve-after-sale`)
   },
-  deleteReview(id) {
-    return request.delete(`/review/${id}`)
-  },
-  hideReview(id) {
-    return request.put(`/review/${id}/hide`)
+  rejectAfterSale(id) {
+    return request.put(`/order/${id}/reject-after-sale`)
   }
 }
 

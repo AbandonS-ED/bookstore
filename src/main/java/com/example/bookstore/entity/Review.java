@@ -1,5 +1,6 @@
 package com.example.bookstore.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.bookstore.common.BaseEntity;
 import lombok.Data;
@@ -19,4 +20,10 @@ public class Review extends BaseEntity {
     private String content;
 
     private Integer status;
+
+    @TableField(exist = false)
+    private String username;
+
+    @TableField(exist = false)
+    private String bookTitle;
 }

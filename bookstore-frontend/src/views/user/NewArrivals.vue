@@ -10,6 +10,7 @@
           <div class="ph-stat"><strong>{{ stats.total }}</strong><span>新书上架</span></div>
           <div class="ph-stat"><strong>{{ stats.thisWeek }}</strong><span>本周新上架</span></div>
           <div class="ph-stat"><strong>{{ stats.thisMonth }}</strong><span>本月新上架</span></div>
+          <div class="ph-stat"><strong>{{ stats.presale }}</strong><span>预售中</span></div>
         </div>
       </div>
     </section>
@@ -27,8 +28,12 @@
           <div class="et-author">{{ heroBook.author }}{{ heroBook.publisher ? ' · ' + heroBook.publisher : '' }}</div>
           <p v-if="heroBook.quote" class="et-desc">{{ heroBook.quote }}</p>
           <div class="editor-meta">
-            <div class="editor-price">¥{{ heroBook.price }}</div>
-            <div class="editor-status instock"><span class="dot"></span> 已上架</div>
+            <div class="editor-price">¥{{ heroBook.price }}
+              <span v-if="heroBook.origPrice && Number(heroBook.origPrice) > heroBook.price" class="old">¥{{ heroBook.origPrice }}</span>
+            </div>
+            <div :class="['editor-status', heroBook.status === 2 ? 'presale' : 'instock']">
+              <span class="dot"></span> {{ heroBook.status === 2 ? '预售中' : '已上架' }}
+            </div>
           </div>
           <div class="editor-actions">
             <button class="btn-primary" @click="goToBook(heroBook.id)">立即购买 →</button>
@@ -48,20 +53,14 @@
     <div class="filter-section">
       <div class="filter-row">
         <span class="filter-label">时间</span>
-        <div v-for="t in timePills" :key="t.key"
-          :class="['filter-pill', { active: activeTime === t.key }]"
-          @click="switchTime(t.key)">
-          {{ t.label }}
+        <div v-for="p in filterPills" :key="p.key"
+          :class="['filter-pill', { active: activeFilter === p.key }]"
+          @click="switchFilter(p.key)">
+          {{ p.label }}
         </div>
         <div class="filter-divider"></div>
-        <div class="filter-pill" :class="{ active: activeStatus === 'all' }" @click="activeStatus='all'; resetAndFetch()">全部状态</div>
-        <div class="filter-pill" :class="{ active: activeStatus === 'on' }" @click="activeStatus='on'; resetAndFetch()">已上架</div>
-      </div>
-      <div class="filter-row">
-        <span class="filter-label">分类</span>
-        <div class="filter-pill" :class="{ active: activeCategory === null }" @click="switchCategory(null)">全部</div>
         <div v-for="cat in categories" :key="cat.id"
-          :class="['filter-pill', { active: activeCategory === cat.id }]"
+          :class="['filter-pill pill-category', { active: activeCategory === cat.id }]"
           @click="switchCategory(cat.id)">
           {{ cat.name }}
         </div>
@@ -75,7 +74,8 @@
         <label>排序</label>
         <select v-model="sortBy" @change="resetAndFetch">
           <option value="publish_desc">上架时间</option>
-          <option value="sales_desc">销量</option>
+          <option value="sales_desc">最受期待</option>
+          <option value="rating_desc">评分</option>
           <option value="price_asc">价格从低到高</option>
           <option value="price_desc">价格从高到低</option>
         </select>
@@ -99,33 +99,52 @@
         <div class="timeline-books">
           <div v-for="(book, bidx) in group.books" :key="book.id" class="book-card"
             :style="{ animationDelay: ((gidx * 5 + bidx) * 0.04) + 's' }"
-            @click="goToBook(book.id)">
+            @click="goToBook(book.id)"
+            @mouseenter="hoveredBookId = book.id"
+            @mouseleave="hoveredBookId = null">
             <div class="book-cover">
               <img v-if="book.coverUrl && !coverErrors[book.id]" class="book-cover-img" :src="book.coverUrl" :alt="book.title" loading="lazy" @error="coverErrors[book.id] = true" />
               <div v-if="!book.coverUrl || coverErrors[book.id]" class="book-cover-img book-cover-fallback" :style="getCoverStyle(book.id)">
                 <span class="cover-title">{{ book.title }}</span>
                 <span class="cover-author">{{ book.author }}</span>
               </div>
-              <div class="book-badge badge-new">NEW</div>
+              <div v-if="book.status === 2" class="book-badge badge-presale">预售</div>
+              <div v-else class="book-badge badge-new">NEW</div>
               <div class="book-fav" @click.stop="toggleFav(book.id)" :class="{ active: favoriteStore.isFavorited(book.id) }">
                 {{ favoriteStore.isFavorited(book.id) ? '♥' : '♡' }}
               </div>
+              <transition name="quote-fade">
+                <div v-if="book.quote && hoveredBookId === book.id" class="book-quote-overlay">
+                  <div class="quote-content">
+                    <svg class="quote-mark quote-mark-left" viewBox="0 0 24 24" width="20" height="20">
+                      <path d="M6 17h3l2-4V7H5v6h3l-2 4zm8 0h3l2-4V7h-6v6h3l-2 4z" fill="currentColor"/>
+                    </svg>
+                    <p class="quote-text">{{ book.quote }}</p>
+                    <svg class="quote-mark quote-mark-right" viewBox="0 0 24 24" width="20" height="20">
+                      <path d="M18 7h-3l-2 4v6h6v-6h-3l2-4zm-8 0H7L5 11v6h6v-6H8l2-4z" fill="currentColor"/>
+                    </svg>
+                  </div>
+                </div>
+              </transition>
             </div>
             <div class="book-info">
               <div class="book-title">{{ book.title }}</div>
               <div class="book-author">{{ book.author }}</div>
               <div class="book-meta">
-                <div class="book-price">¥{{ book.price }}</div>
+                <div class="book-price">¥{{ book.price }}
+                  <span v-if="book.origPrice && Number(book.origPrice) > book.price" class="original">¥{{ book.origPrice }}</span>
+                </div>
                 <div class="book-rating">
                   <template v-if="book.avgRating">
                     <span class="star-display">{{ renderStars(book.avgRating) }}</span><span>{{ book.avgRating.toFixed(1) }}</span>
                   </template>
                   <span v-else class="no-rating">暂无评分</span>
-                </div>
               </div>
+              <div v-if="book.status === 2" class="presale-info">📅 预计近期发货</div>
             </div>
           </div>
         </div>
+      </div>
       </div>
 
       <!-- LOAD MORE -->
@@ -186,23 +205,23 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { bookApi } from '@/api/book'
 import { categoryApi } from '@/api/category'
-import { getCoverStyle, COVER_GRADIENTS } from '@/utils/cover'
+import { getCoverStyle } from '@/utils/cover'
 import { favoriteApi } from '@/api/favorite'
 import { useFavoriteStore } from '@/stores/favorite'
 
 const router = useRouter()
 const favoriteStore = useFavoriteStore()
 
-const BOOK_STATUS_ON = 1
-
-const timePills = [
+const filterPills = [
   { key: 'all', label: '全部新书' },
   { key: 'week', label: '本周' },
-  { key: 'month', label: '本月' }
+  { key: 'month', label: '本月' },
+  { key: 'presale', label: '预售中' },
+  { key: 'onshelf', label: '已到货' }
 ]
 
 const books = ref([])
@@ -211,14 +230,14 @@ const heroLoaded = ref(false)
 const categories = ref([])
 const loading = ref(false)
 const loadingMore = ref(false)
-const activeTime = ref('all')
-const activeStatus = ref('all')
+const activeFilter = ref('all')
 const activeCategory = ref(null)
 const pageNum = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
 const sortBy = ref('publish_desc')
 const coverErrors = ref({})
+const hoveredBookId = ref(null)
 
 const hasMore = computed(() => books.value.length < total.value)
 
@@ -230,7 +249,8 @@ const stats = computed(() => {
   return {
     total: total.value,
     thisWeek: all.filter(b => b.publishDate && new Date(b.publishDate) >= weekAgo).length,
-    thisMonth: all.filter(b => b.publishDate && new Date(b.publishDate) >= monthAgo).length
+    thisMonth: all.filter(b => b.publishDate && new Date(b.publishDate) >= monthAgo).length,
+    presale: all.filter(b => b.status === 2).length
   }
 })
 
@@ -242,12 +262,9 @@ const groupedBooks = computed(() => {
   const yStr = yesterday.toISOString().slice(0, 10)
 
   let list = books.value
-  const timeCutoff = getTimeCutoff(activeTime.value)
+  const timeCutoff = getTimeCutoff(activeFilter.value)
   if (timeCutoff) {
     list = list.filter(b => b.publishDate && b.publishDate >= timeCutoff)
-  }
-  if (activeStatus.value === 'on') {
-    list = list.filter(b => b.status === BOOK_STATUS_ON)
   }
 
   list.forEach(book => {
@@ -270,7 +287,7 @@ const groupedBooks = computed(() => {
 })
 
 function getTimeCutoff(key) {
-  if (key === 'all') return null
+  if (key === 'all' || key === 'presale' || key === 'onshelf') return null
   const d = new Date()
   if (key === 'week') { d.setDate(d.getDate() - 7); return d.toISOString().slice(0, 10) }
   if (key === 'month') { d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10) }
@@ -319,12 +336,17 @@ const fetchHeroBook = async () => {
   }
 }
 
+const BOOK_STATUS_ON = 1
+const BOOK_STATUS_PREORDER = 2
+
 const fetchBooks = async (append = false) => {
   if (!append) { loading.value = true } else { loadingMore.value = true }
   if (!append) { books.value = []; total.value = 0; coverErrors.value = {} }
   try {
     const params = { pageNum: pageNum.value, pageSize: pageSize.value, sortBy: sortBy.value }
     if (activeCategory.value) params.categoryId = activeCategory.value
+    if (activeFilter.value === 'presale') params.status = BOOK_STATUS_PREORDER
+    else if (activeFilter.value === 'onshelf') params.status = BOOK_STATUS_ON
     const res = await bookApi.getList(params)
     const records = res.data?.records || []
     if (append) { books.value.push(...records) } else { books.value = records }
@@ -347,8 +369,8 @@ const resetAndFetch = () => {
   pageNum.value = 1; fetchBooks(false)
 }
 
-const switchTime = (key) => {
-  activeTime.value = key; resetAndFetch()
+const switchFilter = (key) => {
+  activeFilter.value = key; resetAndFetch()
 }
 
 const switchCategory = (id) => {
@@ -359,15 +381,57 @@ const loadMore = () => {
   pageNum.value++; fetchBooks(true)
 }
 
-const comingBooks = reactive([
-  { title: '未来简史', shortTitle: '未来\n简史', author: '尤瓦尔·赫拉利', date: '5月24日', style: { background: COVER_GRADIENTS[5] }, notified: false, countdown: { d: '03', h: '12', m: '45' } },
-  { title: '长安的荔枝', shortTitle: '长安的\n荔枝', author: '马伯庸', date: '5月26日', style: { background: COVER_GRADIENTS[8] }, notified: false, countdown: { d: '05', h: '08', m: '22' } },
-  { title: '规模：复杂世界的简单法则', shortTitle: '规模', author: '[美] 杰弗里·韦斯特', date: '5月29日', style: { background: COVER_GRADIENTS[6] }, notified: false, countdown: { d: '08', h: '16', m: '30' } },
-  { title: '额尔古纳河右岸（精装典藏版）', shortTitle: '额尔古纳\n河右岸\n精装版', author: '迟子建', date: '6月2日', style: { background: COVER_GRADIENTS[11] }, notified: false, countdown: { d: '12', h: '06', m: '15' } }
-])
+const comingBooks = ref([])
+let countdownTimer = null
+
+function computeCountdown(targetDate) {
+  const now = Date.now()
+  const diff = new Date(targetDate).getTime() - now
+  if (diff <= 0) return { d: '00', h: '00', m: '00' }
+  const totalMin = Math.floor(diff / 60000)
+  return {
+    d: String(Math.floor(totalMin / 1440)).padStart(2, '0'),
+    h: String(Math.floor((totalMin % 1440) / 60)).padStart(2, '0'),
+    m: String(totalMin % 60).padStart(2, '0')
+  }
+}
+
+function startCountdown() {
+  countdownTimer = setInterval(() => {
+    comingBooks.value.forEach(item => {
+      item.countdown = computeCountdown(item.expectedShelfDate)
+    })
+  }, 60000)
+}
+
+const fetchComingSoon = async () => {
+  try {
+    const res = await bookApi.getComingSoon()
+    comingBooks.value = (res.data || []).map(item => {
+      const parts = item.expectedShelfDate ? item.expectedShelfDate.split('-') : []
+      return {
+        id: item.id,
+        title: item.title,
+        shortTitle: item.title.includes('（') ? item.title.split('（')[0] : (item.title.length > 6 ? item.title.slice(0, 3) + '\n' + item.title.slice(3) : item.title),
+        author: item.author,
+        date: parts.length === 3 ? parseInt(parts[1]) + '月' + parseInt(parts[2]) + '日' : '',
+        style: getCoverStyle(item.id),
+        notified: false,
+        expectedShelfDate: item.expectedShelfDate,
+        countdown: computeCountdown(item.expectedShelfDate)
+      }
+    })
+  } catch {
+    comingBooks.value = []
+  }
+}
 
 onMounted(() => {
-  fetchHeroBook(); fetchBooks(false); fetchCategories(); favoriteStore.fetchFavoriteIds()
+  fetchHeroBook(); fetchBooks(false); fetchCategories(); favoriteStore.fetchFavoriteIds(); fetchComingSoon(); startCountdown()
+})
+
+onUnmounted(() => {
+  if (countdownTimer) clearInterval(countdownTimer)
 })
 </script>
 
@@ -403,8 +467,10 @@ onMounted(() => {
 .editor-text .et-desc { color: rgba(237,230,214,0.5); font-size: .93rem; line-height: 1.9; margin-bottom: 22px; max-width: 520px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .editor-meta { display: flex; align-items: center; gap: 24px; margin-bottom: 24px; }
 .editor-price { font-family: var(--font-display); font-size: 2rem; font-weight: 900; color: var(--color-accent-light, #D4B06A); }
+.editor-price .old { font-size: 1rem; color: rgba(237,230,214,0.2); text-decoration: line-through; font-weight: 400; margin-left: 8px; }
 .editor-status { display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; border-radius: 8px; font-size: .82rem; font-weight: 500; }
 .editor-status.instock { background: rgba(92,136,86,0.12); color: var(--color-green, #5C8856); }
+.editor-status.presale { background: rgba(192,154,75,0.1); color: var(--color-accent); border: 1px solid rgba(192,154,75,0.2); }
 .editor-status .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .editor-actions { display: flex; gap: 12px; }
 .btn-primary { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, var(--color-accent), var(--color-accent-muted)); color: var(--color-primary-abyss); font-weight: 700; font-size: .92rem; padding: 13px 30px; border-radius: 8px; border: none; cursor: pointer; transition: all .35s; box-shadow: 0 2px 12px rgba(192,154,75,0.2); letter-spacing: .02em; }
@@ -456,7 +522,8 @@ onMounted(() => {
 .cover-author { font-size: .8rem; color: rgba(237,230,214,0.5); text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
 .book-badge { position: absolute; top: 10px; left: 10px; font-size: .63rem; font-weight: 700; padding: 3px 10px; border-radius: 4px; letter-spacing: .06em; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
 .badge-new { background: var(--color-accent); color: var(--color-primary-abyss); }
-.book-fav { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; background: rgba(46,31,21,0.55); backdrop-filter: blur(10px); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .8rem; cursor: pointer; opacity: 0; transform: scale(.85); transition: all .3s; }
+.badge-presale { background: rgba(192,154,75,0.15); color: var(--color-accent); border: 1px solid rgba(192,154,75,0.25); }
+.book-fav { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; background: rgba(46,31,21,0.55); backdrop-filter: blur(10px); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--color-bg); font-size: .8rem; cursor: pointer; opacity: 0; transform: scale(.85); transition: all .3s; z-index: 3; }
 .book-card:hover .book-fav { opacity: 1; transform: scale(1); }
 .book-fav:hover, .book-fav.active { background: var(--color-accent); color: var(--color-primary-abyss); }
 .book-info { padding: 14px 16px 18px; }
@@ -464,9 +531,59 @@ onMounted(() => {
 .book-author { font-size: .78rem; color: var(--color-text-light); margin-bottom: 10px; }
 .book-meta { display: flex; align-items: center; justify-content: space-between; }
 .book-price { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; color: var(--color-accent-muted); }
+.book-price .original { font-size: .72rem; color: var(--color-text-light); text-decoration: line-through; font-weight: 400; margin-left: 4px; }
 .book-rating { display: flex; align-items: center; gap: 2px; font-size: .72rem; color: var(--color-accent); }
 .book-rating span { color: var(--color-text-light); margin-left: 2px; }
+.presale-info { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--color-divider); font-size: .76rem; color: var(--color-text-light); display: flex; align-items: center; gap: 4px; }
 .book-rating .no-rating { font-size: .65rem; font-style: italic; color: var(--color-text-muted); margin-left: 0; }
+
+/* ── QUOTE OVERLAY ── */
+.book-quote-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(28,18,12,0.92) 0%, rgba(44,31,21,0.88) 50%, rgba(28,18,12,0.95) 100%);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+  z-index: 1;
+}
+.quote-content {
+  position: relative;
+  text-align: center;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.quote-mark {
+  color: rgba(192,154,75,0.6);
+  flex-shrink: 0;
+}
+.quote-mark-left { margin-bottom: 8px; align-self: flex-start; margin-left: -4px; }
+.quote-mark-right { margin-top: 8px; align-self: flex-end; margin-right: -4px; }
+.quote-text {
+  font-family: 'Noto Serif SC', 'STSong', 'SimSun', serif;
+  font-size: 0.85rem;
+  line-height: 1.8;
+  color: rgba(237,230,214,0.95);
+  text-align: justify;
+  margin: 0;
+  max-height: 100%;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.quote-fade-enter-active { transition: all 0.4s cubic-bezier(0.25,0.46,0.45,0.94); }
+.quote-fade-leave-active { transition: all 0.3s cubic-bezier(0.55,0,1,0.45); }
+.quote-fade-enter-from { opacity: 0; transform: scale(1.05); }
+.quote-fade-leave-to { opacity: 0; transform: scale(0.95); }
 
 /* ── LOAD MORE ── */
 .load-more-wrap { text-align: center; padding: 12px 0 20px; }

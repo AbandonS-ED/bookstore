@@ -25,9 +25,14 @@ public class BookVO {
 
     private BigDecimal price;
 
+    @JsonSerialize(using = ToStringSerializer.class)
+    private BigDecimal origPrice;
+
     private Integer stock;
 
     private Integer sales;
+
+    private Integer favoritedCount;
 
     @JsonSerialize(using = ToStringSerializer.class)
     private Long categoryId;
@@ -39,6 +44,8 @@ public class BookVO {
     private String quote;
 
     private Integer status;
+
+    private LocalDate expectedShelfDate;
 
     private Double avgRating;
 

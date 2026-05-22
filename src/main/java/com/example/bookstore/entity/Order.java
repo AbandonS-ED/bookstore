@@ -1,5 +1,6 @@
 package com.example.bookstore.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.bookstore.common.BaseEntity;
 import lombok.Data;
@@ -39,4 +40,7 @@ public class Order extends BaseEntity {
     private String expressNo;
 
     private String expireTime;
+
+    @TableField(exist = false)
+    private String username;
 }

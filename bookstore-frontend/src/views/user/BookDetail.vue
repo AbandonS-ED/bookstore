@@ -34,10 +34,14 @@
             }"
           >
             <span class="cover-badge" v-if="badgeText">{{ badgeText }}</span>
+            <img :src="book.coverUrl" style="display:none" @error="coverError = true" />
           </div>
           <div v-else class="cover-main" :style="getCoverStyle(book.id)">
             <span class="cover-badge" v-if="badgeText">{{ badgeText }}</span>
-            <span>{{ book.title }}</span>
+            <div class="cover-text">
+              <span>{{ book.title }}</span>
+              <span class="cover-author">{{ book.author }}</span>
+            </div>
           </div>
         </div>
 
@@ -596,6 +600,8 @@ onUnmounted(() => {
 .cover-main { width: 100%; aspect-ratio: 3/4; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Noto Serif SC', 'STSong', serif; font-weight: 900; font-size: 2rem; color: rgba(237,230,214,0.85); padding: 48px; text-align: center; line-height: 1.4; box-shadow: 0 20px 50px var(--color-shadow-deep); position: relative; overflow: hidden; cursor: crosshair; }
 .cover-main::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%, rgba(0,0,0,0.1) 100%); pointer-events: none; }
 .cover-main .cover-badge { position: absolute; top: 14px; left: 14px; font-size: .7rem; font-weight: 700; padding: 4px 12px; border-radius: 5px; background: var(--color-accent); color: var(--color-primary-abyss); font-family: 'Noto Sans SC', sans-serif; }
+.cover-text { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.cover-author { font-size: .85rem; font-weight: 400; opacity: .7; }
 
 .info-side {}
 .info-category { font-size: .78rem; color: var(--color-accent-muted); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }

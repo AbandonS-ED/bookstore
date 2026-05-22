@@ -118,6 +118,12 @@
               <span v-if="order.status === 'created' || order.status === 'pending' || order.status === 'paying'" class="pay-hint">
                 请在 <strong>{{ order.expireTime }}</strong> 前完成支付，逾期订单将自动取消
               </span>
+              <span v-else-if="order.status === 'refunding'" class="refund-hint">
+                退款申请已提交，请等待管理员审核
+              </span>
+              <span v-else-if="order.status === 'after_sale'" class="after-sale-hint">
+                售后申请已提交，请等待管理员审核
+              </span>
             </div>
             <div class="actions-right">
               <button
@@ -142,6 +148,20 @@
                 取消订单
               </button>
               <button
+                v-if="order.status === 'paid' || order.status === 'shipped'"
+                class="btn-cancel"
+                @click="handleRefund"
+              >
+                申请退款
+              </button>
+              <button
+                v-if="order.status === 'delivered' || order.status === 'completed'"
+                class="btn-cancel"
+                @click="handleAfterSale"
+              >
+                申请售后
+              </button>
+              <button
                 v-if="order.status === 'shipped'"
                 class="btn-logistics"
                 @click="showLogistics = true"
@@ -156,7 +176,7 @@
                 确认收货
               </button>
               <router-link
-                v-if="order.status === 'delivered' || order.status === 'completed'"
+                v-if="order.status === 'delivered' || order.status === 'completed' || order.status === 'refunded' || order.status === 'after_sale'"
                 to="/user/orders"
                 class="btn-back"
               >
@@ -331,6 +351,7 @@ const handlePay = async () => {
     })
     await orderStore.payOrder(order.value.id)
     ElMessage.success('支付成功')
+    router.replace({ query: { ...route.query, pay: undefined } })
     fetchOrderDetail()
   } catch (error) {
     if (error !== 'cancel') {
@@ -352,6 +373,8 @@ const handlePayApply = async () => {
     // 2. 模拟支付回调，直接将订单设为已支付（实际应该调用支付网关）
     await orderStore.payOrder(order.value.id)
     ElMessage.success('支付成功')
+    // 清除 ?pay=1 参数，防止刷新后弹窗再次出现
+    router.replace({ query: { ...route.query, pay: undefined } })
     fetchOrderDetail()
   } catch (error) {
     console.error('支付失败:', error)
@@ -374,6 +397,40 @@ const handleCancel = async () => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('取消失败')
+    }
+  }
+}
+
+const handleRefund = async () => {
+  try {
+    await ElMessageBox.confirm('确认申请退款？退款后订单将无法恢复。', '申请退款', {
+      confirmButtonText: '确认退款',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await orderStore.refundOrder(order.value.id)
+    ElMessage.success('退款申请已提交')
+    fetchOrderDetail()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('退款失败')
+    }
+  }
+}
+
+const handleAfterSale = async () => {
+  try {
+    await ElMessageBox.confirm('确认申请售后？提交后请等待管理员审核。', '申请售后', {
+      confirmButtonText: '确认申请',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await orderStore.afterSaleOrder(order.value.id)
+    ElMessage.success('售后申请已提交')
+    fetchOrderDetail()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('申请失败')
     }
   }
 }

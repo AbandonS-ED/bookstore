@@ -1,5 +1,6 @@
 package com.example.bookstore.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.bookstore.common.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -53,5 +54,12 @@ public class Book extends BaseEntity {
 
     private Integer status;
 
+    @TableField(exist = false)
+    private String categoryName;
+
+    private LocalDate expectedShelfDate;
+
     private Integer sales;
+
+    private Integer favoritedCount;
 }

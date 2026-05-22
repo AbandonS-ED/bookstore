@@ -130,6 +130,13 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(Constants.ORDER_STATUS_PAID);
         order.setPayStatus(Constants.PAY_STATUS_PAID);
         orderMapper.updateById(order);
+
+        LambdaQueryWrapper<OrderItem> itemWrapper = new LambdaQueryWrapper<>();
+        itemWrapper.eq(OrderItem::getOrderId, orderId);
+        List<OrderItem> items = orderItemMapper.selectList(itemWrapper);
+        for (OrderItem item : items) {
+            bookMapper.increaseSales(item.getBookId(), item.getQuantity());
+        }
     }
 
     @Override
@@ -165,11 +172,39 @@ public class OrderServiceImpl implements OrderService {
         if (order == null || !order.getUserId().equals(userId)) {
             throw new BusinessException(1, "订单不存在");
         }
-        if (!Constants.ORDER_STATUS_DELIVERED.equals(order.getStatus())) {
+        if (!Constants.ORDER_STATUS_SHIPPED.equals(order.getStatus()) && !Constants.ORDER_STATUS_DELIVERED.equals(order.getStatus())) {
             throw new BusinessException(1, "订单状态不允许确认收货");
         }
 
         order.setStatus(Constants.ORDER_STATUS_COMPLETED);
+        orderMapper.updateById(order);
+    }
+
+    @Override
+    public void applyRefund(Long userId, Long orderId) {
+        Order order = orderMapper.selectById(orderId);
+        if (order == null || !order.getUserId().equals(userId)) {
+            throw new BusinessException(1, "订单不存在");
+        }
+        if (!Constants.ORDER_STATUS_PAID.equals(order.getStatus()) && !Constants.ORDER_STATUS_SHIPPED.equals(order.getStatus())) {
+            throw new BusinessException(1, "订单状态不允许申请退款");
+        }
+
+        order.setStatus(Constants.ORDER_STATUS_REFUNDING);
+        orderMapper.updateById(order);
+    }
+
+    @Override
+    public void applyAfterSale(Long userId, Long orderId) {
+        Order order = orderMapper.selectById(orderId);
+        if (order == null || !order.getUserId().equals(userId)) {
+            throw new BusinessException(1, "订单不存在");
+        }
+        if (!Constants.ORDER_STATUS_DELIVERED.equals(order.getStatus()) && !Constants.ORDER_STATUS_COMPLETED.equals(order.getStatus())) {
+            throw new BusinessException(1, "订单状态不允许申请售后");
+        }
+
+        order.setStatus(Constants.ORDER_STATUS_AFTER_SALE);
         orderMapper.updateById(order);
     }
 

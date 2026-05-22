@@ -51,6 +51,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         favorite.setBookId(bookId);
         favorite.setFavoritedPrice(book.getPrice());
         favoriteMapper.insert(favorite);
+        bookMapper.increaseFavoritedCount(bookId);
     }
 
     @Override
@@ -58,7 +59,10 @@ public class FavoriteServiceImpl implements FavoriteService {
     public void remove(Long userId, Long bookId) {
         LambdaQueryWrapper<Favorite> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Favorite::getUserId, userId).eq(Favorite::getBookId, bookId);
-        favoriteMapper.delete(wrapper);
+        int deleted = favoriteMapper.delete(wrapper);
+        if (deleted > 0) {
+            bookMapper.decreaseFavoritedCount(bookId);
+        }
     }
 
     @Override

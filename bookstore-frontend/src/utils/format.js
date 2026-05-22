@@ -34,6 +34,8 @@ export const formatOrderStatus = (status) => {
     delivered: '已收货',
     completed: '已完成',
     cancelled: '已取消',
+    refunding: '退款审核',
+    after_sale: '售后处理',
     expired: '已过期',
     refunded: '已退款'
   }

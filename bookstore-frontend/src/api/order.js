@@ -21,5 +21,11 @@ export const orderApi = {
   },
   confirm(id) {
     return api.put(`/order/${id}/confirm`)
+  },
+  applyRefund(id) {
+    return api.put(`/order/${id}/apply-refund`)
+  },
+  applyAfterSale(id) {
+    return api.put(`/order/${id}/apply-after-sale`)
   }
 }

@@ -50,6 +50,14 @@
           <el-button size="small" type="primary" link @click="openEditDialog(row)">
             编辑
           </el-button>
+          <el-button
+            size="small"
+            :type="row.status === 1 ? 'warning' : 'success'"
+            link
+            @click="toggleStatus(row)"
+          >
+            {{ row.status === 1 ? '下架' : '上架' }}
+          </el-button>
           <el-button size="small" type="danger" link @click="handleDelete(row.id)">
             删除
           </el-button>
@@ -293,6 +301,17 @@ onMounted(() => {
   loadBooks()
   loadCategories()
 })
+
+const toggleStatus = async (row) => {
+  try {
+    const newStatus = row.status === 1 ? 0 : 1
+    await adminApi.updateBookStatus(row.id, newStatus)
+    ElMessage.success(newStatus === 1 ? '已上架' : '已下架')
+    loadBooks()
+  } catch (error) {
+    ElMessage.error(error.message || '操作失败')
+  }
+}
 </script>
 
 <style scoped>

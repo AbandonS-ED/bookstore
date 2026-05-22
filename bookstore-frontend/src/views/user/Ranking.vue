@@ -85,6 +85,7 @@
                         <span v-else class="no-rating">暂无评分</span>
                       </div>
                     </div>
+                    <div class="book-stat">{{ currentTabConfig.statLabel }}：{{ getStatValue(topThree[1]) }}</div>
                   </div>
                 </div>
 
@@ -162,6 +163,7 @@
                         <span v-else class="no-rating">暂无评分</span>
                       </div>
                     </div>
+                    <div class="book-stat">{{ currentTabConfig.statLabel }}：{{ getStatValue(topThree[2]) }}</div>
                   </div>
                 </div>
               </div>
@@ -257,18 +259,14 @@ const rankTabs = [
   { key: 'sales', label: '畅销总榜', icon: '📈' },
   { key: 'rating', label: '好评榜', icon: '⭐' },
   { key: 'new', label: '新锐榜', icon: '🚀' },
-  { key: 'borrow', label: '借阅榜', icon: '📖' },
-  { key: 'collection', label: '收藏榜', icon: '❤️' },
-  { key: 'reputation', label: '口碑上升', icon: '💬' }
+  { key: 'collection', label: '收藏榜', icon: '❤️' }
 ]
 
 const tabConfig = {
   sales: { statLabel: '销量', statFormat: v => `${v || 0}册` },
   rating: { statLabel: '评分', statFormat: v => `${v?.toFixed(1) || '0.0'}分` },
   new: { statLabel: '上架时间', statFormat: v => v || '近期' },
-  borrow: { statLabel: '借阅量', statFormat: v => `${v || 0}次` },
-  collection: { statLabel: '收藏量', statFormat: v => `${v || 0}` },
-  reputation: { statLabel: '评分', statFormat: v => `${v?.toFixed(1) || '0.0'}分` }
+  collection: { statLabel: '收藏量', statFormat: v => `${v || 0}` }
 }
 
 const periods = [
@@ -290,10 +288,11 @@ const getStatValue = (book) => {
   const cfg = currentTabConfig.value
   switch (activeTab.value) {
     case 'rating':
-    case 'reputation':
       return cfg.statFormat(book.avgRating)
     case 'new':
       return cfg.statFormat(book.publishDate)
+    case 'collection':
+      return cfg.statFormat(book.favoritedCount)
     default:
       return cfg.statFormat(book.sales)
   }

@@ -15,5 +15,8 @@ export const bookApi = {
   },
   getRanking(params) {
     return api.get('/book/ranking', { params })
+  },
+  getComingSoon() {
+    return api.get('/book/coming-soon')
   }
 }
