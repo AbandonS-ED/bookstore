@@ -7,6 +7,8 @@ import com.example.bookstore.dto.BookQueryDTO;
 import com.example.bookstore.entity.Book;
 import com.example.bookstore.entity.Category;
 import com.example.bookstore.entity.Review;
+import com.example.bookstore.mapper.AuthorMapper;
+import com.example.bookstore.mapper.BookChapterMapper;
 import com.example.bookstore.mapper.BookMapper;
 import com.example.bookstore.mapper.CategoryMapper;
 import com.example.bookstore.mapper.ReviewMapper;
@@ -38,6 +40,12 @@ class BookServiceTest {
 
     @Mock
     private ReviewMapper reviewMapper;
+
+    @Mock
+    private AuthorMapper authorMapper;
+
+    @Mock
+    private BookChapterMapper bookChapterMapper;
 
     @InjectMocks
     private BookServiceImpl bookService;
@@ -99,6 +107,7 @@ class BookServiceTest {
         when(categoryMapper.selectById(1L)).thenReturn(category);
 
         when(reviewMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(Collections.emptyList());
+        when(bookChapterMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(Collections.emptyList());
 
         var result = bookService.getDetail(1L);
 
