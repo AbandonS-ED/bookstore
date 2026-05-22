@@ -5,9 +5,10 @@
 ```bash
 mvn spring-boot:run                         # 后端（端口 8081）
 cd bookstore-frontend; npm run dev           # 前端（端口 5173）
-mysql -u root -p < sql/init.sql             # 初始化 bookstore 库（10 张表 + 种子数据）
+mysql -u root -p < sql/init.sql             # 初始化 bookstore 库（12 张表 + 种子数据）
 mvn test                                    # 纯 JUnit 5 + Mockito，无需 Spring 上下文
 mvn clean package -DskipTests               # 完整构建
+python test_smoke.py                        # Playwright E2E 冒烟（需前/后端运行）
 ```
 
 无 linter/formatter，构建仅 `mvn test` + `npm run build`。
@@ -18,8 +19,8 @@ MyBatis-Plus `ASSIGN_ID` 生成 19 位 Long，超出 JS `Number.MAX_SAFE_INTEGER
 
 | 层级 | 做法 |
 |------|------|
-| **VO**（响应） | `@JsonSerialize(using = ToStringSerializer.class)` 在全部 11 个 VO 的 Long ID 字段 |
-| **Entity** | `@JsonFormat(shape = JsonFormat.Shape.STRING)` 在 `BaseEntity.id`、`Book.categoryId`、`Category.parentId` |
+| **VO**（响应） | `@JsonSerialize(using = ToStringSerializer.class)` 在全部 12 个 VO 的 Long ID 字段 |
+| **Entity** | `@JsonFormat(shape = JsonFormat.Shape.STRING)` 在 `BaseEntity.id`、`Book.authorId`/`categoryId`、`Category.parentId` |
 | **DTO**（请求体） | ID 字段声明为 `String`（`OrderCreateDTO.addressId`/`cartItemIds`、`CartUpdateDTO.id`、`AddressUpdateDTO.id`） |
 | **Service** | `Long.parseLong(dto.getId())` 转回 |
 
@@ -37,8 +38,8 @@ VO 独立于 Entity，字段在 `convertToVO()` 中手工复制。`FavoriteContr
 
 | 文件 | baseURL | 响应处理 | 401 处理 |
 |------|---------|----------|----------|
-| `src/api/index.js` | `/api` | 非 200 弹 `ElMessage.error`，返回 `res`（解包 `response.data`） | 清除 token，`router.push('/login')` |
-| `src/api/admin.js` | `/admin-api` | 返回 `response.data`（直接透传，无 `res.code` 判断） | 清除 token，`window.location.href = '/login'` |
+| `src/api/index.js` | `/api` | 非 200 弹 `ElMessage.error`，返回 `res`（`response.data`） | 清除 token，`router.push('/login')` |
+| `src/api/admin.js` | `/admin-api` | 校验 `res.code !== 200`，弹 `ElMessage.error`，返回 `res`（`response.data`） | 清除 token，`window.location.href = '/login'` |
 
 管理端方法传相对路径（如 `/book/list`），拼接后为 `GET /admin/book/list`。
 
@@ -62,7 +63,12 @@ created → paying → paid → shipped → delivered → completed
    ↓ (过期)    ↓ (取消)
 expired      cancelled
                     paid/shipped → refunded
+                    delivered/completed → after_sale
 ```
+
+- `book.sales` 仅在 `OrderServiceImpl.pay()` 中原子递增（`UPDATE ... SET sales = sales + #{quantity}`），创建/取消不影响
+- `OrderServiceImpl.cancel()` 回滚库存但**不回滚** sales（sales 从 0 开始，仅已支付订单算销量）
+- `applyAfterSale()` 接受 `delivered` + `completed` 两种状态
 
 ## 前端关键约定
 
@@ -84,7 +90,9 @@ expired      cancelled
 - **ID 生成矛盾**：SQL DDL 声明 `AUTO_INCREMENT`，但 MyBatis-Plus `@TableId` 默认 `ASSIGN_ID`（雪花算法），实际插入使用 19 位 Long ID。DDL 的 `AUTO_INCREMENT` 仅为 fallback。
 - **无 MetaObjectHandler**：`BaseEntity` 标注 `@TableField(fill = FieldFill.INSERT/UPDATE)` 但无实现类，`createTime`/`updateTime` 的自动填充依赖 MySQL `DEFAULT CURRENT_TIMESTAMP` / `ON UPDATE CURRENT_TIMESTAMP`。
 - **排行榜 API**（`BookController.getRanking`）：`type` 参数（`sales`/`rating`/`new`）生效，`period` 参数（`all`/`week`/`month`/`quarter`/`year`）**仅 `new` 类型实际使用**，其余类型暂忽略 period。
-- **SQL init 脚本中的 ALTER TABLE**（`orig_price` / `favorited_price` 列）仅用于已有数据库迁移，`CREATE TABLE` 已包含这些列。
+- **`avgRating` 非 DB 列**：`book` 表无 `avg_rating` 列，评分均值在 `BookServiceImpl` 查询时实时从 `review` 表计算。修改评论不会写 book 表。
+- **`favorited_count`**：`book` 表有 `favorited_count INT DEFAULT 0` 列，由 `FavoriteServiceImpl.add()`/`remove()` 通过原子 SQL 更新（`SET favorited_count = favorited_count +/- 1`）。
+- **SQL init 脚本中的 ALTER TABLE**（`orig_price` / `favorited_price` / `favorited_count` 列）仅用于已有数据库迁移，`CREATE TABLE` 已包含这些列。
 
 ## 分页响应
 
