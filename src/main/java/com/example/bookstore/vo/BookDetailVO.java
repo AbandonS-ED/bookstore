@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 public class BookDetailVO {
@@ -25,12 +26,20 @@ public class BookDetailVO {
 
     private BigDecimal price;
 
+    private BigDecimal origPrice;
+
     private Integer stock;
+
+    private Integer sales;
 
     @JsonSerialize(using = ToStringSerializer.class)
     private Long categoryId;
 
     private String categoryName;
+
+    private AuthorVO authorInfo;
+
+    private List<BookChapterVO> chapters;
 
     private String description;
 

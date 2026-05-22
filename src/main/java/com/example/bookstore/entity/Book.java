@@ -25,6 +25,9 @@ public class Book extends BaseEntity {
 
     private String author;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Long authorId;
+
     private String publisher;
 
     private LocalDate publishDate;

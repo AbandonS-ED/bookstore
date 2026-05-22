@@ -16,14 +16,14 @@ mvn clean package -DskipTests               # 完整构建
 
 MyBatis-Plus `ASSIGN_ID` 生成 19 位 Long，超出 JS `Number.MAX_SAFE_INTEGER`。**必须字符串化**：
 
-| 层级 | 做法 | 覆盖范围 |
-|------|------|----------|
-| **VO**（响应） | `@JsonSerialize(using = ToStringSerializer.class)` | 全部 11 个 VO（Address/BookDetail/Book/Cart/Category/Favorite/OrderItem/Order/Payment/Review/User）的 Long ID 字段 |
-| **Entity** | `@JsonFormat(shape = JsonFormat.Shape.STRING)` | `BaseEntity.id`、`Book.categoryId`、`Category.parentId` |
-| **DTO**（请求体） | ID 字段声明为 `String` | `OrderCreateDTO.addressId`/`cartItemIds`、`CartUpdateDTO.id`、`AddressUpdateDTO.id` |
-| **Service** | `Long.parseLong(dto.getId())` 转回 | `AddressServiceImpl.update()` |
+| 层级 | 做法 |
+|------|------|
+| **VO**（响应） | `@JsonSerialize(using = ToStringSerializer.class)` 在全部 11 个 VO 的 Long ID 字段 |
+| **Entity** | `@JsonFormat(shape = JsonFormat.Shape.STRING)` 在 `BaseEntity.id`、`Book.categoryId`、`Category.parentId` |
+| **DTO**（请求体） | ID 字段声明为 `String`（`OrderCreateDTO.addressId`/`cartItemIds`、`CartUpdateDTO.id`、`AddressUpdateDTO.id`） |
+| **Service** | `Long.parseLong(dto.getId())` 转回 |
 
-VO 独立于 Entity，字段在 `convertToVO()` 中手工复制。
+VO 独立于 Entity，字段在 `convertToVO()` 中手工复制。`FavoriteController.add()` 须用 `Map<String, String>` + `Long.parseLong()` 接收前端字符串 ID（此前 `Map<String, Long>` 会导致 null）。
 
 ## Vite 代理规则（`vite.config.js`）
 
@@ -35,7 +35,7 @@ VO 独立于 Entity，字段在 `convertToVO()` 中手工复制。
 
 ## 两个 axios 实例
 
-| 文件 | baseURL | 响应拦截 | 401 处理 |
+| 文件 | baseURL | 响应处理 | 401 处理 |
 |------|---------|----------|----------|
 | `src/api/index.js` | `/api` | 非 200 弹 `ElMessage.error`，返回 `res`（解包 `response.data`） | 清除 token，`router.push('/login')` |
 | `src/api/admin.js` | `/admin-api` | 返回 `response.data`（直接透传，无 `res.code` 判断） | 清除 token，`window.location.href = '/login'` |
@@ -44,43 +44,25 @@ VO 独立于 Entity，字段在 `convertToVO()` 中手工复制。
 
 ## 架构要点
 
-- **Spring Boot 3.2.5** + **MyBatis-Plus 3.5.6**（XML 映射 `classpath:mapper/*.xml` 已配置但未实际使用，全注解查询）
+- **Spring Boot 3.2.5** + **MyBatis-Plus 3.5.6**（全注解查询，XML 映射配置未使用）
 - **Controller → Service → Mapper**，DTO 入 / VO 出，统一 `Result<T>(code,message,data)`
 - **Admin 控制器直接注入 Mapper**（BookManageController、OrderManageController、UserManageController、ReviewManageController），仅 `CategoryManageController` 走 Service
-- **拦截器**（`WebMvcConfig.java`）：
-  - `AuthInterceptor`：`/api/user/info`、`/api/user/password`、`/api/user/profile`、`/api/address/**`、`/api/cart/**`、`/api/favorite/**`、`/api/order/**`、`/api/review/add`、`/admin/**` —— 校验 JWT，设 `AuthContext` ThreadLocal
-  - `AdminInterceptor`：`/admin/**` —— 校验 `role == admin`
+- **拦截器**：`AuthInterceptor`（用户路径 + `/admin/**`，设 `AuthContext` ThreadLocal），`AdminInterceptor`（校验角色 admin）
 - **密码**：仅 `spring-security-crypto`（BCrypt），非完整 Spring Security
-- **CORS**：仅允许 `http://localhost:*`（`CorsConfig.java`）
+- **CORS**：仅允许 `http://localhost:*`
 - **默认管理员**：`admin` / `123456`
-- **封面图**：`pictures/` 目录，通过 `/pictures/*` 访问
-- **前端 UI**：Vue 3 + Vite + **Element Plus** + Pinia（6 个 store：cart/category/favorite/order/review/user）
+- **封面图**：`pictures/` 目录，`WebMvcConfig` 映射为 `/pictures/**` 静态资源
+- **前端**：Vue 3 + Vite + Element Plus + Pinia（6 stores：cart/category/favorite/order/review/user）
+- **应用入口**：`BookstoreApplication.java`，`@MapperScan("com.example.bookstore.mapper")`
 
-## 订单状态机
+## 订单状态
 
-完整状态定义见 `Constants.java`：
 ```
-created(已创建) → paying(支付中) → paid(已付款) → shipped(已发货) → delivered(已收货) → completed(已完成)
-   ↓ (过期)        ↓ (取消)
-expired          cancelled
-                          paid/shipped → refunded(已退款)
+created → paying → paid → shipped → delivered → completed
+   ↓ (过期)    ↓ (取消)
+expired      cancelled
+                    paid/shipped → refunded
 ```
-
-## 收藏功能
-
-- **后端**：`FavoriteController`（`/api/favorite/add`/`/{bookId}`/`/list`/`/ids`/`/check/{bookId}`），需登录
-- **VO**：`FavoriteVO`（含 book 信息）+ `BookDetailVO.isFavorited`
-- **前端**：`src/api/favorite.js`、`src/stores/favorite.js`（Pinia store 维护 `favoriteIds` 数组）
-- **入口**：导航栏 ♥ 图标 → `/favorites`（需登录），`BookDetail.vue` 有收藏按钮
-- **拦截器**：`AuthInterceptor` 已拦截 `/api/favorite/**`
-
-## 降价提示功能
-
-- **`origPrice`**（`book` 表字段）—— 划线原价，用于显示折扣百分比。可为 NULL。
-- **`favoritedPrice`**（`favorite` 表字段）—— 收藏时的价格，在 `FavoriteServiceImpl.add()` 中自动保存 `book.getPrice()`。
-- 前端 `Favorites.vue` 计算 `price < favoritedPrice` 判定降价，显示 "↓ 降价" 红色徽章 + 绿色 hover 横幅 "🔔 比收藏时便宜了 ¥X"。
-- `origPrice` 存在时价格行显示 `¥现价 ~~¥原价~~ -XX%`。
-- 新数据库需执行 `sql/init.sql` 中的 ALTER TABLE 语句（已注释在文件末尾）。
 
 ## 前端关键约定
 
@@ -88,8 +70,7 @@ expired          cancelled
 - `OrderVO` 扁平字段 `receiverName`/`receiverPhone`/`receiverAddress`，**不是** 嵌套 `address`
 - 购物车更新传 `{id, quantity}`（购物车记录 ID），**不是** `{bookId, quantity}`
 - 创建订单传 `{cartItemIds: [购物车记录ID], addressId}`，**不是** `{items: [{bookId, quantity}]}`
-- **"立即购买"走购物车**：`BookDetail.vue` 跳到 `/order/confirm?bookId=X&quantity=Y`，`OrderConfirm.vue.handleSubmit` 先调 `cartStore.addToCart` 再取 cart ID 下单
-- 用户端路由 `meta` 守卫：`requiresAuth` 检查 token，`requiresAdmin` 额外调 `getUserInfo()` 校验角色
+- **"立即购买"走购物车**：`BookDetail.vue` → `/order/confirm?bookId=X&quantity=Y` → `OrderConfirm.vue` 先调 `cartStore.addToCart` 再取 cart ID 下单
 
 ## 运行约束
 
@@ -103,14 +84,12 @@ expired          cancelled
 - **ID 生成矛盾**：SQL DDL 声明 `AUTO_INCREMENT`，但 MyBatis-Plus `@TableId` 默认 `ASSIGN_ID`（雪花算法），实际插入使用 19 位 Long ID。DDL 的 `AUTO_INCREMENT` 仅为 fallback。
 - **无 MetaObjectHandler**：`BaseEntity` 标注 `@TableField(fill = FieldFill.INSERT/UPDATE)` 但无实现类，`createTime`/`updateTime` 的自动填充依赖 MySQL `DEFAULT CURRENT_TIMESTAMP` / `ON UPDATE CURRENT_TIMESTAMP`。
 - **排行榜 API**（`BookController.getRanking`）：`type` 参数（`sales`/`rating`/`new`）生效，`period` 参数（`all`/`week`/`month`/`quarter`/`year`）**仅 `new` 类型实际使用**，其余类型暂忽略 period。
+- **SQL init 脚本中的 ALTER TABLE**（`orig_price` / `favorited_price` 列）仅用于已有数据库迁移，`CREATE TABLE` 已包含这些列。
 
-## 分页响应格式
+## 分页响应
 
 ```json
 { "code": 200, "message": "操作成功", "data": { "total": 100, "records": [...] } }
 ```
-`PageResult<T>` 含 `total`（Long）+ `records`（List<T>）。MyBatis-Plus `Page` 对象直接序列化，含大量无关字段，仅 `total`/`records` 由 `PageResult` 包装的部分使用。
 
-## FavoriteController 的 Map<String, Long> 陷阱
-
-`FavoriteController.add()` 曾使用 `@RequestBody Map<String, Long>` 接收 body，但前端 `favoriteApi.add(bookId)` 中 `bookId` 来自 VO 的字符串化 ID（因 `ToStringSerializer`），导致 `body.get("bookId")` 为 null。**必须用 `Map<String, String>` + `Long.parseLong()` 或专用 DTO 接收来自前端的字符串 ID。**
+`PageResult<T>` 含 `total`（Long）+ `records`（List\<T\>）。MyBatis-Plus `Page` 对象直接序列化含大量无关字段，仅 `total`/`records` 由 `PageResult` 包装。

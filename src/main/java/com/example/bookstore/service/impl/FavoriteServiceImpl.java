@@ -43,7 +43,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         LambdaQueryWrapper<Favorite> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Favorite::getUserId, userId).eq(Favorite::getBookId, bookId);
         if (favoriteMapper.selectCount(wrapper) > 0) {
-            throw new BusinessException(1, "已收藏过该书籍");
+            return;
         }
 
         Favorite favorite = new Favorite();

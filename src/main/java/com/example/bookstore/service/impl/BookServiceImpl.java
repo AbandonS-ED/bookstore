@@ -5,16 +5,22 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.bookstore.common.Constants;
 import com.example.bookstore.common.PageResult;
 import com.example.bookstore.dto.BookQueryDTO;
+import com.example.bookstore.entity.Author;
 import com.example.bookstore.entity.Book;
+import com.example.bookstore.entity.BookChapter;
 import com.example.bookstore.entity.Category;
 import com.example.bookstore.entity.Review;
 import com.example.bookstore.exception.BusinessException;
 import com.example.bookstore.entity.Favorite;
+import com.example.bookstore.mapper.AuthorMapper;
+import com.example.bookstore.mapper.BookChapterMapper;
 import com.example.bookstore.mapper.BookMapper;
 import com.example.bookstore.mapper.CategoryMapper;
 import com.example.bookstore.mapper.FavoriteMapper;
 import com.example.bookstore.mapper.ReviewMapper;
 import com.example.bookstore.service.BookService;
+import com.example.bookstore.vo.AuthorVO;
+import com.example.bookstore.vo.BookChapterVO;
 import com.example.bookstore.vo.BookDetailVO;
 import com.example.bookstore.vo.BookVO;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +42,8 @@ public class BookServiceImpl implements BookService {
     private final CategoryMapper categoryMapper;
     private final ReviewMapper reviewMapper;
     private final FavoriteMapper favoriteMapper;
+    private final AuthorMapper authorMapper;
+    private final BookChapterMapper bookChapterMapper;
 
     @Override
     public PageResult<BookVO> pageQuery(BookQueryDTO queryDTO) {
@@ -170,7 +178,9 @@ public class BookServiceImpl implements BookService {
         vo.setPublisher(book.getPublisher());
         vo.setPublishDate(book.getPublishDate());
         vo.setPrice(book.getPrice());
+        vo.setOrigPrice(book.getOrigPrice());
         vo.setStock(book.getStock());
+        vo.setSales(book.getSales());
         vo.setCategoryId(book.getCategoryId());
         vo.setDescription(book.getDescription());
         vo.setCoverUrl(book.getCoverUrl());
@@ -203,6 +213,35 @@ public class BookServiceImpl implements BookService {
             vo.setIsFavorited(favoriteMapper.selectCount(favWrapper) > 0);
         } else {
             vo.setIsFavorited(false);
+        }
+
+        if (book.getAuthorId() != null) {
+            Author author = authorMapper.selectById(book.getAuthorId());
+            if (author != null) {
+                AuthorVO authorVO = new AuthorVO();
+                authorVO.setId(author.getId());
+                authorVO.setName(author.getName());
+                authorVO.setAvatarUrl(author.getAvatarUrl());
+                authorVO.setBio(author.getBio());
+                authorVO.setCountry(author.getCountry());
+                authorVO.setBirthYear(author.getBirthYear());
+                authorVO.setAwards(author.getAwards());
+                vo.setAuthorInfo(authorVO);
+            }
+        }
+
+        LambdaQueryWrapper<BookChapter> chapterWrapper = new LambdaQueryWrapper<>();
+        chapterWrapper.eq(BookChapter::getBookId, id).orderByAsc(BookChapter::getChapterNum);
+        List<BookChapter> chapters = bookChapterMapper.selectList(chapterWrapper);
+        if (!chapters.isEmpty()) {
+            List<BookChapterVO> chapterVOs = chapters.stream().map(ch -> {
+                BookChapterVO cv = new BookChapterVO();
+                cv.setChapterNum(ch.getChapterNum());
+                cv.setTitle(ch.getTitle());
+                cv.setPage(ch.getPage());
+                return cv;
+            }).collect(Collectors.toList());
+            vo.setChapters(chapterVOs);
         }
 
         return vo;

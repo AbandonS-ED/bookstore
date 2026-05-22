@@ -29,7 +29,7 @@ npm run build                # 生产构建
 
 ## 快速启动
 
-1. 初始化数据库：`mysql -u root -p < sql/init.sql`
+1. 初始化数据库：`mysql -u root < sql/init.sql`（MySQL 在 PATH 中时）
 2. 启动后端：`mvn spring-boot:run`
 3. 启动前端：`cd bookstore-frontend && npm run dev`
 
@@ -94,15 +94,28 @@ MyBatis-Plus 雪花算法生成 **19位 Long 类型 ID**，超出 JS `Number.MAX
 - Entity 基类：`id` 字段加 `@JsonFormat(shape = JsonFormat.Shape.STRING)`
 - DTO 类：接收 String，前Service层用 `Long.parseLong()` 转回
 
-**涉及文件**：10个VO（PaymentVO/BookVO/OrderVO等）、DTO、ServiceImpl、Entity
+**涉及文件**：12个VO（PaymentVO/BookVO/OrderVO等）、DTO、ServiceImpl、Entity
 
-## 数据库表（共10张）
+## 书籍详情页 4 标签
+
+`BookController.getBookDetail()` 返回的数据包含 4 部分：
+
+| 字段 | 来源 | 说明 |
+|------|------|------|
+| `description` | `book.description` | 书籍简介（多段落） |
+| `authorInfo` | `author` 表 JOIN | 作者bio/国籍/奖项标签 |
+| `chapters` | `book_chapter` 表 | 目录（章节+页码点线） |
+| `reviews` | `review` 表 | 读者评论列表 |
+
+## 数据库表（共12张）
 
 | 表名 | 说明 |
 |------|------|
 | `user` | 用户表（角色：user/admin） |
 | `category` | 分类表（支持层级，parent_id） |
-| `book` | 书籍表（含库存、价格、封面、orig_price划线原价） |
+| `book` | 书籍表（含库存、价格、封面、划线原价、作者ID） |
+| `author` | 作者表（含bio/国籍/生卒年/奖项） |
+| `book_chapter` | 目录表（书籍章节+页码） |
 | `favorite` | 收藏表（user_id + book_id唯一约束，favorited_price收藏时价格） |
 | `address` | 收货地址表 |
 | `cart` | 购物车表（user_id + book_id唯一约束） |
