@@ -49,7 +49,13 @@
     <section class="section">
       <div class="section-header">
         <h2>热门推荐</h2>
-        <router-link to="/books" class="view-all">查看全部 →</router-link>
+        <div class="sh-right">
+          <div class="view-toggle">
+            <div :class="['view-btn', { active: viewMode === 'grid' }]" @click="viewMode = 'grid'" title="网格视图">▦</div>
+            <div :class="['view-btn', { active: viewMode === 'list' }]" @click="viewMode = 'list'" title="列表视图">☰</div>
+          </div>
+          <router-link to="/books" class="view-all">查看全部 →</router-link>
+        </div>
       </div>
       <div class="categories">
         <div
@@ -73,12 +79,13 @@
           </div>
         </div>
       </div>
-      <div v-else class="books-grid">
+      <div :class="['books-grid', { 'list-view': viewMode === 'list' }]">
         <BookCard
           v-for="(book, idx) in books"
           :key="book.id"
           :book="book"
           :delay="idx * 60"
+          :list="viewMode === 'list'"
           @click="goToBook(book.id)"
         />
       </div>
@@ -115,14 +122,17 @@
     <section class="section">
       <div class="section-header">
         <h2>新书上架</h2>
-        <router-link to="/books?sort=new" class="view-all">查看全部 →</router-link>
+        <div class="sh-right">
+          <router-link to="/books?sort=new" class="view-all">查看全部 →</router-link>
+        </div>
       </div>
-      <div class="books-grid">
+      <div :class="['books-grid', { 'list-view': viewMode === 'list' }]">
         <BookCard
           v-for="(book, idx) in newBooks"
           :key="book.id"
           :book="book"
           :delay="idx * 60"
+          :list="viewMode === 'list'"
           @click="goToBook(book.id)"
         />
       </div>
@@ -156,6 +166,7 @@ const newBooks = ref([])
 const heroBooks = ref([])
 const loading = ref(true)
 const selectedCategory = ref(null)
+const viewMode = ref('grid')
 
 const fetchBooks = async () => {
   loading.value = true
@@ -509,6 +520,28 @@ onMounted(async () => {
   border-radius: 2px;
 }
 
+.sh-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.view-toggle { display: flex; gap: 4px; }
+.view-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-divider-strong);
+  border-radius: 6px;
+  background: var(--color-bg-card);
+  color: var(--color-text-light);
+  font-size: .85rem;
+  cursor: pointer;
+  transition: all .2s;
+}
+.view-btn:hover { border-color: var(--color-primary-mid); color: var(--color-text); }
+.view-btn.active { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-bg-warm); }
 .section-header .view-all {
   font-size: 0.85rem;
   color: var(--color-text-light);
@@ -561,6 +594,10 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 24px;
+}
+.books-grid.list-view {
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
 
 .book-card {

@@ -33,6 +33,8 @@ public class Book extends BaseEntity {
     @DecimalMin(value = "0.01", message = "价格必须大于0")
     private BigDecimal price;
 
+    private BigDecimal origPrice;
+
     @NotNull(message = "库存不能为空")
     @Positive(message = "库存必须大于0")
     private Integer stock;

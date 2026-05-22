@@ -73,7 +73,7 @@
               <span class="cover-author">{{ book.author }}</span>
             </div>
             <div class="book-badge" :class="getBadge(book)">{{ getBadgeText(book) }}</div>
-            <div class="book-fav" @click.stop="toggleFav(book.id)" :class="{ active: favSet.has(book.id) }">{{ favSet.has(book.id) ? '♥' : '♡' }}</div>
+            <div class="book-fav" @click.stop="toggleFav(book.id)" :class="{ active: favoriteStore.isFavorited(book.id) }">{{ favoriteStore.isFavorited(book.id) ? '♥' : '♡' }}</div>
           </div>
           <div class="book-info">
             <div class="book-title">{{ book.title }}</div>
@@ -124,6 +124,12 @@
               </div>
             </div>
           </div>
+          <div v-if="book.quote" class="book-quote-col">
+            <svg class="quote-col-mark" viewBox="0 0 24 24" width="14" height="14">
+              <path d="M6 17h3l2-4V7H5v6h3l-2 4zm8 0h3l2-4V7h-6v6h3l-2 4z" fill="currentColor"/>
+            </svg>
+            <p class="quote-col-text">{{ book.quote }}</p>
+          </div>
         </div>
       </div>
 
@@ -159,9 +165,12 @@ import { useRouter, useRoute } from 'vue-router'
 import { bookApi } from '@/api/book'
 import { getCoverStyle } from '@/utils/cover'
 import { categoryApi } from '@/api/category'
+import { favoriteApi } from '@/api/favorite'
+import { useFavoriteStore } from '@/stores/favorite'
 
 const router = useRouter()
 const route = useRoute()
+const favoriteStore = useFavoriteStore()
 
 const books = ref([])
 const categories = ref([])
@@ -172,7 +181,6 @@ const viewMode = ref('grid')
 const pageNum = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
-const favSet = ref(new Set())
 const coverErrors = ref({})
 
 const categoryCount = computed(() => categories.value.length)
@@ -235,10 +243,19 @@ function getBadgeText(book) {
   return '新书'
 }
 
-const toggleFav = (id) => {
-  const s = new Set(favSet.value)
-  if (s.has(id)) s.delete(id); else s.add(id)
-  favSet.value = s
+const toggleFav = async (id) => {
+  const bookId = String(id)
+  try {
+    if (favoriteStore.isFavorited(bookId)) {
+      await favoriteApi.remove(bookId)
+      favoriteStore.favoriteIds = favoriteStore.favoriteIds.filter(fid => fid !== bookId)
+    } else {
+      await favoriteApi.add(bookId)
+      if (!favoriteStore.favoriteIds.includes(bookId)) {
+        favoriteStore.favoriteIds.push(bookId)
+      }
+    }
+  } catch { /* ignore */ }
 }
 
 const fetchBooks = async () => {
@@ -304,7 +321,7 @@ watch(() => route.query, () => {
 })
 
 onMounted(() => {
-  fetchBooks(); fetchCategories()
+  fetchBooks(); fetchCategories(); favoriteStore.fetchFavoriteIds()
 })
 </script>
 
@@ -390,13 +407,44 @@ onMounted(() => {
 .book-rating .no-rating { font-size: .65rem; font-style: italic; color: var(--color-text-muted); margin-left: 0; }
 
 /* ── LIST VIEW ── */
-.books-grid.list-view .book-card { display: grid; grid-template-columns: 140px 1fr; border-radius: 10px; }
-.books-grid.list-view .book-cover { aspect-ratio: auto; height: 200px; }
-.books-grid.list-view .book-cover-img { font-size: 1rem; padding: 18px; }
-.books-grid.list-view .book-info { display: flex; flex-direction: column; justify-content: center; padding: 20px 24px; }
-.books-grid.list-view .book-title { font-size: 1.02rem; -webkit-line-clamp: 1; }
-.books-grid.list-view .book-desc { font-size: .84rem; color: var(--color-text-light); line-height: 1.8; margin: 8px 0 12px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.books-grid.list-view .book-tags { margin-bottom: 10px; }
+.books-grid.list-view .book-card { display: flex; border-radius: 10px; }
+.books-grid.list-view .book-cover { width: 110px; height: 150px; aspect-ratio: auto; flex-shrink: 0; }
+.books-grid.list-view .book-cover-img { font-size: .9rem; padding: 14px; }
+.books-grid.list-view .book-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 14px 20px; }
+.books-grid.list-view .book-title { font-size: 1rem; -webkit-line-clamp: 1; }
+.books-grid.list-view .book-desc { font-size: .82rem; color: var(--color-text-light); line-height: 1.7; margin: 6px 0 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.books-grid.list-view .book-tags { margin-bottom: 8px; }
+.books-grid.list-view .book-fav { display: none; }
+.books-grid.list-view .book-card:hover { transform: translateY(-2px); }
+/* Quote column */
+.books-grid.list-view .book-quote-col {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px 20px;
+  border-left: 1px solid var(--color-divider);
+  width: 220px;
+  flex-shrink: 0;
+  align-self: center;
+}
+.books-grid.list-view .quote-col-mark {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--color-accent);
+  opacity: 0.5;
+}
+.books-grid.list-view .quote-col-text {
+  font-family: 'Noto Serif SC', 'STSong', serif;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
 /* ── SKELETON ── */
 .skeleton { background: linear-gradient(90deg, var(--color-divider) 25%, var(--color-bg-cream) 50%, var(--color-divider) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
@@ -444,8 +492,9 @@ onMounted(() => {
   .books-area { padding: 20px; }
   .books-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .books-grid.list-view { grid-template-columns: 1fr; }
-  .books-grid.list-view .book-card { grid-template-columns: 100px 1fr; }
-  .books-grid.list-view .book-cover { height: 150px; }
+  .books-grid.list-view .book-card { flex-direction: column; }
+  .books-grid.list-view .book-cover { width: 100%; height: 160px; }
+  .books-grid.list-view .book-quote-col { width: auto; border-left: none; border-top: 1px solid var(--color-divider); padding: 10px 14px; }
   .pagination-wrap { padding: 16px 20px; flex-direction: column; gap: 14px; }
   .pagination .pg-btn:not(.active):not(.nav-arrow) { display: none; }
   .page-header-stats { gap: 20px; flex-wrap: wrap; }

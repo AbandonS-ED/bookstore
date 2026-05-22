@@ -9,8 +9,10 @@ import com.example.bookstore.entity.Book;
 import com.example.bookstore.entity.Category;
 import com.example.bookstore.entity.Review;
 import com.example.bookstore.exception.BusinessException;
+import com.example.bookstore.entity.Favorite;
 import com.example.bookstore.mapper.BookMapper;
 import com.example.bookstore.mapper.CategoryMapper;
+import com.example.bookstore.mapper.FavoriteMapper;
 import com.example.bookstore.mapper.ReviewMapper;
 import com.example.bookstore.service.BookService;
 import com.example.bookstore.vo.BookDetailVO;
@@ -33,6 +35,7 @@ public class BookServiceImpl implements BookService {
     private final BookMapper bookMapper;
     private final CategoryMapper categoryMapper;
     private final ReviewMapper reviewMapper;
+    private final FavoriteMapper favoriteMapper;
 
     @Override
     public PageResult<BookVO> pageQuery(BookQueryDTO queryDTO) {
@@ -149,6 +152,11 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookDetailVO getDetail(Long id) {
+        return getDetail(id, null);
+    }
+
+    @Override
+    public BookDetailVO getDetail(Long id, Long userId) {
         Book book = bookMapper.selectById(id);
         if (book == null) {
             throw new BusinessException(1, "书籍不存在");
@@ -187,6 +195,14 @@ public class BookServiceImpl implements BookService {
         } else {
             vo.setAvgRating(0.0);
             vo.setReviewCount(0);
+        }
+
+        if (userId != null) {
+            LambdaQueryWrapper<Favorite> favWrapper = new LambdaQueryWrapper<>();
+            favWrapper.eq(Favorite::getUserId, userId).eq(Favorite::getBookId, id);
+            vo.setIsFavorited(favoriteMapper.selectCount(favWrapper) > 0);
+        } else {
+            vo.setIsFavorited(false);
         }
 
         return vo;

@@ -29,6 +29,7 @@
           🛒
           <div v-if="cartCount > 0" class="cart-badge">{{ cartCount > 99 ? '99+' : cartCount }}</div>
         </router-link>
+        <router-link to="/favorites" class="nav-fav">♡</router-link>
         <template v-if="userStore.isLoggedIn">
           <div class="user-menu" @click="showUserMenu = !showUserMenu">
             <span class="avatar">{{ userStore.username?.[0]?.toUpperCase() }}</span>
@@ -230,6 +231,31 @@ onUnmounted(() => {
 }
 
 .nav-cart:hover { color: var(--color-accent); }
+
+.nav-fav {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(237,230,214,0.5);
+  font-size: 1.15rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-fav::before {
+  content: '♥';
+  position: absolute;
+  opacity: 0;
+  transform: scale(0) rotate(-20deg);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.nav-fav:hover { color: transparent; }
+.nav-fav:hover::before {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+  color: var(--color-accent);
+}
 
 .cart-badge {
   position: absolute;

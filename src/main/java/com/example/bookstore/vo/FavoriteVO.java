@@ -5,44 +5,36 @@ import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
-public class BookDetailVO {
+public class FavoriteVO {
 
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
-    private String isbn;
+    @JsonSerialize(using = ToStringSerializer.class)
+    private Long bookId;
 
     private String title;
 
     private String author;
 
-    private String publisher;
-
-    private LocalDate publishDate;
-
     private BigDecimal price;
 
-    private Integer stock;
+    private BigDecimal origPrice;
 
-    @JsonSerialize(using = ToStringSerializer.class)
-    private Long categoryId;
-
-    private String categoryName;
-
-    private String description;
+    private BigDecimal favoritedPrice;
 
     private String coverUrl;
 
-    private String quote;
-
-    private Integer status;
+    private Integer stock;
 
     private Double avgRating;
 
-    private Integer reviewCount;
+    private String categoryName;
 
-    private Boolean isFavorited;
+    private Integer sales;
+
+    private LocalDateTime createTime;
 }

@@ -133,6 +133,10 @@
                     </div>
                   </div>
                 </div>
+                <div class="view-toggle">
+                  <div :class="['view-btn', { active: viewMode === 'grid' }]" @click="viewMode = 'grid'">▦</div>
+                  <div :class="['view-btn', { active: viewMode === 'list' }]" @click="viewMode = 'list'">☰</div>
+                </div>
               </div>
             </div>
 
@@ -145,11 +149,12 @@
             </div>
 
             <template v-else-if="books.length">
-              <div class="books-grid">
+              <div :class="['books-grid', { 'list-view': viewMode === 'list' }]">
                 <BookCard
                   v-for="book in books"
                   :key="book.id"
                   :book="book"
+                  :list="viewMode === 'list'"
                   @click="goToBook(book.id)"
                 />
               </div>
@@ -201,6 +206,7 @@ const noParentCategories = ref([])
 const allFlat = ref([])
 const expandedIds = ref(new Set())
 
+const viewMode = ref('grid')
 const selectedCategory = ref(null)
 const sortBy = ref('default')
 const sortOpen = ref(false)
@@ -869,6 +875,24 @@ onUnmounted(() => {
   gap: var(--space-4);
 }
 
+.view-toggle { display: flex; gap: 4px; }
+.view-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-divider-strong);
+  border-radius: 6px;
+  background: var(--color-bg-card);
+  color: var(--color-text-light);
+  font-size: .85rem;
+  cursor: pointer;
+  transition: all .2s;
+}
+.view-btn:hover { border-color: var(--color-primary-mid); color: var(--color-text); }
+.view-btn.active { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-bg-warm); }
+
 .sort-select {
   position: relative;
   cursor: pointer;
@@ -925,6 +949,10 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: var(--space-5);
+}
+.books-grid.list-view {
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
 }
 
 .book-skeleton {
@@ -1030,6 +1058,9 @@ onUnmounted(() => {
 @media (max-width: 1200px) {
   .books-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+  .books-grid.list-view {
+    grid-template-columns: 1fr;
   }
 }
 

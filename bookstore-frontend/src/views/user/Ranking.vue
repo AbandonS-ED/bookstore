@@ -39,6 +39,10 @@
             {{ p.label }}
           </button>
         </div>
+        <div class="view-toggle">
+          <div :class="['view-btn', { active: viewMode === 'grid' }]" @click="viewMode = 'grid'" title="排行榜视图">▦</div>
+          <div :class="['view-btn', { active: viewMode === 'list' }]" @click="viewMode = 'list'" title="列表视图">☰</div>
+        </div>
       </div>
     </div>
 
@@ -48,6 +52,17 @@
           <div v-if="loading" class="ranking-loading">加载中...</div>
           <div v-else-if="books.length === 0" class="ranking-empty">暂无数据</div>
           <template v-else>
+            <div v-if="viewMode === 'list'" class="books-grid list-view">
+              <BookCard
+                v-for="(book, idx) in books"
+                :key="book.id"
+                :book="book"
+                :delay="idx * 30"
+                :list="true"
+                @click="goToBook(book.id)"
+              />
+            </div>
+            <template v-if="viewMode === 'grid'">
             <section v-if="topThree.length" class="top3-section">
               <div class="top3-grid">
                 <div v-if="topThree[1]" class="top3-card side" :style="{ animationDelay: '0.05s' }" @click="goToBook(topThree[1].id)">
@@ -64,7 +79,13 @@
                     <div class="book-author">{{ topThree[1].author }}</div>
                     <div class="book-meta">
                       <div class="book-price">¥{{ topThree[1].price }}</div>
-                      <div class="book-rating"><span>★ {{ topThree[1].avgRating?.toFixed(1) || '0.0' }}</span></div>
+                      <div class="book-rating">
+                        <template v-if="topThree[1].avgRating">
+                          <span class="stars">{{ renderStars(topThree[1].avgRating) }}</span>
+                          <span>{{ topThree[1].avgRating.toFixed(1) }}</span>
+                        </template>
+                        <span v-else class="no-rating">暂无评分</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -83,7 +104,13 @@
                     <div class="book-author">{{ topThree[0].author }}</div>
                     <div class="book-meta">
                       <div class="book-price">¥{{ topThree[0].price }}</div>
-                      <div class="book-rating"><span>★ {{ topThree[0].avgRating?.toFixed(1) || '0.0' }}</span></div>
+                      <div class="book-rating">
+                        <template v-if="topThree[0].avgRating">
+                          <span class="stars">{{ renderStars(topThree[0].avgRating) }}</span>
+                          <span>{{ topThree[0].avgRating.toFixed(1) }}</span>
+                        </template>
+                        <span v-else class="no-rating">暂无评分</span>
+                      </div>
                     </div>
                     <div class="book-stat">{{ currentTabConfig.statLabel }}：{{ getStatValue(topThree[0]) }}</div>
                   </div>
@@ -103,7 +130,13 @@
                     <div class="book-author">{{ topThree[2].author }}</div>
                     <div class="book-meta">
                       <div class="book-price">¥{{ topThree[2].price }}</div>
-                      <div class="book-rating"><span>★ {{ topThree[2].avgRating?.toFixed(1) || '0.0' }}</span></div>
+                      <div class="book-rating">
+                        <template v-if="topThree[2].avgRating">
+                          <span class="stars">{{ renderStars(topThree[2].avgRating) }}</span>
+                          <span>{{ topThree[2].avgRating.toFixed(1) }}</span>
+                        </template>
+                        <span v-else class="no-rating">暂无评分</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -138,7 +171,13 @@
                   <div class="rb-author">{{ book.author }}</div>
                 </div>
                 <div class="rank-price">¥{{ book.price }}</div>
-                <div class="rank-rating">★ {{ book.avgRating?.toFixed(1) || '0.0' }}</div>
+                <div class="rank-rating">
+                  <template v-if="book.avgRating">
+                    <span class="stars">{{ renderStars(book.avgRating) }}</span>
+                    <span>{{ book.avgRating.toFixed(1) }}</span>
+                  </template>
+                  <span v-else class="no-rating">暂无评分</span>
+                </div>
                 <div class="rank-stat-col">
                   <span class="stat-val">{{ getStatValue(book) }}</span>
                 </div>
@@ -150,6 +189,7 @@
                 <span>查看第{{ rankedBooks.length + 4 }}~{{ Math.min(rankedBooks.length + 17, books.length) }}名</span>
               </button>
             </div>
+            </template>
           </template>
         </div>
       </Transition>
@@ -163,11 +203,26 @@ import { useRouter } from 'vue-router'
 import { bookApi } from '@/api/book'
 import { getCoverStyle } from '@/utils/cover'
 
+function renderStars(rating) {
+  if (!rating) return ''
+  const full = Math.floor(rating)
+  const half = rating - full >= 0.5
+  let s = ''
+  for (let i = 0; i < full; i++) s += '★'
+  if (half) s += '☆'
+  const empty = 5 - full - (half ? 1 : 0)
+  for (let i = 0; i < empty; i++) s += '☆'
+  return s
+}
+
+import BookCard from '@/components/business/BookCard.vue'
+
 const router = useRouter()
 const displayCount = ref(17)
 const books = ref([])
 const loading = ref(false)
 const coverErrors = ref({})
+const viewMode = ref('grid')
 
 const rankTabs = [
   { key: 'sales', label: '畅销总榜', icon: '📈' },
@@ -634,6 +689,12 @@ const goToBook = (id) => router.push(`/book/${id}`)
   align-items: center;
   gap: 2px;
 }
+.top3-card .book-rating .no-rating,
+.rank-rating .no-rating {
+  font-size: 0.65rem;
+  font-style: italic;
+  color: var(--color-text-light);
+}
 
 .top3-card .book-stat {
   margin-top: 6px;
@@ -780,6 +841,33 @@ const goToBook = (id) => router.push(`/book/${id}`)
 
 .rank-stat-col .stat-val {
   font-weight: 500;
+}
+
+/* ═══ VIEW TOGGLE ═══ */
+.view-toggle { display: flex; gap: 4px; flex-shrink: 0; }
+.view-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-divider-strong);
+  border-radius: 6px;
+  background: var(--color-bg);
+  color: var(--color-text-light);
+  font-size: .85rem;
+  cursor: pointer;
+  transition: all .2s;
+}
+.view-btn:hover { border-color: var(--color-primary-mid); color: var(--color-text); }
+.view-btn.active { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-bg-warm); }
+
+/* ═══ LIST VIEW ═══ */
+.books-grid.list-view {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 24px 0 20px;
 }
 
 /* ═══ LOAD MORE ═══ */

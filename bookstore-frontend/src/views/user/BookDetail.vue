@@ -30,9 +30,7 @@
               <span>ISBN：{{ book.isbn }}</span>
             </div>
             <div class="book-rating">
-              <div class="stars">
-                <span v-for="i in 5" :key="i" :class="{ filled: i <= Math.round(book.avgRating || 0) }">★</span>
-              </div>
+              <div class="stars">{{ renderStars(book.avgRating) }}</div>
               <span v-if="book.reviewCount > 0" class="rating-text">{{ book.avgRating?.toFixed(1) }} ({{ book.reviewCount }}条评价)</span>
               <span v-else class="rating-text no-rating">暂无评分</span>
             </div>
@@ -52,6 +50,12 @@
               </div>
               <button class="btn-add-cart" @click="handleAddCart" :disabled="book.stock === 0">加入购物车</button>
               <button class="btn-buy-now" @click="handleBuyNow" :disabled="book.stock === 0">立即购买</button>
+              <button
+                v-if="isLoggedIn"
+                :class="['btn-fav', { favorited: book.isFavorited }]"
+                @click="toggleFavorite"
+                :title="book.isFavorited ? '取消收藏' : '加入收藏'"
+              >{{ book.isFavorited ? '♥' : '♡' }}</button>
             </div>
           </div>
         </div>
@@ -138,13 +142,28 @@ import { ElMessage } from 'element-plus'
 import { bookApi } from '@/api/book'
 import { reviewApi } from '@/api/review'
 import { cartApi } from '@/api/cart'
+import { favoriteApi } from '@/api/favorite'
 import { useUserStore } from '@/stores/user'
+import { useFavoriteStore } from '@/stores/favorite'
 import { formatDateTime } from '@/utils/format'
 import { getCoverStyle } from '@/utils/cover'
+
+function renderStars(rating) {
+  if (!rating) return ''
+  const full = Math.floor(rating)
+  const half = rating - full >= 0.5
+  let s = ''
+  for (let i = 0; i < full; i++) s += '★'
+  if (half) s += '☆'
+  const empty = 5 - full - (half ? 1 : 0)
+  for (let i = 0; i < empty; i++) s += '☆'
+  return s
+}
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const favoriteStore = useFavoriteStore()
 
 const book = ref(null)
 const reviews = ref([])
@@ -213,6 +232,21 @@ const handleBuyNow = () => {
   router.push({ path: '/order/confirm', query: { bookId: book.value.id, quantity: quantity.value } })
 }
 
+const toggleFavorite = async () => {
+  try {
+    if (book.value.isFavorited) {
+      await favoriteApi.remove(book.value.id)
+      book.value.isFavorited = false
+    } else {
+      await favoriteApi.add(book.value.id)
+      book.value.isFavorited = true
+    }
+    await favoriteStore.fetchFavoriteIds()
+  } catch (error) {
+    ElMessage.error('操作失败')
+  }
+}
+
 const handleSubmitReview = async () => {
   if (!canSubmit.value) return
   submitting.value = true
@@ -272,8 +306,7 @@ onMounted(async () => {
 .book-author { font-size: var(--text-lg); color: var(--color-text-secondary); margin-bottom: var(--space-4); }
 .book-meta { display: flex; flex-wrap: wrap; gap: var(--space-4); font-size: var(--text-sm); color: var(--color-text-muted); margin-bottom: var(--space-6); }
 .book-rating { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-6); }
-.stars span { font-size: 20px; color: var(--color-divider); }
-.stars span.filled { color: var(--color-accent); }
+.stars { font-size: 20px; color: var(--color-accent); }
 .rating-text { font-size: var(--text-sm); color: var(--color-text-muted); }
 .no-rating { color: var(--color-text-light); font-style: italic; }
 .book-price { display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-4); }
@@ -292,6 +325,22 @@ onMounted(async () => {
 .btn-add-cart:hover:not(:disabled) { background: var(--color-accent); color: var(--color-primary-abyss); }
 .btn-buy-now { background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-muted) 100%); border: none; color: var(--color-primary-abyss); font-weight: 700; box-shadow: 0 2px 12px rgba(192,154,75,0.2); }
 .btn-buy-now:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(192,154,75,0.3); }
+.btn-fav {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  border: 1px solid var(--color-divider-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-card);
+  color: var(--color-text-light);
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.btn-fav:hover { border-color: var(--color-accent); color: var(--color-accent); }
+.btn-fav.favorited { color: var(--color-red); border-color: var(--color-red); background: var(--color-red-bg); }
 .btn-add-cart:disabled, .btn-buy-now:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
 .book-description, .book-reviews { background: var(--color-bg-card); border-radius: var(--radius-lg); padding: var(--space-8); margin-bottom: var(--space-6); border: 1px solid var(--color-divider); }

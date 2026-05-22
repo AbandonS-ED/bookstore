@@ -1,7 +1,7 @@
 <template>
   <div
     ref="cardRef"
-    :class="['book-card', { 'is-visible': isVisible }]"
+    :class="['book-card', { 'is-visible': isVisible, 'list-mode': list }]"
     :style="{ transitionDelay: `${delay}ms` }"
     @click="$emit('click')"
     @mouseenter="isHovered = true"
@@ -28,7 +28,7 @@
       </button>
 
       <transition name="quote-fade">
-        <div v-if="book.quote && isHovered" class="book-quote-overlay">
+        <div v-if="book.quote && isHovered && !list" class="book-quote-overlay">
           <div class="quote-content">
             <svg class="quote-mark quote-mark-left" viewBox="0 0 24 24" width="20" height="20">
               <path d="M6 17h3l2-4V7H5v6h3l-2 4zm8 0h3l2-4V7h-6v6h3l-2 4z" fill="currentColor"/>
@@ -52,28 +52,37 @@
         </div>
         <div class="book-rating">
           <template v-if="book.avgRating">
-            <svg class="star-icon" viewBox="0 0 20 20" width="12" height="12">
-              <path d="M10 1l2.39 4.84L17.6 6.7l-3.8 3.7.9 5.24L10 13.2l-4.7 2.44.9-5.24L2.4 6.7l5.21-.86L10 1z" fill="currentColor"/>
-            </svg>
+            <span class="stars">{{ renderStars(book.avgRating) }}</span>
             <span class="rating-val">{{ book.avgRating?.toFixed(1) }}</span>
           </template>
           <span v-else class="no-rating">暂无评分</span>
         </div>
       </div>
     </div>
+
+    <div v-if="list && book.quote" class="book-quote-col">
+      <svg class="quote-col-mark" viewBox="0 0 24 24" width="14" height="14">
+        <path d="M6 17h3l2-4V7H5v6h3l-2 4zm8 0h3l2-4V7h-6v6h3l-2 4z" fill="currentColor"/>
+      </svg>
+      <p class="quote-col-text">{{ book.quote }}</p>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { favoriteApi } from '@/api/favorite'
+import { useFavoriteStore } from '@/stores/favorite'
 
 const props = defineProps({
   book: { type: Object, required: true },
-  delay: { type: Number, default: 0 }
+  delay: { type: Number, default: 0 },
+  list: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['click'])
 
+const favoriteStore = useFavoriteStore()
 const cardRef = ref(null)
 const isVisible = ref(false)
 const isFavored = ref(false)
@@ -102,14 +111,45 @@ const badgeClass = computed(() => {
   }
 })
 
-const toggleFav = () => {
-  isFavored.value = !isFavored.value
+function renderStars(rating) {
+  if (!rating) return ''
+  const full = Math.floor(rating)
+  const half = rating - full >= 0.5
+  let s = ''
+  for (let i = 0; i < full; i++) s += '★'
+  if (half) s += '☆'
+  const empty = 5 - full - (half ? 1 : 0)
+  for (let i = 0; i < empty; i++) s += '☆'
+  return s
+}
+
+const toggleFav = async () => {
+  const bookId = String(props.book.id)
+  try {
+    if (isFavored.value) {
+      await favoriteApi.remove(bookId)
+      isFavored.value = false
+      favoriteStore.favoriteIds = favoriteStore.favoriteIds.filter(id => id !== bookId)
+    } else {
+      await favoriteApi.add(bookId)
+      isFavored.value = true
+      if (!favoriteStore.favoriteIds.includes(bookId)) {
+        favoriteStore.favoriteIds.push(bookId)
+      }
+    }
+  } catch {
+    isFavored.value = !isFavored.value
+  }
 }
 
 let observer = null
 
 onMounted(() => {
   if (!cardRef.value) return
+  if (!favoriteStore.favoriteIds.length) {
+    favoriteStore.fetchFavoriteIds()
+  }
+  isFavored.value = favoriteStore.isFavorited(props.book.id)
   observer = new IntersectionObserver(
     ([entry]) => {
       if (entry.isIntersecting) {
@@ -408,6 +448,10 @@ onUnmounted(() => {
   color: var(--color-accent);
 }
 
+.book-rating .stars {
+  font-size: 0.7rem;
+}
+
 .book-rating .no-rating {
   font-size: 0.7rem;
   color: var(--color-text-light);
@@ -419,7 +463,80 @@ onUnmounted(() => {
   color: var(--color-text-light);
 }
 
-.star-icon {
-  display: block;
+/* Quote column (list mode) */
+.book-quote-col {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px 20px;
+  border-left: 1px solid var(--color-divider);
+  width: 220px;
+  flex-shrink: 0;
+  align-self: center;
+}
+.quote-col-mark {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--color-accent);
+  opacity: 0.5;
+}
+.quote-col-text {
+  font-family: 'Noto Serif SC', 'STSong', serif;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* List mode */
+.book-card.list-mode {
+  display: flex;
+  flex-direction: row;
+  opacity: 1;
+  transform: none;
+}
+.book-card.list-mode:hover {
+  transform: translateY(-2px);
+}
+.book-card.list-mode .book-cover {
+  width: 110px;
+  height: 150px;
+  aspect-ratio: auto;
+  flex-shrink: 0;
+}
+.book-card.list-mode .book-cover-img {
+  border-radius: 0;
+}
+.book-card.list-mode .book-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 14px 20px;
+}
+.book-card.list-mode .book-title {
+  font-size: 1rem;
+  -webkit-line-clamp: 1;
+}
+.book-card.list-mode .book-author {
+  margin-bottom: 6px;
+}
+.book-card.list-mode .book-fav {
+  top: auto;
+  bottom: 10px;
+  right: 10px;
+}
+.book-card.list-mode .book-badge {
+  top: 8px;
+  left: 8px;
+}
+.book-card.list-mode .book-quote-overlay {
+  display: none !important;
 }
 </style>

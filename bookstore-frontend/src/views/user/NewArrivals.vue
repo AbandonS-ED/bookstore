@@ -107,8 +107,8 @@
                 <span class="cover-author">{{ book.author }}</span>
               </div>
               <div class="book-badge badge-new">NEW</div>
-              <div class="book-fav" @click.stop="toggleFav(book.id)" :class="{ active: favSet.has(book.id) }">
-                {{ favSet.has(book.id) ? '♥' : '♡' }}
+              <div class="book-fav" @click.stop="toggleFav(book.id)" :class="{ active: favoriteStore.isFavorited(book.id) }">
+                {{ favoriteStore.isFavorited(book.id) ? '♥' : '♡' }}
               </div>
             </div>
             <div class="book-info">
@@ -191,8 +191,11 @@ import { useRouter } from 'vue-router'
 import { bookApi } from '@/api/book'
 import { categoryApi } from '@/api/category'
 import { getCoverStyle, COVER_GRADIENTS } from '@/utils/cover'
+import { favoriteApi } from '@/api/favorite'
+import { useFavoriteStore } from '@/stores/favorite'
 
 const router = useRouter()
+const favoriteStore = useFavoriteStore()
 
 const BOOK_STATUS_ON = 1
 
@@ -215,7 +218,6 @@ const pageNum = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
 const sortBy = ref('publish_desc')
-const favSet = reactive(new Set())
 const coverErrors = ref({})
 
 const hasMore = computed(() => books.value.length < total.value)
@@ -289,8 +291,19 @@ function renderStars(rating) {
 
 const goToBook = (id) => router.push(`/book/${id}`)
 
-const toggleFav = (id) => {
-  if (favSet.has(id)) favSet.delete(id); else favSet.add(id)
+const toggleFav = async (id) => {
+  const bookId = String(id)
+  try {
+    if (favoriteStore.isFavorited(bookId)) {
+      await favoriteApi.remove(bookId)
+      favoriteStore.favoriteIds = favoriteStore.favoriteIds.filter(fid => fid !== bookId)
+    } else {
+      await favoriteApi.add(bookId)
+      if (!favoriteStore.favoriteIds.includes(bookId)) {
+        favoriteStore.favoriteIds.push(bookId)
+      }
+    }
+  } catch { /* ignore */ }
 }
 
 const fetchHeroBook = async () => {
@@ -354,7 +367,7 @@ const comingBooks = reactive([
 ])
 
 onMounted(() => {
-  fetchHeroBook(); fetchBooks(false); fetchCategories()
+  fetchHeroBook(); fetchBooks(false); fetchCategories(); favoriteStore.fetchFavoriteIds()
 })
 </script>
 

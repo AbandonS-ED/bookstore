@@ -4,6 +4,7 @@ import com.example.bookstore.common.PageResult;
 import com.example.bookstore.common.Result;
 import com.example.bookstore.dto.BookQueryDTO;
 import com.example.bookstore.service.BookService;
+import com.example.bookstore.util.AuthContext;
 import com.example.bookstore.vo.BookDetailVO;
 import com.example.bookstore.vo.BookVO;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,8 @@ public class BookController {
 
     @GetMapping("/{id}")
     public Result<BookDetailVO> detail(@PathVariable Long id) {
-        BookDetailVO detail = bookService.getDetail(id);
+        Long userId = AuthContext.getCurrentUserId();
+        BookDetailVO detail = bookService.getDetail(id, userId);
         return Result.success(detail);
     }
 

@@ -19,5 +19,7 @@ public interface BookService {
 
     List<BookVO> getRanking(String type, String period);
 
+    BookDetailVO getDetail(Long id, Long userId);
+
     BookDetailVO getDetail(Long id);
 }
