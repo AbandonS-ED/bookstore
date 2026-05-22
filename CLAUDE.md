@@ -96,13 +96,14 @@ MyBatis-Plus 雪花算法生成 **19位 Long 类型 ID**，超出 JS `Number.MAX
 
 **涉及文件**：10个VO（PaymentVO/BookVO/OrderVO等）、DTO、ServiceImpl、Entity
 
-## 数据库表（共9张）
+## 数据库表（共10张）
 
 | 表名 | 说明 |
 |------|------|
 | `user` | 用户表（角色：user/admin） |
 | `category` | 分类表（支持层级，parent_id） |
-| `book` | 书籍表（含库存、价格、封面） |
+| `book` | 书籍表（含库存、价格、封面、orig_price划线原价） |
+| `favorite` | 收藏表（user_id + book_id唯一约束，favorited_price收藏时价格） |
 | `address` | 收货地址表 |
 | `cart` | 购物车表（user_id + book_id唯一约束） |
 | `order` | 订单主表（含支付ID、物流单号） |
@@ -134,6 +135,16 @@ expired          cancelled
 - `type`: `sales`（畅销）、`rating`（评分）、`new`（新书）
 - `period`: `all`、`week`、`month`、`quarter`、`year`（**仅 new 类型真正使用**，其他类型 period 参数暂未生效）
 - 建议返回时加 `limit 20` 限制数量
+
+## 收藏 API
+
+`/api/favorite/*` 接口集（需登录）：
+
+- `POST /add` — 收藏书籍（自动保存 favorited_price）
+- `DELETE /{bookId}` — 取消收藏
+- `GET /list` — 当前用户收藏列表（含降价提示：hover滑出"比收藏时便宜了¥X"）
+- `GET /check/{bookId}` — 检查是否已收藏
+- `GET /ids` — 获取已收藏书籍ID集合
 
 ## 文档
 
