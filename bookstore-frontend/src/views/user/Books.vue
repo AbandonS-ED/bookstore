@@ -65,7 +65,7 @@
 
       <!-- GRID VIEW -->
       <div v-else-if="viewMode === 'grid' && books.length" class="books-grid">
-        <div v-for="(book, idx) in books" :key="book.id" class="book-card" :style="{ animationDelay: (idx * 0.03) + 's' }" @click="goToBook(book.id)">
+        <div v-for="(book, idx) in books" :key="book.id" class="book-card" :style="{ animationDelay: (idx * 0.03) + 's' }" @click="goToBook(book.id)" @mouseenter="hoveredBookId = book.id" @mouseleave="hoveredBookId = null">
           <div class="book-cover">
             <img v-if="book.coverUrl && !coverErrors[book.id]" class="book-cover-img" :src="book.coverUrl" :alt="book.title" loading="lazy" @error="coverErrors[book.id] = true" />
             <div v-if="!book.coverUrl || coverErrors[book.id]" class="book-cover-img book-cover-fallback" :style="getCoverStyle(book.id)">
@@ -74,6 +74,19 @@
             </div>
             <div class="book-badge" :class="getBadge(book)">{{ getBadgeText(book) }}</div>
             <div class="book-fav" @click.stop="toggleFav(book.id)" :class="{ active: favoriteStore.isFavorited(book.id) }">{{ favoriteStore.isFavorited(book.id) ? '♥' : '♡' }}</div>
+            <transition name="quote-fade">
+              <div v-if="book.quote && hoveredBookId === book.id" class="book-quote-overlay">
+                <div class="quote-content">
+                  <svg class="quote-mark quote-mark-left" viewBox="0 0 24 24" width="20" height="20">
+                    <path d="M6 17h3l2-4V7H5v6h3l-2 4zm8 0h3l2-4V7h-6v6h3l-2 4z" fill="currentColor"/>
+                  </svg>
+                  <p class="quote-text">{{ book.quote }}</p>
+                  <svg class="quote-mark quote-mark-right" viewBox="0 0 24 24" width="20" height="20">
+                    <path d="M18 7h-3l-2 4v6h6v-6h-3l2-4zm-8 0H7L5 11v6h6v-6H8l2-4z" fill="currentColor"/>
+                  </svg>
+                </div>
+              </div>
+            </transition>
           </div>
           <div class="book-info">
             <div class="book-title">{{ book.title }}</div>
@@ -178,6 +191,7 @@ const loading = ref(false)
 const activeTags = ref(new Set())
 const sortBy = ref('default')
 const viewMode = ref('grid')
+const hoveredBookId = ref(null)
 const pageNum = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
@@ -377,9 +391,57 @@ onMounted(() => {
 .books-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 22px; }
 .books-grid.list-view { grid-template-columns: 1fr; gap: 16px; }
 
+/* ── QUOTE OVERLAY ── */
+.book-quote-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(28,18,12,0.92) 0%, rgba(44,31,21,0.88) 50%, rgba(28,18,12,0.95) 100%);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+  z-index: 1;
+}
+.quote-content {
+  position: relative;
+  text-align: center;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.quote-mark {
+  color: rgba(192,154,75,0.6);
+  flex-shrink: 0;
+}
+.quote-mark-left { margin-bottom: 8px; align-self: flex-start; margin-left: -4px; }
+.quote-mark-right { margin-top: 8px; align-self: flex-end; margin-right: -4px; }
+.quote-text {
+  font-family: 'Noto Serif SC', 'STSong', 'SimSun', serif;
+  font-size: 0.85rem;
+  line-height: 1.8;
+  color: rgba(237,230,214,0.95);
+  text-align: justify;
+  margin: 0;
+  max-height: 100%;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.quote-fade-enter-active { transition: all 0.4s cubic-bezier(0.25,0.46,0.45,0.94); }
+.quote-fade-leave-active { transition: all 0.3s cubic-bezier(0.55,0,1,0.45); }
+.quote-fade-enter-from { opacity: 0; transform: scale(1.05); }
+.quote-fade-leave-to { opacity: 0; transform: scale(0.95); }
+
 /* ── BOOK CARD ── */
 .book-card { background: var(--color-bg-card); border-radius: 12px; overflow: hidden; border: 1px solid var(--color-divider); transition: all .4s cubic-bezier(.25,.46,.45,.94); cursor: pointer; position: relative; opacity: 0; animation: fadeUp .55s ease forwards; }
-.book-card:hover { transform: translateY(-5px); box-shadow: 0 16px 40px var(--color-shadow-heavy, rgba(44,30,20,0.14)), 0 2px 6px var(--color-shadow, rgba(44,30,20,0.06)); border-color: rgba(192,154,75,0.15); }
+.book-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px var(--color-shadow-heavy, rgba(44,30,20,0.14)), 0 2px 6px var(--color-shadow, rgba(44,30,20,0.06)); border-color: rgba(192,154,75,0.15); }
 .book-cover { position: relative; aspect-ratio: 3/4; overflow: hidden; }
 .book-cover-img { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; color: rgba(237,230,214,0.85); padding: 28px; text-align: center; line-height: 1.4; transition: transform .5s ease; object-fit: cover; }
 .book-card:hover .book-cover-img { transform: scale(1.04); }
@@ -391,7 +453,7 @@ onMounted(() => {
 .badge-sale { background: var(--color-red, #A04040); color: #fff; }
 .badge-new { background: var(--color-green, #5C8856); color: #fff; }
 .badge-classic { background: var(--color-primary-mid, #5C4434); color: var(--color-bg-warm); }
-.book-fav { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; background: rgba(46,31,21,0.55); backdrop-filter: blur(10px); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--color-bg); font-size: .8rem; cursor: pointer; opacity: 0; transform: scale(.85); transition: all .3s; }
+.book-fav { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; background: rgba(46,31,21,0.55); backdrop-filter: blur(10px); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--color-bg); font-size: .8rem; cursor: pointer; opacity: 0; transform: scale(.85); transition: all .3s; z-index: 3; }
 .book-card:hover .book-fav { opacity: 1; transform: scale(1); }
 .book-fav:hover, .book-fav.active { background: var(--color-accent); color: var(--color-primary-abyss); }
 .book-info { padding: 14px 16px 18px; }

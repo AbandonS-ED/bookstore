@@ -39,10 +39,6 @@
             {{ p.label }}
           </button>
         </div>
-        <div class="view-toggle">
-          <div :class="['view-btn', { active: viewMode === 'grid' }]" @click="viewMode = 'grid'" title="排行榜视图">▦</div>
-          <div :class="['view-btn', { active: viewMode === 'list' }]" @click="viewMode = 'list'" title="列表视图">☰</div>
-        </div>
       </div>
     </div>
 
@@ -52,20 +48,9 @@
           <div v-if="loading" class="ranking-loading">加载中...</div>
           <div v-else-if="books.length === 0" class="ranking-empty">暂无数据</div>
           <template v-else>
-            <div v-if="viewMode === 'list'" class="books-grid list-view">
-              <BookCard
-                v-for="(book, idx) in books"
-                :key="book.id"
-                :book="book"
-                :delay="idx * 30"
-                :list="true"
-                @click="goToBook(book.id)"
-              />
-            </div>
-            <template v-if="viewMode === 'grid'">
             <section v-if="topThree.length" class="top3-section">
               <div class="top3-grid">
-                <div v-if="topThree[1]" class="top3-card side" :style="{ animationDelay: '0.05s' }" @click="goToBook(topThree[1].id)">
+                <div v-if="topThree[1]" class="top3-card side" :style="{ animationDelay: '0.05s' }" @click="goToBook(topThree[1].id)" @mouseenter="hoveredBookId = topThree[1].id" @mouseleave="hoveredBookId = null">
                   <div class="top3-rank-badge r2">2</div>
                   <div class="book-cover">
                     <img v-if="topThree[1].coverUrl && !coverErrors[topThree[1].id]" class="book-cover-img" :src="topThree[1].coverUrl" :alt="topThree[1].title" @error="coverErrors[topThree[1].id] = true" />
@@ -73,6 +58,19 @@
                       <span class="cover-title">{{ topThree[1].title }}</span>
                       <span class="cover-author">{{ topThree[1].author }}</span>
                     </div>
+                    <transition name="quote-fade">
+                      <div v-if="topThree[1].quote && hoveredBookId === topThree[1].id" class="book-quote-overlay">
+                        <div class="quote-content">
+                          <svg class="quote-mark quote-mark-left" viewBox="0 0 24 24" width="20" height="20">
+                            <path d="M6 17h3l2-4V7H5v6h3l-2 4zm8 0h3l2-4V7h-6v6h3l-2 4z" fill="currentColor"/>
+                          </svg>
+                          <p class="quote-text">{{ topThree[1].quote }}</p>
+                          <svg class="quote-mark quote-mark-right" viewBox="0 0 24 24" width="20" height="20">
+                            <path d="M18 7h-3l-2 4v6h6v-6h-3l2-4zm-8 0H7L5 11v6h6v-6H8l2-4z" fill="currentColor"/>
+                          </svg>
+                        </div>
+                      </div>
+                    </transition>
                   </div>
                   <div class="book-info">
                     <div class="book-title">{{ topThree[1].title }}</div>
@@ -90,7 +88,7 @@
                   </div>
                 </div>
 
-                <div v-if="topThree[0]" class="top3-card first" :style="{ animationDelay: '0s' }" @click="goToBook(topThree[0].id)">
+                <div v-if="topThree[0]" class="top3-card first" :style="{ animationDelay: '0s' }" @click="goToBook(topThree[0].id)" @mouseenter="hoveredBookId = topThree[0].id" @mouseleave="hoveredBookId = null">
                   <div class="top3-rank-badge r1">1</div>
                   <div class="book-cover">
                     <img v-if="topThree[0].coverUrl && !coverErrors[topThree[0].id]" class="book-cover-img" :src="topThree[0].coverUrl" :alt="topThree[0].title" @error="coverErrors[topThree[0].id] = true" />
@@ -98,6 +96,19 @@
                       <span class="cover-title">{{ topThree[0].title }}</span>
                       <span class="cover-author">{{ topThree[0].author }}</span>
                     </div>
+                    <transition name="quote-fade">
+                      <div v-if="topThree[0].quote && hoveredBookId === topThree[0].id" class="book-quote-overlay">
+                        <div class="quote-content">
+                          <svg class="quote-mark quote-mark-left" viewBox="0 0 24 24" width="20" height="20">
+                            <path d="M6 17h3l2-4V7H5v6h3l-2 4zm8 0h3l2-4V7h-6v6h3l-2 4z" fill="currentColor"/>
+                          </svg>
+                          <p class="quote-text">{{ topThree[0].quote }}</p>
+                          <svg class="quote-mark quote-mark-right" viewBox="0 0 24 24" width="20" height="20">
+                            <path d="M18 7h-3l-2 4v6h6v-6h-3l2-4zm-8 0H7L5 11v6h6v-6H8l2-4z" fill="currentColor"/>
+                          </svg>
+                        </div>
+                      </div>
+                    </transition>
                   </div>
                   <div class="book-info">
                     <div class="book-title">{{ topThree[0].title }}</div>
@@ -116,7 +127,7 @@
                   </div>
                 </div>
 
-                <div v-if="topThree[2]" class="top3-card side" :style="{ animationDelay: '0.1s' }" @click="goToBook(topThree[2].id)">
+                <div v-if="topThree[2]" class="top3-card side" :style="{ animationDelay: '0.1s' }" @click="goToBook(topThree[2].id)" @mouseenter="hoveredBookId = topThree[2].id" @mouseleave="hoveredBookId = null">
                   <div class="top3-rank-badge r3">3</div>
                   <div class="book-cover">
                     <img v-if="topThree[2].coverUrl && !coverErrors[topThree[2].id]" class="book-cover-img" :src="topThree[2].coverUrl" :alt="topThree[2].title" @error="coverErrors[topThree[2].id] = true" />
@@ -124,6 +135,19 @@
                       <span class="cover-title">{{ topThree[2].title }}</span>
                       <span class="cover-author">{{ topThree[2].author }}</span>
                     </div>
+                    <transition name="quote-fade">
+                      <div v-if="topThree[2].quote && hoveredBookId === topThree[2].id" class="book-quote-overlay">
+                        <div class="quote-content">
+                          <svg class="quote-mark quote-mark-left" viewBox="0 0 24 24" width="20" height="20">
+                            <path d="M6 17h3l2-4V7H5v6h3l-2 4zm8 0h3l2-4V7h-6v6h3l-2 4z" fill="currentColor"/>
+                          </svg>
+                          <p class="quote-text">{{ topThree[2].quote }}</p>
+                          <svg class="quote-mark quote-mark-right" viewBox="0 0 24 24" width="20" height="20">
+                            <path d="M18 7h-3l-2 4v6h6v-6h-3l2-4zm-8 0H7L5 11v6h6v-6H8l2-4z" fill="currentColor"/>
+                          </svg>
+                        </div>
+                      </div>
+                    </transition>
                   </div>
                   <div class="book-info">
                     <div class="book-title">{{ topThree[2].title }}</div>
@@ -151,6 +175,7 @@
                 <div style="text-align:right;">售价</div>
                 <div style="text-align:center;">评分</div>
                 <div class="rh-stat">{{ currentTabConfig.statLabel }}</div>
+                <div class="rh-quote">名言</div>
               </div>
               <div
                 v-for="(book, idx) in rankedBooks"
@@ -181,6 +206,13 @@
                 <div class="rank-stat-col">
                   <span class="stat-val">{{ getStatValue(book) }}</span>
                 </div>
+                <div v-if="book.quote" class="rank-quote-col">
+                  <svg class="rq-mark" viewBox="0 0 24 24" width="14" height="14">
+                    <path d="M6 17h3l2-4V7H5v6h3l-2 4zm8 0h3l2-4V7h-6v6h3l-2 4z" fill="currentColor"/>
+                  </svg>
+                  <p class="rq-text">{{ book.quote }}</p>
+                </div>
+                <div v-else class="rank-quote-col"></div>
               </div>
             </div>
 
@@ -189,7 +221,6 @@
                 <span>查看第{{ rankedBooks.length + 4 }}~{{ Math.min(rankedBooks.length + 17, books.length) }}名</span>
               </button>
             </div>
-            </template>
           </template>
         </div>
       </Transition>
@@ -215,14 +246,12 @@ function renderStars(rating) {
   return s
 }
 
-import BookCard from '@/components/business/BookCard.vue'
-
 const router = useRouter()
 const displayCount = ref(17)
 const books = ref([])
 const loading = ref(false)
 const coverErrors = ref({})
-const viewMode = ref('grid')
+const hoveredBookId = ref(null)
 
 const rankTabs = [
   { key: 'sales', label: '畅销总榜', icon: '📈' },
@@ -704,6 +733,54 @@ const goToBook = (id) => router.push(`/book/${id}`)
   color: var(--color-text-light);
 }
 
+/* ═══ QUOTE OVERLAY ═══ */
+.book-quote-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(28,18,12,0.92) 0%, rgba(44,31,21,0.88) 50%, rgba(28,18,12,0.95) 100%);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+  z-index: 1;
+}
+.quote-content {
+  position: relative;
+  text-align: center;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.quote-mark {
+  color: rgba(192,154,75,0.6);
+  flex-shrink: 0;
+}
+.quote-mark-left { margin-bottom: 8px; align-self: flex-start; margin-left: -4px; }
+.quote-mark-right { margin-top: 8px; align-self: flex-end; margin-right: -4px; }
+.quote-text {
+  font-family: 'Noto Serif SC', 'STSong', 'SimSun', serif;
+  font-size: 0.85rem;
+  line-height: 1.8;
+  color: rgba(237,230,214,0.95);
+  text-align: justify;
+  margin: 0;
+  max-height: 100%;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.quote-fade-enter-active { transition: all 0.4s cubic-bezier(0.25,0.46,0.45,0.94); }
+.quote-fade-leave-active { transition: all 0.3s cubic-bezier(0.55,0,1,0.45); }
+.quote-fade-enter-from { opacity: 0; transform: scale(1.05); }
+.quote-fade-leave-to { opacity: 0; transform: scale(0.95); }
+
 /* ═══ RANK LIST ═══ */
 .rank-list {
   padding: 12px 0 20px;
@@ -711,7 +788,7 @@ const goToBook = (id) => router.push(`/book/${id}`)
 
 .rank-list-header {
   display: grid;
-  grid-template-columns: 50px 80px 1fr 100px 80px 100px;
+  grid-template-columns: 50px 80px 1fr 100px 80px 100px 220px;
   gap: 16px;
   padding: 10px 20px;
   font-size: 0.72rem;
@@ -728,7 +805,7 @@ const goToBook = (id) => router.push(`/book/${id}`)
 
 .rank-row {
   display: grid;
-  grid-template-columns: 50px 80px 1fr 100px 80px 100px;
+  grid-template-columns: 50px 80px 1fr 100px 80px 100px 220px;
   gap: 16px;
   padding: 14px 20px;
   align-items: center;
@@ -843,31 +920,39 @@ const goToBook = (id) => router.push(`/book/${id}`)
   font-weight: 500;
 }
 
-/* ═══ VIEW TOGGLE ═══ */
-.view-toggle { display: flex; gap: 4px; flex-shrink: 0; }
-.view-btn {
-  width: 34px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--color-divider-strong);
-  border-radius: 6px;
-  background: var(--color-bg);
+.rh-quote {
+  font-size: 0.72rem;
+  font-weight: 500;
   color: var(--color-text-light);
-  font-size: .85rem;
-  cursor: pointer;
-  transition: all .2s;
+  letter-spacing: 0.06em;
 }
-.view-btn:hover { border-color: var(--color-primary-mid); color: var(--color-text); }
-.view-btn.active { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-bg-warm); }
-
-/* ═══ LIST VIEW ═══ */
-.books-grid.list-view {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  padding: 24px 0 20px;
+.rank-quote-col {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px 0;
+  border-left: 1px solid var(--color-divider);
+  padding-left: 16px;
+  overflow: hidden;
+  align-self: center;
+}
+.rq-mark {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--color-accent);
+  opacity: 0.5;
+}
+.rq-text {
+  font-family: 'Noto Serif SC', 'STSong', serif;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* ═══ LOAD MORE ═══ */
@@ -921,8 +1006,8 @@ const goToBook = (id) => router.push(`/book/${id}`)
   .top3-card.side { margin-bottom: 14px; }
   .rank-list-header,
   .rank-row { grid-template-columns: 40px 64px 1fr 80px 70px; gap: 12px; }
-  .rh-stat,
-  .rank-stat-col { display: none; }
+  .rh-stat, .rh-quote,
+  .rank-stat-col, .rank-quote-col { display: none; }
 }
 
 @media (max-width: 768px) {
