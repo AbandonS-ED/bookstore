@@ -35,6 +35,13 @@ npm run build                # 生产构建
 
 **默认管理员账号：** admin / 123456（BCrypt加密）
 
+**数据库重建（如需完全重置）：
+
+```bash
+D:/AppServ/MySQL/bin/mysql.exe -u root -p -e "DROP DATABASE IF EXISTS bookstore; CREATE DATABASE bookstore CHARSET=utf8mb4;"
+mysql -u root -p bookstore < sql/init.sql
+```
+
 ## 架构要点
 
 ### 后端结构
@@ -150,6 +157,10 @@ expired      cancelled
 - 管理员控制器（BookManageController、OrderManageController、UserManageController、ReviewManageController）**直接注入 Mapper** 返回原始 `Page<Entity>`，不转 VO
 - `PaymentVO.amount` 为 `String`（手写 `.toString()` 转换非 `@JsonSerialize`）
 - `AdminOrders.vue` 的 API 在 `src/api/admin.js`（非 `order.js`）
+
+## 管理后台仪表盘 API
+
+`GET /admin/order/stats/revenue` 返回本月每日销售额（dailyRevenue）、本月总额（monthlyRevenue）、上月总额（lastMonthRevenue），基于 `pay_time` 聚合已支付订单。Dashboard 第 1 张卡片展示本月销售额 + 环比涨跌。
 
 ## 文档
 
