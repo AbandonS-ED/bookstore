@@ -13,6 +13,7 @@ import com.example.bookstore.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -28,9 +29,39 @@ public class ReviewManageController {
     @GetMapping("/list")
     public Result<Page<Review>> list(
             @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            @RequestParam(required = false) Integer status,
+            @RequestParam(required = false) Integer rating,
+            @RequestParam(required = false) String keyword) {
         Page<Review> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Review> wrapper = new LambdaQueryWrapper<>();
+
+        if (status != null) {
+            wrapper.eq(Review::getStatus, status);
+        }
+        if (rating != null) {
+            wrapper.eq(Review::getRating, rating);
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            List<Long> userIds = userMapper.selectList(
+                    new LambdaQueryWrapper<User>().like(User::getUsername, keyword)
+            ).stream().map(User::getId).collect(Collectors.toList());
+
+            List<Long> bookIds = bookMapper.selectList(
+                    new LambdaQueryWrapper<Book>().like(Book::getTitle, keyword)
+            ).stream().map(Book::getId).collect(Collectors.toList());
+
+            wrapper.and(w -> {
+                w.like(Review::getContent, keyword);
+                if (!userIds.isEmpty()) {
+                    w.or().in(Review::getUserId, userIds);
+                }
+                if (!bookIds.isEmpty()) {
+                    w.or().in(Review::getBookId, bookIds);
+                }
+            });
+        }
+
         wrapper.orderByDesc(Review::getCreateTime);
         Page<Review> result = reviewMapper.selectPage(page, wrapper);
 
@@ -65,6 +96,17 @@ public class ReviewManageController {
             return Result.error(1, "评论不存在");
         }
         review.setStatus(Constants.REVIEW_HIDE);
+        reviewMapper.updateById(review);
+        return Result.success();
+    }
+
+    @PutMapping("/{id}/show")
+    public Result<Void> show(@PathVariable Long id) {
+        Review review = reviewMapper.selectById(id);
+        if (review == null) {
+            return Result.error(1, "评论不存在");
+        }
+        review.setStatus(Constants.REVIEW_SHOW);
         reviewMapper.updateById(review);
         return Result.success();
     }

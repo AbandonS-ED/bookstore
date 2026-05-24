@@ -20,4 +20,7 @@ public interface BookMapper extends BaseMapper<Book> {
 
     @Update("UPDATE book SET favorited_count = favorited_count - 1 WHERE id = #{bookId}")
     int decreaseFavoritedCount(@Param("bookId") Long bookId);
+
+    @Update("UPDATE book SET stock = #{stock} WHERE id = #{id}")
+    int updateStock(@Param("id") Long id, @Param("stock") Integer stock);
 }

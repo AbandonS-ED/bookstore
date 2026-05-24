@@ -26,4 +26,6 @@ public class OrderItemVO {
     private Integer quantity;
 
     private BigDecimal subtotal;
+
+    private Boolean reviewed;
 }

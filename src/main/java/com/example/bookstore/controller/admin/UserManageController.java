@@ -21,9 +21,26 @@ public class UserManageController {
     @GetMapping("/list")
     public Result<Page<User>> list(
             @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            @RequestParam(required = false) Integer status,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String keyword) {
         Page<User> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+
+        if (status != null) {
+            wrapper.eq(User::getStatus, status);
+        }
+        if (role != null && !role.isBlank()) {
+            wrapper.eq(User::getRole, role);
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            wrapper.and(w -> w
+                    .like(User::getUsername, keyword)
+                    .or().like(User::getEmail, keyword)
+                    .or().like(User::getPhone, keyword));
+        }
+
         wrapper.orderByDesc(User::getCreateTime);
         Page<User> result = userMapper.selectPage(page, wrapper);
         return Result.success(result);

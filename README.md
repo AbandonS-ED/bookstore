@@ -19,7 +19,7 @@
 - **购物车模块** — 加入购物车、修改数量、删除
 - **订单模块** — 创建订单、订单列表、订单详情、取消、确认收货、售后申请
 - **评论模块** — 书籍评论、1-5 星评分
-- **后台管理** — 书籍管理、分类管理、订单管理、用户管理、评论管理
+- **后台管理** — 仪表盘、书籍管理、分类管理、库存管理、订单管理、退款售后、用户管理、评论管理
 
 ## 快速开始
 
@@ -82,8 +82,8 @@ bookstore/                          # 后端 Spring Boot 项目
 ├── pictures/                       # 书籍封面图片
 ├── bookstore-frontend/             # 前端 Vue 3 项目
 │   ├── src/
-│   │   ├── views/user/             # 用户端页面
-│   │   ├── views/admin/            # 管理后台页面
+│   │   ├── views/user/             # 用户端页面（19 个）
+│   │   ├── views/admin/            # 管理后台页面（9 个：Dashboard/Books/Categories/Inventory/Orders/Refund/Users/Reviews）
 │   │   ├── components/             # 公共组件
 │   │   ├── router/                 # 路由配置
 │   │   ├── stores/                 # Pinia 状态管理（6 个 store）

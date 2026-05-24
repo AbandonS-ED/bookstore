@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -55,6 +56,41 @@ public class OrderManageController {
             });
         }
 
+        return Result.success(result);
+    }
+
+    @GetMapping("/stats/revenue")
+    public Result<Map<String, Object>> revenue(
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+        java.time.LocalDate now = java.time.LocalDate.now();
+        int y = year != null ? year : now.getYear();
+        int m = month != null ? month : now.getMonthValue();
+
+        String start = String.format("%d-%02d-01", y, m);
+        String end = m == 12 ? String.format("%d-01-01", y + 1) : String.format("%d-%02d-01", y, m + 1);
+
+        BigDecimal monthlyRevenue = orderMapper.sumRevenueBetween(start, end);
+        List<Map<String, Object>> dailyRevenue = orderMapper.dailyRevenueBetween(start, end);
+
+        // Last month for comparison
+        int prevM = m == 1 ? 12 : m - 1;
+        int prevY = m == 1 ? y - 1 : y;
+        String prevStart = String.format("%d-%02d-01", prevY, prevM);
+        String prevEnd = String.format("%d-%02d-01", prevY, prevM + 1);
+        if (prevM == 12) prevEnd = String.format("%d-01-01", prevY + 1);
+        BigDecimal lastMonthRevenue = orderMapper.sumRevenueBetween(prevStart, prevEnd);
+
+        // Monthly series for last 7 months (chart)
+        java.time.LocalDate sevenMonthsAgo = now.minusMonths(6).withDayOfMonth(1);
+        String monthlyStart = String.format("%d-%02d-01", sevenMonthsAgo.getYear(), sevenMonthsAgo.getMonthValue());
+        List<Map<String, Object>> monthlyRevenueList = orderMapper.monthlyRevenueBetween(monthlyStart, end);
+
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("monthlyRevenue", monthlyRevenue);
+        result.put("lastMonthRevenue", lastMonthRevenue);
+        result.put("dailyRevenue", dailyRevenue);
+        result.put("monthlyRevenueList", monthlyRevenueList);
         return Result.success(result);
     }
 

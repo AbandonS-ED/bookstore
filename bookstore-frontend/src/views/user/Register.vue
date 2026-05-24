@@ -11,11 +11,11 @@
           <p class="brand-desc">在快时代，做一家慢书店</p>
           <div class="brand-divider"></div>
           <div class="brand-features">
-            <span>128,000+ 图书</span>
+            <span>{{ bookCountText }}</span>
             <span class="dot">·</span>
-            <span>56,000+ 读者</span>
+            <span>{{ userCountText }}</span>
             <span class="dot">·</span>
-            <span>98.6% 好评</span>
+            <span>{{ goodRateText }}</span>
           </div>
         </div>
         <div class="brand-pattern"></div>
@@ -112,10 +112,11 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import { reviewApi } from '@/api/review'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -137,6 +138,22 @@ const errors = reactive({
 
 const showPassword = ref(false)
 const loading = ref(false)
+const bookCountText = ref('128,000+ 图书')
+const userCountText = ref('56,000+ 读者')
+const goodRateText = ref('98.6% 好评')
+
+onMounted(async () => {
+  try {
+    const statsRes = await reviewApi.getStats()
+    if (statsRes.code === 200 && statsRes.data) {
+      bookCountText.value = statsRes.data.totalBooks.toLocaleString() + '+ 图书'
+      userCountText.value = statsRes.data.totalUsers.toLocaleString() + '+ 读者'
+      goodRateText.value = (statsRes.data.goodRate * 100).toFixed(1) + '% 好评'
+    }
+  } catch (error) {
+    console.error('Failed to load review stats:', error)
+  }
+})
 
 const validate = () => {
   let valid = true

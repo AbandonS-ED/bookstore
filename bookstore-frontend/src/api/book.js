@@ -7,9 +7,6 @@ export const bookApi = {
   getDetail(id) {
     return api.get(`/book/${id}`)
   },
-  search(params) {
-    return api.get('/book/search', { params })
-  },
   getByCategory(categoryId, params) {
     return api.get(`/book/category/${categoryId}`, { params })
   },

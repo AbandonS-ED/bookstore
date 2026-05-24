@@ -17,7 +17,7 @@
         <div class="story-img-frame">
           <div class="story-img-inner">
             <div class="si-book">📖</div>
-            <div class="si-text">拾 光 书 屋</div>
+            <div class="si-text">书 斋</div>
             <div class="si-year">EST. 2018 · BEIJING</div>
           </div>
         </div>
@@ -174,6 +174,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { reviewApi } from '@/api/review'
 
 const pageEl = ref(null)
 const numbersGridEl = ref(null)
@@ -186,7 +187,7 @@ const values = [
   { icon: '📦', title: '品质服务', desc: '每本书用无酸纸包裹寄出，支持次日达配送、无忧退换。我们对待包裹的态度，和对待书一样认真。' }
 ]
 
-const numbers = [
+const numbers = ref([
   { target: 128000, suffix: '+', unit: '本', label: '在售图书' },
   { target: 56000, suffix: '+', unit: '位', label: '注册读者' },
   { target: 2800, suffix: '+', unit: '家', label: '合作出版社' },
@@ -195,7 +196,7 @@ const numbers = [
   { target: 4.8, suffix: '', unit: '分', label: '平均评分', decimal: 1 },
   { target: 24, suffix: 'h', unit: '', label: '客服响应' },
   { target: 7, suffix: ' 年', unit: '', label: '品牌历程' }
-]
+])
 
 const team = [
   { initial: '陈', name: '陈拾光', role: '创始人 · CEO', bio: '10 年出版行业经验，曾任某知名出版社文学主编。坚信一本好书可以改变一个人的一生。', favBook: '《百年孤独》', avatarStyle: { background: 'var(--color-accent-glow)', color: 'var(--color-accent-muted)' } },
@@ -311,7 +312,18 @@ function initCountUp() {
   observer.observe(grid)
 }
 
-onMounted(() => {
+onMounted(async () => {
+  try {
+    const statsRes = await reviewApi.getStats()
+    if (statsRes.code === 200 && statsRes.data) {
+      numbers.value[0].target = statsRes.data.totalBooks
+      numbers.value[1].target = statsRes.data.totalUsers
+      const pct = parseFloat((statsRes.data.goodRate * 100).toFixed(1))
+      numbers.value[4].target = pct
+    }
+  } catch (error) {
+    console.error('Failed to load review stats:', error)
+  }
   initScrollReveal()
   initCountUp()
 })

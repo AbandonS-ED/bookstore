@@ -29,6 +29,10 @@
     <div class="toolbar">
       <div class="toolbar-left">
         <div class="result-count">共 <strong>{{ (total || 0).toLocaleString() }}</strong> 本</div>
+        <div class="search-bar">
+          <input v-model="searchKeyword" type="text" placeholder="搜索书名、作者..." @keyup.enter="handleSearch" />
+          <button @click="handleSearch">🔍</button>
+        </div>
         <div class="active-filters" v-if="activeTags.size > 0">
           <div v-for="tag in activeTags" :key="tag" class="active-filter-tag" @click="removeTag(tag)">
             {{ filterPills.find(p => p.key === tag)?.label || tag }}
@@ -192,6 +196,7 @@ const activeTags = ref(new Set())
 const sortBy = ref('default')
 const viewMode = ref('grid')
 const hoveredBookId = ref(null)
+const searchKeyword = ref(route.query.keyword || '')
 const pageNum = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
@@ -326,6 +331,16 @@ const changeSort = () => {
   pageNum.value = 1; fetchBooks()
 }
 
+const handleSearch = () => {
+  const query = { ...route.query }
+  if (searchKeyword.value.trim()) {
+    query.keyword = searchKeyword.value.trim()
+  } else {
+    delete query.keyword
+  }
+  router.push({ path: '/books', query })
+}
+
 const goToBook = (id) => router.push(`/book/${id}`)
 
 watch(pageNum, () => fetchBooks())
@@ -368,6 +383,11 @@ onMounted(() => {
 .toolbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .result-count { font-size: .85rem; color: var(--color-text-light); white-space: nowrap; }
 .result-count strong { color: var(--color-text); font-weight: 600; }
+.search-bar { display: flex; align-items: center; gap: 0; margin-left: 4px; }
+.search-bar input { width: 140px; padding: 6px 10px; background: var(--color-bg-card); border: 1px solid var(--color-divider-strong, rgba(74,53,38,0.18)); border-radius: 6px 0 0 6px; font-size: .82rem; color: var(--color-text); outline: none; transition: border-color .2s; }
+.search-bar input:focus { border-color: var(--color-primary-mid, #5C4434); width: 180px; }
+.search-bar button { padding: 6px 10px; background: var(--color-bg-card); border: 1px solid var(--color-divider-strong, rgba(74,53,38,0.18)); border-left: none; border-radius: 0 6px 6px 0; cursor: pointer; font-size: .82rem; color: var(--color-text-light); transition: all .2s; }
+.search-bar button:hover { color: var(--color-accent); background: var(--color-bg); }
 .active-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .active-filter-tag { display: flex; align-items: center; gap: 6px; padding: 4px 12px; background: var(--color-bg-card); border: 1px solid var(--color-divider-strong, rgba(74,53,38,0.18)); border-radius: 16px; font-size: .78rem; color: var(--color-text-secondary); cursor: pointer; transition: all .25s; user-select: none; }
 .active-filter-tag:hover { border-color: var(--color-red, #A04040); background: var(--color-red-bg, rgba(160,64,64,0.08)); }

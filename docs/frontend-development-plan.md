@@ -104,7 +104,7 @@
 |------|------|------------|------|
 | `/api/cart/list` | GET | - | `{code, message, data: CartVO[]}` |
 | `/api/cart/add` | POST | `{bookId, quantity}` | `{code, message, data: null}` |
-| `/api/cart/update` | PUT | `{bookId, quantity}` | `{code, message, data: null}` |
+| `/api/cart/update` | PUT | `{id, quantity}`（id为购物车记录ID，非bookId） | `{code, message, data: null}` |
 | `/api/cart/{id}` | DELETE | - | `{code, message, data: null}` |
 | `/api/cart/clear` | DELETE | - | `{code, message, data: null}` |
 
@@ -112,12 +112,15 @@
 
 | 接口 | 方法 | 请求体/参数 | 响应 |
 |------|------|------------|------|
-| `/api/order/create` | POST | `{addressId, cartItemIds, remark}` | `{code, message, data: OrderVO}` |
-| `/api/order/list` | GET | `status` | `{code, message, data: OrderVO[]}` |
+| `/api/order/create` | POST | `{addressId, cartItemIds: [cartRecordId], remark}` | `{code, message, data: OrderVO}` |
+| `/api/order/list` | GET | `status, pageNum, pageSize` | `{code, message, data: {records, total}}` |
 | `/api/order/{id}` | GET | - | `{code, message, data: OrderVO}` |
+| `/api/order/{id}/pay-apply` | POST | - | `{code, message, data: PaymentVO}` |
 | `/api/order/{id}/pay` | PUT | - | `{code, message, data: null}` |
 | `/api/order/{id}/cancel` | PUT | - | `{code, message, data: null}` |
 | `/api/order/{id}/confirm` | PUT | - | `{code, message, data: null}` |
+| `/api/order/{id}/apply-refund` | PUT | - | `{code, message, data: null}` |
+| `/api/order/{id}/apply-after-sale` | PUT | - | `{code, message, data: null}` |
 
 ### 3.6 评论接口
 
@@ -135,34 +138,46 @@
 | `/api/favorite/{bookId}` | DELETE | - | `{code, message, data: null}` |
 | `/api/favorite/list` | GET | - | `{code, message, data: FavoriteVO[]}` |
 | `/api/favorite/check/{bookId}` | GET | - | `{code, message, data: Boolean}` |
-| `/api/favorite/ids` | GET | - | `{code, message, data: Set<Long>}` |
+| `/api/favorite/ids` | GET | - | `{code, message, data: Set<String>}`（已字符串化） |
 
 ### 3.8 排行榜接口
 
 | 接口 | 方法 | 参数 | 响应 |
 |------|------|------|------|
-| `/api/book/ranking` | GET | `type: sales/rating/new, period: all/week/month/quarter/year` | `{code, message, data: BookVO[]}` |
+| `/api/book/ranking` | GET | `type: sales/rating/new/collection, period: all/week/month/quarter/year` | `{code, message, data: BookVO[]}` |
 
-### 3.8 管理接口
+### 3.9 管理接口
 
 | 接口 | 方法 | 参数 | 响应 |
 |------|------|------|------|
+| `/admin/book/list` | GET | `keyword, categoryId, status, pageNum, pageSize` | 分页列表 |
 | `/admin/book/add` | POST | Book实体 | `{code, message, data: null}` |
 | `/admin/book/update` | PUT | Book实体 | `{code, message, data: null}` |
 | `/admin/book/{id}` | DELETE | - | `{code, message, data: null}` |
 | `/admin/book/{id}/status` | PUT | `status` | `{code, message, data: null}` |
+| `/admin/book/{id}/stock` | PUT | `{stock}` | `{code, message, data: null}` |
 | `/admin/category/add` | POST | Category实体 | `{code, message, data: null}` |
 | `/admin/category/update` | PUT | Category实体 | `{code, message, data: null}` |
 | `/admin/category/{id}` | DELETE | - | `{code, message, data: null}` |
-| `/admin/order/list` | GET | - | 订单列表 |
-| `/admin/order/{id}/ship` | PUT | - | `{code, message, data: null}` |
+| `/admin/category/{id}/status` | PUT | `status` | `{code, message, data: null}` |
+| `/admin/order/list` | GET | `status, keyword, pageNum, pageSize` | 分页列表 |
+| `/admin/order/{id}/ship` | PUT | `{expressNo}` | `{code, message, data: null}` |
 | `/admin/order/{id}/deliver` | PUT | - | `{code, message, data: null}` |
-| `/admin/user/list` | GET | - | 用户列表 |
+| `/admin/order/{id}/refund` | PUT | - | `{code, message, data: null}` |
+| `/admin/order/{id}/approve-refund` | PUT | - | `{code, message, data: null}` |
+| `/admin/order/{id}/reject-refund` | PUT | - | `{code, message, data: null}` |
+| `/admin/order/{id}/approve-after-sale` | PUT | - | `{code, message, data: null}` |
+| `/admin/order/{id}/reject-after-sale` | PUT | - | `{code, message, data: null}` |
+| `/admin/order/stats/revenue` | GET | - | 月销售额数据 |
+| `/admin/user/list` | GET | `keyword, status, role, pageNum, pageSize` | 分页列表 |
 | `/admin/user/{id}/disable` | PUT | - | `{code, message, data: null}` |
 | `/admin/user/{id}/enable` | PUT | - | `{code, message, data: null}` |
-| `/admin/review/list` | GET | - | 评论列表 |
+| `/admin/user/{id}/role` | PUT | `{role}` | `{code, message, data: null}` |
+| `/admin/user/{id}` | DELETE | - | `{code, message, data: null}` |
+| `/admin/review/list` | GET | `keyword, status, rating, pageNum, pageSize` | 分页列表 |
 | `/admin/review/{id}` | DELETE | - | `{code, message, data: null}` |
 | `/admin/review/{id}/hide` | PUT | - | `{code, message, data: null}` |
+| `/admin/review/{id}/show` | PUT | - | `{code, message, data: null}` |
 
 ---
 

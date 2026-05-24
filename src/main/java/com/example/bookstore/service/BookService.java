@@ -15,8 +15,6 @@ public interface BookService {
     PageResult<BookVO> findByCategory(Long categoryId, Integer pageNum, Integer pageSize, String sortBy,
                                       BigDecimal minPrice, BigDecimal maxPrice, Integer minRating, String timeRange);
 
-    PageResult<BookVO> search(String keyword, Integer pageNum, Integer pageSize);
-
     List<BookVO> getRanking(String type, String period);
 
     BookDetailVO getDetail(Long id, Long userId);

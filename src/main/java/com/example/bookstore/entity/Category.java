@@ -17,4 +17,6 @@ public class Category extends BaseEntity {
     private Long parentId;
 
     private Integer sort;
+
+    private Integer status;
 }

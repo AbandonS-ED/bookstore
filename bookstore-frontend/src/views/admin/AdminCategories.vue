@@ -1,43 +1,58 @@
 <template>
   <div class="admin-categories">
-    <!-- 操作栏 -->
-    <div class="toolbar">
-      <el-button type="primary" class="add-btn" @click="openAddDialog(null)">
-        + 添加分类
-      </el-button>
+    <div class="page-header-bar">
+      <h2>分类管理</h2>
+      <div class="actions">
+        <el-button type="primary" class="add-btn" @click="openAddDialog(null)">
+          + 添加分类
+        </el-button>
+      </div>
     </div>
 
-    <!-- 分类树形表格 -->
-    <el-table
-      :data="categoryTree"
-      v-loading="loading"
-      row-key="id"
-      default-expand-all
-      stripe
-      class="categories-table"
-    >
-      <el-table-column prop="name" label="分类名称" min-width="200">
+    <el-table :data="flatList" v-loading="loading" stripe class="categories-table">
+      <el-table-column label="分类名称" min-width="220">
         <template #default="{ row }">
-          <div class="category-name-cell">
+          <div class="category-name-cell" :style="{ paddingLeft: row._depth * 28 + 'px' }">
             <span class="folder-icon">📁</span>
-            <span>{{ row.name }}</span>
+            <span :class="{ 'parent-name': row._depth === 0 }">{{ row.name }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="parentId" label="父分类" width="150">
+      <el-table-column label="父分类" width="150">
         <template #default="{ row }">
-          {{ row.parentId ? getParentName(row.parentId) : '无' }}
+          <span class="parent-label">{{ row.parentId ? getParentName(row.parentId) : '—' }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="sort" label="排序" width="100" align="center" />
-      <el-table-column prop="createTime" label="创建时间" width="180" />
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column label="书籍数" width="100" align="center">
         <template #default="{ row }">
-          <el-button size="small" type="primary" link @click="openAddDialog(row)">
-            添加子分类
-          </el-button>
+          <span class="book-count">{{ row.bookCount ?? '-' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="排序" width="80" align="center">
+        <template #default="{ row }">
+          {{ row.sort }}
+        </template>
+      </el-table-column>
+      <el-table-column label="状态" width="100" align="center">
+        <template #default="{ row }">
+          <el-tag
+            :type="row.status === 1 ? 'success' : 'danger'"
+            size="small"
+            class="status-tag"
+            style="cursor: pointer"
+            @click="toggleStatus(row)"
+          >
+            {{ row.status === 1 ? '启用' : '禁用' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="180" fixed="right">
+        <template #default="{ row }">
           <el-button size="small" type="primary" link @click="openEditDialog(row)">
             编辑
+          </el-button>
+          <el-button v-if="row._depth === 0" size="small" type="primary" link @click="openAddDialog(row)">
+            子分类
           </el-button>
           <el-button size="small" type="danger" link @click="handleDelete(row.id)">
             删除
@@ -46,10 +61,9 @@
       </el-table-column>
     </el-table>
 
-    <!-- 添加/编辑对话框 -->
     <el-dialog
       v-model="dialogVisible"
-      :title="isEdit ? '编辑分类' : '添加分类'"
+      :title="isEdit ? '编辑分类' : isSub ? '添加子分类' : '添加分类'"
       width="500px"
       :close-on-click-modal="false"
     >
@@ -57,10 +71,10 @@
         <el-form-item label="分类名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入分类名称" />
         </el-form-item>
-        <el-form-item label="父分类" prop="parentId">
-          <el-select v-model="form.parentId" placeholder="请选择父分类（可选）" clearable style="width: 100%">
+        <el-form-item v-if="!isEdit" label="父分类" prop="parentId">
+          <el-select v-model="form.parentId" placeholder="顶级分类" clearable style="width: 100%">
             <el-option
-              v-for="cat in flatCategories"
+              v-for="cat in categories"
               :key="cat.id"
               :label="cat.name"
               :value="cat.id"
@@ -93,6 +107,7 @@ const categories = ref([])
 
 const dialogVisible = ref(false)
 const isEdit = ref(false)
+const isSub = ref(false)
 const formRef = ref(null)
 
 const form = reactive({
@@ -106,38 +121,42 @@ const rules = {
   name: [{ required: true, message: '请输入分类名称', trigger: 'blur' }]
 }
 
-// Flatten categories for select options (excluding current when editing)
-const flatCategories = computed(() => {
-  return categories.value
-})
+const getParentName = (parentId) => {
+  const parent = categories.value.find(c => c.id === parentId)
+  return parent?.name || '—'
+}
 
-// Build tree structure from flat list
-const categoryTree = computed(() => {
-  const tree = []
+const flatList = computed(() => {
+  const result = []
   const map = {}
 
-  // First pass: create map
   categories.value.forEach(cat => {
-    map[cat.id] = { ...cat, children: [] }
+    map[cat.id] = { ...cat, _depth: 0, children: [] }
   })
 
-  // Second pass: build tree
+  const roots = []
   categories.value.forEach(cat => {
     const node = map[cat.id]
     if (cat.parentId && map[cat.parentId]) {
       map[cat.parentId].children.push(node)
     } else {
-      tree.push(node)
+      roots.push(node)
     }
   })
 
-  return tree
-})
+  const flatten = (nodes, depth) => {
+    nodes.forEach(node => {
+      node._depth = depth
+      result.push(node)
+      if (node.children.length) {
+        flatten(node.children, depth + 1)
+      }
+    })
+  }
 
-const getParentName = (parentId) => {
-  const parent = categories.value.find(c => c.id === parentId)
-  return parent?.name || '无'
-}
+  flatten(roots, 0)
+  return result
+})
 
 const loadCategories = async () => {
   loading.value = true
@@ -153,6 +172,7 @@ const loadCategories = async () => {
 
 const openAddDialog = (parent) => {
   isEdit.value = false
+  isSub.value = !!parent
   Object.assign(form, {
     id: null,
     name: '',
@@ -164,6 +184,7 @@ const openAddDialog = (parent) => {
 
 const openEditDialog = (row) => {
   isEdit.value = true
+  isSub.value = false
   Object.assign(form, {
     id: row.id,
     name: row.name,
@@ -175,10 +196,8 @@ const openEditDialog = (row) => {
 
 const handleSubmit = async () => {
   if (!formRef.value) return
-
   await formRef.value.validate(async (valid) => {
     if (!valid) return
-
     submitLoading.value = true
     try {
       if (isEdit.value) {
@@ -196,6 +215,17 @@ const handleSubmit = async () => {
       submitLoading.value = false
     }
   })
+}
+
+const toggleStatus = async (row) => {
+  try {
+    const newStatus = row.status === 1 ? 0 : 1
+    await adminApi.updateCategoryStatus(row.id, newStatus)
+    ElMessage.success(newStatus === 1 ? '已启用' : '已禁用')
+    loadCategories()
+  } catch (error) {
+    ElMessage.error(error.message || '操作失败')
+  }
 }
 
 const handleDelete = (id) => {
@@ -224,11 +254,22 @@ onMounted(() => {
   max-width: 1400px;
 }
 
-.toolbar {
+.page-header-bar {
   display: flex;
-  justify-content: flex-start;
   align-items: center;
-  margin-bottom: var(--space-6);
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.page-header-bar h2 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
 }
 
 .add-btn {
@@ -244,10 +285,30 @@ onMounted(() => {
 .category-name-cell {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 8px;
 }
 
 .folder-icon {
-  font-size: 18px;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.parent-name {
+  font-weight: 600;
+}
+
+.parent-label {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
+.book-count {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.status-tag {
+  font-weight: 500;
 }
 </style>

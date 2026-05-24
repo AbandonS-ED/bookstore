@@ -85,6 +85,7 @@ public class CategoryServiceImpl implements CategoryService {
         vo.setName(category.getName());
         vo.setParentId(category.getParentId());
         vo.setSort(category.getSort());
+        vo.setStatus(category.getStatus());
         return vo;
     }
 }

@@ -53,6 +53,14 @@ export const adminApi = {
     return request.put(`/book/${id}/status`, null, { params: { status } })
   },
 
+  // 库存管理
+  getInventoryList(params) {
+    return request.get('/book/list', { params })
+  },
+  updateBookStock(id, stock) {
+    return request.put(`/book/${id}/stock`, { stock })
+  },
+
   // 分类管理
   addCategory(data) {
     return request.post('/category/add', data)
@@ -63,10 +71,16 @@ export const adminApi = {
   deleteCategory(id) {
     return request.delete(`/category/${id}`)
   },
+  updateCategoryStatus(id, status) {
+    return request.put(`/category/${id}/status`, null, { params: { status } })
+  },
 
   // 订单管理
   getOrderList(params) {
     return request.get('/order/list', { params })
+  },
+  getRevenueStats(params) {
+    return request.get('/order/stats/revenue', { params })
   },
   shipOrder(id, expressNo) {
     return request.put(`/order/${id}/ship`, { expressNo })
@@ -88,6 +102,37 @@ export const adminApi = {
   },
   rejectAfterSale(id) {
     return request.put(`/order/${id}/reject-after-sale`)
+  },
+
+  // 用户管理
+  getUserList(params) {
+    return request.get('/user/list', { params })
+  },
+  disableUser(id) {
+    return request.put(`/user/${id}/disable`)
+  },
+  enableUser(id) {
+    return request.put(`/user/${id}/enable`)
+  },
+  updateUserRole(id, role) {
+    return request.put(`/user/${id}/role`, { role })
+  },
+  deleteUser(id) {
+    return request.delete(`/user/${id}`)
+  },
+
+  // 评价管理
+  getReviewList(params) {
+    return request.get('/review/list', { params })
+  },
+  deleteReview(id) {
+    return request.delete(`/review/${id}`)
+  },
+  hideReview(id) {
+    return request.put(`/review/${id}/hide`)
+  },
+  showReview(id) {
+    return request.put(`/review/${id}/show`)
   }
 }
 

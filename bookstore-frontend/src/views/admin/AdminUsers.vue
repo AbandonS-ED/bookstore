@@ -1,7 +1,30 @@
 <template>
   <div class="admin-users">
-    <!-- 操作栏 -->
+    <!-- 搜索和操作栏 -->
     <div class="toolbar">
+      <div class="search-box">
+        <el-input
+          v-model="searchKeyword"
+          placeholder="搜索用户名、邮箱、手机号..."
+          clearable
+          @clear="handleSearch"
+          @keyup.enter="handleSearch"
+        >
+          <template #prefix>
+            <span>🔍</span>
+          </template>
+        </el-input>
+        <el-select v-model="statusFilter" style="width: 120px" @change="handleSearch">
+          <el-option label="全部状态" value="" />
+          <el-option label="正常" :value="1" />
+          <el-option label="禁用" :value="0" />
+        </el-select>
+        <el-select v-model="roleFilter" style="width: 140px" @change="handleSearch">
+          <el-option label="全部角色" value="" />
+          <el-option label="普通用户" value="user" />
+          <el-option label="管理员" value="admin" />
+        </el-select>
+      </div>
       <span class="toolbar-title">共 {{ total }} 个用户</span>
     </div>
 
@@ -100,6 +123,9 @@ import { adminApi } from '@/api/admin'
 const loading = ref(false)
 const submitLoading = ref(false)
 const users = ref([])
+const searchKeyword = ref('')
+const statusFilter = ref('')
+const roleFilter = ref('')
 const pageNum = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
@@ -113,7 +139,10 @@ const loadUsers = async () => {
   try {
     const params = {
       pageNum: pageNum.value,
-      pageSize: pageSize.value
+      pageSize: pageSize.value,
+      keyword: searchKeyword.value || undefined,
+      status: statusFilter.value !== '' ? Number(statusFilter.value) : undefined,
+      role: roleFilter.value || undefined
     }
     const res = await adminApi.getUserList(params)
     users.value = res.data?.records || []
@@ -123,6 +152,11 @@ const loadUsers = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const handleSearch = () => {
+  pageNum.value = 1
+  loadUsers()
 }
 
 const toggleStatus = async (row) => {
@@ -199,6 +233,15 @@ onMounted(() => {
 .toolbar-title {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
+}
+
+.search-box {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.search-box .el-input {
+  width: 300px;
 }
 
 .users-table {

@@ -124,14 +124,16 @@ class BookServiceTest {
     }
 
     @Test
-    void search_withKeyword_returnsMatchingBooks() {
+    void pageQuery_withKeyword_returnsMatchingBooks() {
         Page<Book> page = new Page<>(1, 10);
         page.setRecords(Arrays.asList(testBook));
         page.setTotal(1);
 
         when(bookMapper.selectPage(any(Page.class), any(LambdaQueryWrapper.class))).thenReturn(page);
 
-        PageResult<?> result = bookService.search("测试", 1, 10);
+        BookQueryDTO dto = new BookQueryDTO();
+        dto.setKeyword("测试");
+        PageResult<?> result = bookService.pageQuery(dto);
 
         assertNotNull(result);
         assertEquals(1, result.getTotal());

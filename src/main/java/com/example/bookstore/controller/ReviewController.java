@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/review")
@@ -27,6 +28,11 @@ public class ReviewController {
     public Result<List<ReviewVO>> bookReviews(@PathVariable Long bookId) {
         List<ReviewVO> reviews = reviewService.getByBookId(bookId);
         return Result.success(reviews);
+    }
+
+    @GetMapping("/stats")
+    public Result<Map<String, Object>> stats() {
+        return Result.success(reviewService.getStats());
     }
 
     @GetMapping("/my")

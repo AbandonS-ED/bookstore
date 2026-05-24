@@ -1,103 +1,109 @@
 # AGENTS.md
 
-## 快速命令
+## Commands
 
 ```bash
-mvn spring-boot:run                         # 后端（端口 8081）
-cd bookstore-frontend; npm run dev           # 前端（端口 5173）
-mysql -u root -p < sql/init.sql             # 初始化 bookstore 库（12 张表 + 种子数据）
-mvn test                                    # 纯 JUnit 5 + Mockito，无需 Spring 上下文
-mvn clean package -DskipTests               # 完整构建
-python test_smoke.py                        # Playwright E2E 冒烟（需前/后端运行）
+mvn spring-boot:run              # backend :8081
+cd bookstore-frontend; npm run dev  # frontend :5173
+mysql -u root -p < sql/init.sql  # init bookstore DB (12 tables + seed)
+mvn test                          # pure JUnit5 + Mockito, no DB needed
+mvn clean package -DskipTests     # full build
+python test_smoke.py              # Playwright e2e (needs both servers)
 ```
 
-无 linter/formatter，构建仅 `mvn test` + `npm run build`。
+No linter/formatter. CI = `mvn test` + `npm run build`.
 
-## 雪花 ID 精度丢失（重点）
+DB password in `src/main/resources/application-local.yml` (copied from `.example`, gitignored).
 
-MyBatis-Plus `ASSIGN_ID` 生成 19 位 Long，超出 JS `Number.MAX_SAFE_INTEGER`。**必须字符串化**：
+## Snowflake ID (critical)
 
-| 层级 | 做法 |
-|------|------|
-| **VO**（响应） | `@JsonSerialize(using = ToStringSerializer.class)` 在全部 12 个 VO 的 Long ID 字段 |
-| **Entity** | `@JsonFormat(shape = JsonFormat.Shape.STRING)` 在 `BaseEntity.id`、`Book.authorId`/`categoryId`、`Category.parentId` |
-| **DTO**（请求体） | ID 字段声明为 `String`（`OrderCreateDTO.addressId`/`cartItemIds`、`CartUpdateDTO.id`、`AddressUpdateDTO.id`） |
-| **Service** | `Long.parseLong(dto.getId())` 转回 |
+MyBatis-Plus 3.5.6 global default `IdType.ASSIGN_ID` generates 19-digit Longs → exceeds `Number.MAX_SAFE_INTEGER`. **Must stringify**:
 
-VO 独立于 Entity，字段在 `convertToVO()` 中手工复制。`FavoriteController.add()` 须用 `Map<String, String>` + `Long.parseLong()` 接收前端字符串 ID（此前 `Map<String, Long>` 会导致 null）。
+| Layer | Rule |
+|-------|------|
+| **VO** | `@JsonSerialize(using = ToStringSerializer.class)` on Long ID fields (12 of 13 VOs; `BookChapterVO` has no Long fields; `BookVO.origPrice` is `BigDecimal` but also annotated) |
+| **Entity** | `@JsonFormat(shape = Shape.STRING)` on `BaseEntity.id` (`common/` pkg, not `entity/`), `Book.authorId`/`categoryId`, `Category.parentId` |
+| **DTO** | ID fields are `String` (`OrderCreateDTO.addressId`/`cartItemIds`, `CartUpdateDTO.id`, `AddressUpdateDTO.id`). Others (`StockAdjustDTO.stock`) are plain types. |
+| **Service** | `Long.parseLong(dto.getId())` to convert back |
 
-## Vite 代理规则（`vite.config.js`）
+**Only real auto-increment exception**: `OrderItem.id` (`@TableId(type = IdType.AUTO)`). `BookChapter` has **no** `@TableId` annotation (uses default snowflake), but its VO exposes no Long IDs so precision loss is irrelevant.
 
-| 前端路径 | 后端目标 | 说明 |
-|----------|---------|------|
-| `/api` | `localhost:8081/api` | 用户 API 透传 |
-| `/admin-api` | `localhost:8081/admin` | **路径重写** `/admin-api` → `/admin` |
-| `/pictures` | `localhost:8081/pictures` | 封面图静态资源 |
+`FavoriteController.add()` takes `Map<String, String>` (not `Map<String, Long>`) and calls `Long.parseLong(body.get("bookId"))`.
 
-## 两个 axios 实例
+## Vite proxy
 
-| 文件 | baseURL | 响应处理 | 401 处理 |
-|------|---------|----------|----------|
-| `src/api/index.js` | `/api` | 非 200 弹 `ElMessage.error`，返回 `res`（`response.data`） | 清除 token，`router.push('/login')` |
-| `src/api/admin.js` | `/admin-api` | 校验 `res.code !== 200`，弹 `ElMessage.error`，返回 `res`（`response.data`） | 清除 token，`window.location.href = '/login'` |
+| Frontend path | Backend target | Rewrite |
+|---------------|----------------|---------|
+| `/api` | `localhost:8081/api` | passthrough |
+| `/admin-api` | `localhost:8081/admin` | `/admin-api` → `/admin` |
+| `/pictures` | `localhost:8081/pictures` | passthrough |
 
-管理端方法传相对路径（如 `/book/list`），拼接后为 `GET /admin/book/list`。
+## Two axios instances
 
-## 架构要点
+| File | baseURL | 401 |
+|------|---------|-----|
+| `src/api/index.js` | `/api` | `token=null; router.push('/login')` |
+| `src/api/admin.js` | `/admin-api` | `token=null; window.location.href='/login'` |
 
-- **Spring Boot 3.2.5** + **MyBatis-Plus 3.5.6**（全注解查询，XML 映射配置未使用）
-- **Controller → Service → Mapper**，DTO 入 / VO 出，统一 `Result<T>(code,message,data)`
-- **Admin 控制器直接注入 Mapper**（BookManageController、OrderManageController、UserManageController、ReviewManageController），仅 `CategoryManageController` 走 Service
-- **拦截器**：`AuthInterceptor`（用户路径 + `/admin/**`，设 `AuthContext` ThreadLocal），`AdminInterceptor`（校验角色 admin）
-- **密码**：仅 `spring-security-crypto`（BCrypt），非完整 Spring Security
-- **CORS**：仅允许 `http://localhost:*`
-- **默认管理员**：`admin` / `123456`
-- **封面图**：`pictures/` 目录，`WebMvcConfig` 映射为 `/pictures/**` 静态资源
-- **前端**：Vue 3 + Vite + Element Plus + Pinia（6 stores：cart/category/favorite/order/review/user）
-- **应用入口**：`BookstoreApplication.java`，`@MapperScan("com.example.bookstore.mapper")`
+Admin paths are relative (e.g. `/book/list` → `GET /admin/book/list`).
 
-## 订单状态
+## Architecture
+
+- **Controller → Service → Mapper**, DTO in / VO out, unified `Result<T>(code,message,data)`
+- **Admin controllers** (`BookManageController`, `OrderManageController`, `UserManageController`, `ReviewManageController`) inject Mapper directly, return raw `Page<Entity>` (no VO). `CategoryManageController` mixes both: uses `CategoryService` for add/update/delete, `CategoryMapper` for `updateStatus`.
+- **Interceptors**: `AuthInterceptor` on `/api/user/info`, `/api/user/password`, `/api/user/profile`, `/api/address/**`, `/api/cart/**`, `/api/favorite/**`, `/api/order/**`, `/api/review/add`, `/admin/**`. `AdminInterceptor` on `/admin/**` (checks admin role).
+- **Password**: BCrypt via `spring-security-crypto` only (no full Spring Security)
+- **CORS**: allows only `http://localhost:*`
+- **Default admin**: `admin` / `123456`
+- **Cover images**: `pictures/` dir served as `/pictures/**` static resource
+- **Entry**: `BookstoreApplication.java`, `@MapperScan("com.example.bookstore.mapper")`
+- **MyBatis-Plus ID config**: no global `id-type` override → default `ASSIGN_ID` (snowflake). `application.yml` enables `map-underscore-to-camel-case: true` + stdout SQL logging.
+
+## Order state
 
 ```
 created → paying → paid → shipped → delivered → completed
-   ↓ (过期)    ↓ (取消)
-expired      cancelled
-                    paid/shipped → refunded
-                    delivered/completed → after_sale
+   ↓ (expired)  ↓ (cancel)
+expired       cancelled
+                  paid/shipped → refunded
+                  delivered/completed → after_sale
 ```
 
-- `book.sales` 仅在 `OrderServiceImpl.pay()` 中原子递增（`UPDATE ... SET sales = sales + #{quantity}`），创建/取消不影响
-- `OrderServiceImpl.cancel()` 回滚库存但**不回滚** sales（sales 从 0 开始，仅已支付订单算销量）
-- `applyAfterSale()` 接受 `delivered` + `completed` 两种状态
+- `book.sales` incremented atomically only in `OrderServiceImpl.pay()` (`UPDATE SET sales = sales + #{quantity}`)
+- `cancel()` restores stock but **does NOT roll back** sales (only paid orders count)
+- `applyAfterSale()` accepts `delivered` + `completed`
+- `BookMapper` atomic ops: `decreaseStock` (with `WHERE stock >= #{quantity}` guard), `increaseSales`, `increaseFavoritedCount`, `decreaseFavoritedCount`, `updateStock`
 
-## 前端关键约定
+## Frontend conventions (easy to get wrong)
 
-- `OrderItemVO` 字段名 `bookTitle`/`bookAuthor`，**不是** `title`/`author`
-- `OrderVO` 扁平字段 `receiverName`/`receiverPhone`/`receiverAddress`，**不是** 嵌套 `address`
-- 购物车更新传 `{id, quantity}`（购物车记录 ID），**不是** `{bookId, quantity}`
-- 创建订单传 `{cartItemIds: [购物车记录ID], addressId}`，**不是** `{items: [{bookId, quantity}]}`
-- **"立即购买"走购物车**：`BookDetail.vue` → `/order/confirm?bookId=X&quantity=Y` → `OrderConfirm.vue` 先调 `cartStore.addToCart` 再取 cart ID 下单
+| Where | Convention |
+|-------|-----------|
+| `OrderItemVO` | fields `bookTitle`/`bookAuthor` (not `title`/`author`) |
+| `OrderVO` | flat `receiverName`/`receiverPhone`/`receiverAddress` (not nested `address`) |
+| Cart update | `PUT {id, quantity}` (cart record ID, not `{bookId, quantity}`) |
+| Order create | `POST {cartItemIds: [cartRecordId], addressId}` (not `{items: [{bookId,qty}]}`) |
+| "Buy now" | `BookDetail.vue` → `/order/confirm?bookId=X&quantity=Y` → calls `cartStore.addToCart` then uses cart ID |
+| Admin orders API | in `src/api/admin.js` (not `src/api/order.js`) |
 
-## 运行约束
+## Gotchas
 
-- SQL 中表名 `` `order` `` 必须加反引号（MySQL 保留字）
-- 数据库密码在 `application-local.yml`（从 `.example` 复制），`.gitignore` 排除了 `application.yml` + `application-local.yml`
-- 测试为纯 Mockito 单元测试（`@ExtendWith(MockitoExtension.class)`），无需数据库
-- E2E 冒烟测试：`python test_smoke.py`（Playwright，需前后端运行）
-
-## 易错点
-
-- **ID 生成矛盾**：SQL DDL 声明 `AUTO_INCREMENT`，但 MyBatis-Plus `@TableId` 默认 `ASSIGN_ID`（雪花算法），实际插入使用 19 位 Long ID。DDL 的 `AUTO_INCREMENT` 仅为 fallback。
-- **无 MetaObjectHandler**：`BaseEntity` 标注 `@TableField(fill = FieldFill.INSERT/UPDATE)` 但无实现类，`createTime`/`updateTime` 的自动填充依赖 MySQL `DEFAULT CURRENT_TIMESTAMP` / `ON UPDATE CURRENT_TIMESTAMP`。
-- **排行榜 API**（`BookController.getRanking`）：`type` 参数（`sales`/`rating`/`new`）生效，`period` 参数（`all`/`week`/`month`/`quarter`/`year`）**仅 `new` 类型实际使用**，其余类型暂忽略 period。
-- **`avgRating` 非 DB 列**：`book` 表无 `avg_rating` 列，评分均值在 `BookServiceImpl` 查询时实时从 `review` 表计算。修改评论不会写 book 表。
-- **`favorited_count`**：`book` 表有 `favorited_count INT DEFAULT 0` 列，由 `FavoriteServiceImpl.add()`/`remove()` 通过原子 SQL 更新（`SET favorited_count = favorited_count +/- 1`）。
-- **SQL init 脚本中的 ALTER TABLE**（`orig_price` / `favorited_price` / `favorited_count` 列）仅用于已有数据库迁移，`CREATE TABLE` 已包含这些列。
-
-## 分页响应
-
-```json
-{ "code": 200, "message": "操作成功", "data": { "total": 100, "records": [...] } }
-```
-
-`PageResult<T>` 含 `total`（Long）+ `records`（List\<T\>）。MyBatis-Plus `Page` 对象直接序列化含大量无关字段，仅 `total`/`records` 由 `PageResult` 包装。
+- **DDL `AUTO_INCREMENT` is a fallback only** — actual inserts use snowflake 19-digit IDs (except `OrderItem.id`)
+- **No MetaObjectHandler**: `BaseEntity` has `@TableField(fill = ...)` but no implementation; `createTime`/`updateTime` rely on MySQL `DEFAULT CURRENT_TIMESTAMP` / `ON UPDATE CURRENT_TIMESTAMP`
+- **`avgRating`**: computed live from `review` table at query time, not a DB column
+- **`favorited_count`**: orchestrated by `FavoriteServiceImpl`, atomic SQL in `BookMapper` (`SET favorited_count = favorited_count +/- 1`)
+- **`Address.entity`**: explicit `@TableField("user_id")` column mapping
+- **`PaymentVO.amount`**: `String` (hand-written `.toString()`, not `@JsonSerialize`)
+- **`OrderVO.paymentId`**: `Long` **without** `@JsonSerialize` (potential precision loss — `Payment` uses snowflake ID)
+- **`BookVO.origPrice`**: `BigDecimal` but annotated with `@JsonSerialize(using = ToStringSerializer.class)` (non-standard for non-Long)
+- **`BookChapterVO`**: no Long ID fields, no `@JsonSerialize`
+- **`BookChapter`**: does **not** extend `BaseEntity`, has **no** `@TableId` (uses default snowflake)
+- **`order` table**: must be backtick-quoted in SQL (`OrderMapper` raw `@Select` queries use `` `order` ``)
+- **Ranking API** (`BookController.getRanking`): `type` (`sales`/`rating`/`new`/`collection`) works; `period` (`all`/`week`/`month`/`quarter`/`year`) only applies to `new` type
+- **Pagination response**: user-facing controllers wrap via `PageResult<T>(total, records)`. Admin controllers return raw MyBatis-Plus `Page<Entity>` (many irrelevant fields, but Jackson only serializes what's accessible).
+- **Revenue SQL** (`OrderMapper`): filters by `pay_time BETWEEN start AND end` AND status IN `('paid','shipped','delivered','completed','refunding','after_sale')`. NULL `pay_time` = excluded regardless of status. `pay()` must set `payTime`.
+- **Review purchase validation** (`ReviewServiceImpl.add()`): when `orderItemId` is set, validates user owns the item, order is `delivered`/`completed`, and no duplicate review exists for that order_item_id. `review` table has `uk_order_item` unique constraint.
+- **Admin refund page**: `/admin/refunds` route → `AdminRefund.vue`. 4 stat cards + 4 filter tabs (全部/退款中/售后中/已退款). "全部" fetches all 3 statuses in parallel, merges client-side. Default tab is `refunding` (退款中).
+- **Admin refund/after-sale endpoints** (all in `OrderManageController`): `PUT /admin/order/{id}/refund`, `/approve-refund`, `/reject-refund`, `/approve-after-sale`, `/reject-after-sale`.
+- **Stock adjustment**: `PUT /admin/book/{id}/stock` with `{stock: N}` via `BookManageController`. Uses `BookMapper.updateStock()` (atomic `UPDATE ... SET stock = N`). Admin route: `/admin/inventory` → `AdminInventory.vue`.
+- **Review entity transient fields**: `Review` has `@TableField(exist = false)` fields `username` and `bookTitle` — populated post-query from `UserMapper`/`BookMapper` maps in `ReviewManageController.list()`. Same pattern: `Book.categoryName`.
+- **Admin review/user search**: `ReviewManageController.list()` accepts `keyword`, `status`, `rating` params. `UserManageController.list()` accepts `keyword`, `status`, `role` params. Keyword search on reviews queries user/book tables for IDs since `username`/`bookTitle` are transient; user keyword searches `username LIKE`, `email LIKE`, `phone LIKE` directly.

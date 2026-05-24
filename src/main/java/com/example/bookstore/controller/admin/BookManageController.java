@@ -3,6 +3,7 @@ package com.example.bookstore.controller.admin;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.bookstore.common.Result;
+import com.example.bookstore.dto.StockAdjustDTO;
 import com.example.bookstore.entity.Book;
 import com.example.bookstore.entity.Category;
 import com.example.bookstore.entity.OrderItem;
@@ -68,15 +69,42 @@ public class BookManageController {
         return Result.success();
     }
 
+    @PutMapping("/{id}/stock")
+    public Result<Void> updateStock(@PathVariable Long id, @Valid @RequestBody StockAdjustDTO dto) {
+        Book book = bookMapper.selectById(id);
+        if (book == null) {
+            return Result.error(1, "书籍不存在");
+        }
+        bookMapper.updateStock(id, dto.getStock());
+        return Result.success();
+    }
+
     @GetMapping("/list")
     public Result<Page<Book>> list(@RequestParam(required = false) String keyword,
+                                    @RequestParam(required = false) Long categoryId,
+                                    @RequestParam(required = false) Integer status,
+                                    @RequestParam(required = false) String sortBy,
                                     @RequestParam(defaultValue = "1") Integer pageNum,
                                     @RequestParam(defaultValue = "10") Integer pageSize) {
         LambdaQueryWrapper<Book> wrapper = new LambdaQueryWrapper<>();
         if (keyword != null && !keyword.isBlank()) {
             wrapper.like(Book::getTitle, keyword);
         }
-        wrapper.orderByDesc(Book::getCreateTime);
+        if (categoryId != null) {
+            wrapper.eq(Book::getCategoryId, categoryId);
+        }
+        if (status != null) {
+            wrapper.eq(Book::getStatus, status);
+        }
+        if ("sales".equals(sortBy)) {
+            wrapper.orderByDesc(Book::getSales);
+        } else if ("price".equals(sortBy)) {
+            wrapper.orderByDesc(Book::getPrice);
+        } else if ("stock".equals(sortBy)) {
+            wrapper.orderByDesc(Book::getStock);
+        } else {
+            wrapper.orderByDesc(Book::getCreateTime);
+        }
         Page<Book> page = new Page<>(pageNum, pageSize);
         Page<Book> result = bookMapper.selectPage(page, wrapper);
 

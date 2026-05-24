@@ -1,6 +1,10 @@
 import api from '@/api'
 
 export const reviewApi = {
+  getStats() {
+    return api.get('/review/stats')
+  },
+
   getBookReviews(bookId) {
     return api.get(`/review/book/${bookId}`)
   },

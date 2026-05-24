@@ -141,26 +141,6 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public PageResult<BookVO> search(String keyword, Integer pageNum, Integer pageSize) {
-        Page<Book> page = new Page<>(pageNum, pageSize);
-        LambdaQueryWrapper<Book> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Book::getStatus, Constants.BOOK_STATUS_ON)
-                .and(w -> w.like(Book::getTitle, keyword)
-                        .or()
-                        .like(Book::getAuthor, keyword)
-                        .or()
-                        .like(Book::getIsbn, keyword));
-
-        Page<Book> result = bookMapper.selectPage(page, wrapper);
-        List<BookVO> voList = convertToVOList(result.getRecords());
-
-        PageResult<BookVO> pageResult = new PageResult<>();
-        pageResult.setTotal(result.getTotal());
-        pageResult.setRecords(voList);
-        return pageResult;
-    }
-
-    @Override
     public BookDetailVO getDetail(Long id) {
         return getDetail(id, null);
     }

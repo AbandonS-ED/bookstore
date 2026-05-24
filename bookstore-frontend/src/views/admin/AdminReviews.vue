@@ -1,7 +1,33 @@
 <template>
   <div class="admin-reviews">
-    <!-- 操作栏 -->
+    <!-- 搜索和操作栏 -->
     <div class="toolbar">
+      <div class="search-box">
+        <el-input
+          v-model="searchKeyword"
+          placeholder="搜索用户名、书名..."
+          clearable
+          @clear="handleSearch"
+          @keyup.enter="handleSearch"
+        >
+          <template #prefix>
+            <span>🔍</span>
+          </template>
+        </el-input>
+        <el-select v-model="statusFilter" style="width: 120px" @change="handleSearch">
+          <el-option label="全部状态" value="" />
+          <el-option label="显示" :value="1" />
+          <el-option label="隐藏" :value="0" />
+        </el-select>
+        <el-select v-model="ratingFilter" style="width: 120px" @change="handleSearch">
+          <el-option label="全部评分" value="" />
+          <el-option label="5星" :value="5" />
+          <el-option label="4星" :value="4" />
+          <el-option label="3星" :value="3" />
+          <el-option label="2星" :value="2" />
+          <el-option label="1星" :value="1" />
+        </el-select>
+      </div>
       <span class="toolbar-title">共 {{ total }} 条评论</span>
     </div>
 
@@ -18,10 +44,22 @@
       </el-table-column>
       <el-table-column prop="content" label="评论内容" min-width="300" show-overflow-tooltip />
       <el-table-column prop="createTime" label="评论时间" width="180" />
-      <el-table-column label="操作" width="180" fixed="right">
+      <el-table-column label="状态" width="80" align="center">
         <template #default="{ row }">
-          <el-button size="small" type="warning" link @click="handleHide(row.id)">
-            隐藏
+          <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">
+            {{ row.status === 1 ? '显示' : '隐藏' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="120" fixed="right">
+        <template #default="{ row }">
+          <el-button
+            size="small"
+            :type="row.status === 1 ? 'warning' : 'primary'"
+            link
+            @click="toggleStatus(row)"
+          >
+            {{ row.status === 1 ? '隐藏' : '显示' }}
           </el-button>
           <el-button size="small" type="danger" link @click="handleDelete(row.id)">
             删除
@@ -52,6 +90,9 @@ import { adminApi } from '@/api/admin'
 
 const loading = ref(false)
 const reviews = ref([])
+const searchKeyword = ref('')
+const statusFilter = ref('')
+const ratingFilter = ref('')
 const pageNum = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
@@ -61,7 +102,10 @@ const loadReviews = async () => {
   try {
     const params = {
       pageNum: pageNum.value,
-      pageSize: pageSize.value
+      pageSize: pageSize.value,
+      keyword: searchKeyword.value || undefined,
+      status: statusFilter.value !== '' ? Number(statusFilter.value) : undefined,
+      rating: ratingFilter.value !== '' ? Number(ratingFilter.value) : undefined
     }
     const res = await adminApi.getReviewList(params)
     reviews.value = res.data?.records || []
@@ -71,6 +115,11 @@ const loadReviews = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const handleSearch = () => {
+  pageNum.value = 1
+  loadReviews()
 }
 
 const handleDelete = (id) => {
@@ -89,15 +138,20 @@ const handleDelete = (id) => {
   })  .catch(() => {})
 }
 
-const handleHide = async (id) => {
+const toggleStatus = async (row) => {
   try {
-    await ElMessageBox.confirm('确定要隐藏该评论吗？', '提示', {
+    const action = row.status === 1 ? '隐藏' : '显示'
+    await ElMessageBox.confirm(`确定要${action}该评论吗？`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     })
-    await adminApi.hideReview(id)
-    ElMessage.success('已隐藏')
+    if (row.status === 1) {
+      await adminApi.hideReview(row.id)
+    } else {
+      await adminApi.showReview(row.id)
+    }
+    ElMessage.success(`${action}成功`)
     loadReviews()
   } catch (error) {
     if (error !== 'cancel') {
@@ -126,6 +180,15 @@ onMounted(() => {
 .toolbar-title {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
+}
+
+.search-box {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.search-box .el-input {
+  width: 300px;
 }
 
 .reviews-table {

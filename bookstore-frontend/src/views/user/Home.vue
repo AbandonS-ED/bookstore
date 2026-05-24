@@ -27,15 +27,15 @@
     <div class="stats-bar">
       <div class="stats-inner">
         <div class="stat-item">
-          <div class="stat-number">万册</div>
+          <div class="stat-number">{{ bookCountText }}</div>
           <div class="stat-label">在售图书</div>
         </div>
         <div class="stat-item">
-          <div class="stat-number">千+</div>
+          <div class="stat-number">{{ userCountText }}</div>
           <div class="stat-label">注册读者</div>
         </div>
         <div class="stat-item">
-          <div class="stat-number">99%</div>
+          <div class="stat-number">{{ goodRateText }}</div>
           <div class="stat-label">好评率</div>
         </div>
         <div class="stat-item">
@@ -157,6 +157,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { bookApi } from '@/api/book'
 import { categoryApi } from '@/api/category'
+import { reviewApi } from '@/api/review'
 import BookCard from '@/components/business/BookCard.vue'
 
 const router = useRouter()
@@ -167,6 +168,9 @@ const heroBooks = ref([])
 const loading = ref(true)
 const selectedCategory = ref(null)
 const viewMode = ref('grid')
+const goodRateText = ref('99%')
+const bookCountText = ref('万册')
+const userCountText = ref('千+')
 
 const fetchBooks = async () => {
   loading.value = true
@@ -197,6 +201,16 @@ onMounted(async () => {
     heroBooks.value = (rankRes.data || []).slice(0, 3)
   } catch (error) {
     console.error('Failed to load categories:', error)
+  }
+  try {
+    const statsRes = await reviewApi.getStats()
+    if (statsRes.code === 200 && statsRes.data) {
+      goodRateText.value = (statsRes.data.goodRate * 100).toFixed(1) + '%'
+      bookCountText.value = statsRes.data.totalBooks.toLocaleString() + '+'
+      userCountText.value = statsRes.data.totalUsers.toLocaleString() + '+'
+    }
+  } catch (error) {
+    console.error('Failed to load review stats:', error)
   }
   await fetchBooks()
   newBooks.value = [...books.value].reverse()

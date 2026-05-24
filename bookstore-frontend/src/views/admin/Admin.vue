@@ -118,13 +118,15 @@ const menuSections = [
     title: '商品管理',
     items: [
       { path: '/admin/books', icon: '📚', label: '书籍管理' },
+      { path: '/admin/inventory', icon: '📦', label: '库存管理' },
       { path: '/admin/categories', icon: '📂', label: '分类管理' }
     ]
   },
   {
     title: '交易管理',
     items: [
-      { path: '/admin/orders', icon: '🧾', label: '订单管理' }
+      { path: '/admin/orders', icon: '🧾', label: '订单管理' },
+      { path: '/admin/refunds', icon: '↩️', label: '退款售后' }
     ]
   },
   {

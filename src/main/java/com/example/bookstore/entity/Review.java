@@ -15,6 +15,8 @@ public class Review extends BaseEntity {
 
     private Long bookId;
 
+    private Long orderItemId;
+
     private Integer rating;
 
     private String content;

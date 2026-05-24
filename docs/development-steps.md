@@ -259,6 +259,7 @@
   - PUT /admin/book/update
   - DELETE /admin/book/{id}
   - PUT /admin/book/{id}/status
+  - PUT /admin/book/{id}/stock（库存调整）
   - GET /admin/book/list
 
 - [x] CategoryManageController.java（唯一走Service的管理端）
@@ -284,16 +285,17 @@
   - DELETE /admin/user/{id}
 
 - [x] ReviewManageController.java
-  - GET /admin/review/list
+  - GET /admin/review/list（支持 keyword/status/rating 筛选）
   - DELETE /admin/review/{id}
   - PUT /admin/review/{id}/hide
+  - PUT /admin/review/{id}/show
 
 ---
 
 ### 阶段七：前端开发（Vue 3）✅
 
 - [x] 用户端页面开发（Home/Books/BookDetail/Cart/Order*/Login/Register/User/Settings/Addresses/Reviews/Ranking/NewArrivals/Favorites/CategoryBrowse/About/OrderSuccess）
-- [x] 管理端页面开发（Admin/AdminBooks/AdminCategories/AdminOrders/AdminUsers/AdminReviews）
+- [x] 管理端页面开发（Admin/AdminDashboard/AdminBooks/AdminCategories/AdminInventory/AdminOrders/AdminRefund/AdminUsers/AdminReviews）
 - [x] 公共组件（AppHeader/AppFooter/BookCard/PaginationBar/ModalDialog/ToastContainer）
 - [x] Pinia状态管理（user/cart/category/order/favorite/review）
 - [x] 前后端联调
@@ -313,6 +315,10 @@
 - [x] 售后申请支持 delivered + completed 两种状态
 - [x] 管理员订单管理增加approve-refund/reject-refund/approve-after-sale/reject-after-sale
 - [x] 管理员用户管理增加role/delete
+- [x] BookMapper.updateStock 原子设置库存
+- [x] 管理员评论管理增加 show（显示）操作
+- [x] 管理员库存管理页面 AdminInventory.vue + AdminRefund.vue 退款售后页面
+- [x] 管理员仪表盘 AdminDashboard.vue
 - [x] 种子数据增加author/book_chapter表，review从12→30条
 
 ---

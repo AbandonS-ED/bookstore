@@ -17,5 +17,7 @@ public class CategoryVO {
 
     private Integer sort;
 
+    private Integer status;
+
     private Integer bookCount;
 }

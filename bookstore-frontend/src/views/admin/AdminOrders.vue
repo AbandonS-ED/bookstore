@@ -8,8 +8,6 @@
         <el-radio-button label="paid">待发货</el-radio-button>
         <el-radio-button label="shipped">已发货</el-radio-button>
         <el-radio-button label="delivered">已完成</el-radio-button>
-        <el-radio-button label="refunding">退款审核</el-radio-button>
-        <el-radio-button label="after_sale">售后审核</el-radio-button>
         <el-radio-button label="cancelled">已取消</el-radio-button>
       </el-radio-group>
     </div>
@@ -55,51 +53,7 @@
           >
             确认送达
           </el-button>
-          <el-button
-            v-if="row.status === 'paid' || row.status === 'shipped'"
-            size="small"
-            type="danger"
-            link
-            @click="handleRefund(row)"
-          >
-            退款
-          </el-button>
-          <el-button
-            v-if="row.status === 'refunding'"
-            size="small"
-            type="success"
-            link
-            @click="handleApproveRefund(row)"
-          >
-            同意退款
-          </el-button>
-          <el-button
-            v-if="row.status === 'refunding'"
-            size="small"
-            type="danger"
-            link
-            @click="handleRejectRefund(row)"
-          >
-            拒绝退款
-          </el-button>
-          <el-button
-            v-if="row.status === 'after_sale'"
-            size="small"
-            type="success"
-            link
-            @click="handleApproveAfterSale(row)"
-          >
-            通过售后
-          </el-button>
-          <el-button
-            v-if="row.status === 'after_sale'"
-            size="small"
-            type="danger"
-            link
-            @click="handleRejectAfterSale(row)"
-          >
-            拒绝售后
-          </el-button>
+
         </template>
       </el-table-column>
     </el-table>
@@ -188,7 +142,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { adminApi } from '@/api/admin'
 
 const loading = ref(false)
@@ -285,91 +239,6 @@ const handleDeliver = async (row) => {
     loadOrders()
   } catch (error) {
     ElMessage.error(error.message || '操作失败')
-  }
-}
-
-const handleRefund = async (row) => {
-  try {
-    await ElMessageBox.confirm('确定要对该订单进行退款吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await adminApi.refundOrder(row.id)
-    ElMessage.success('退款成功')
-    loadOrders()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error(error.message || '退款失败')
-    }
-  }
-}
-
-const handleApproveRefund = async (row) => {
-  try {
-    await ElMessageBox.confirm('同意退款后将恢复库存，确定操作？', '同意退款', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await adminApi.approveRefund(row.id)
-    ElMessage.success('已同意退款')
-    loadOrders()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error(error.message || '操作失败')
-    }
-  }
-}
-
-const handleRejectRefund = async (row) => {
-  try {
-    await ElMessageBox.confirm('拒绝退款后订单将恢复为已支付状态，确定操作？', '拒绝退款', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await adminApi.rejectRefund(row.id)
-    ElMessage.success('已拒绝退款')
-    loadOrders()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error(error.message || '操作失败')
-    }
-  }
-}
-
-const handleApproveAfterSale = async (row) => {
-  try {
-    await ElMessageBox.confirm('通过售后后将退款并恢复库存，确定操作？', '通过售后', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await adminApi.approveAfterSale(row.id)
-    ElMessage.success('已通过售后申请')
-    loadOrders()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error(error.message || '操作失败')
-    }
-  }
-}
-
-const handleRejectAfterSale = async (row) => {
-  try {
-    await ElMessageBox.confirm('拒绝售后后订单将恢复为已完成状态，确定操作？', '拒绝售后', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await adminApi.rejectAfterSale(row.id)
-    ElMessage.success('已拒绝售后申请')
-    loadOrders()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error(error.message || '操作失败')
-    }
   }
 }
 

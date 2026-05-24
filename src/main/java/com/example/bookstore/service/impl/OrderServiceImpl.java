@@ -7,6 +7,7 @@ import com.example.bookstore.dto.OrderCreateDTO;
 import com.example.bookstore.dto.OrderQueryDTO;
 import com.example.bookstore.entity.*;
 import com.example.bookstore.exception.BusinessException;
+import com.example.bookstore.entity.Review;
 import com.example.bookstore.mapper.*;
 import com.example.bookstore.service.OrderService;
 import com.example.bookstore.util.OrderNoGenerator;
@@ -35,6 +36,7 @@ public class OrderServiceImpl implements OrderService {
     private final CartMapper cartMapper;
     private final BookMapper bookMapper;
     private final AddressMapper addressMapper;
+    private final ReviewMapper reviewMapper;
 
     @Override
     @Transactional
@@ -129,6 +131,7 @@ public class OrderServiceImpl implements OrderService {
 
         order.setStatus(Constants.ORDER_STATUS_PAID);
         order.setPayStatus(Constants.PAY_STATUS_PAID);
+        order.setPayTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         orderMapper.updateById(order);
 
         LambdaQueryWrapper<OrderItem> itemWrapper = new LambdaQueryWrapper<>();
@@ -254,6 +257,11 @@ public class OrderServiceImpl implements OrderService {
         itemWrapper.eq(OrderItem::getOrderId, order.getId());
         List<OrderItem> items = orderItemMapper.selectList(itemWrapper);
 
+        List<Long> itemIds = items.stream().map(OrderItem::getId).collect(Collectors.toList());
+        List<Review> reviews = itemIds.isEmpty() ? List.of() : reviewMapper.selectList(
+                new LambdaQueryWrapper<Review>().in(Review::getOrderItemId, itemIds));
+        java.util.Set<Long> reviewedItemIds = reviews.stream().map(Review::getOrderItemId).collect(Collectors.toSet());
+
         List<OrderItemVO> itemVOs = items.stream().map(item -> {
             OrderItemVO itemVO = new OrderItemVO();
             itemVO.setId(item.getId());
@@ -264,6 +272,7 @@ public class OrderServiceImpl implements OrderService {
             itemVO.setPrice(item.getPrice());
             itemVO.setQuantity(item.getQuantity());
             itemVO.setSubtotal(item.getSubtotal());
+            itemVO.setReviewed(reviewedItemIds.contains(item.getId()));
             return itemVO;
         }).collect(Collectors.toList());
 

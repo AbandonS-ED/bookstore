@@ -47,15 +47,6 @@ public class BookController {
         return Result.success(result);
     }
 
-    @GetMapping("/search")
-    public Result<PageResult<BookVO>> search(
-            @RequestParam String keyword,
-            @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
-        PageResult<BookVO> result = bookService.search(keyword, pageNum, pageSize);
-        return Result.success(result);
-    }
-
     @GetMapping("/category/{categoryId}")
     public Result<PageResult<BookVO>> category(
             @PathVariable Long categoryId,

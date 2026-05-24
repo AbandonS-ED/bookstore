@@ -24,6 +24,7 @@ CREATE TABLE `category` (
     `name` VARCHAR(50) NOT NULL COMMENT '分类名称',
     `parent_id` BIGINT DEFAULT 0 COMMENT '父分类ID（0为顶级）',
     `sort` INT DEFAULT 0 COMMENT '排序',
+    `status` INT DEFAULT 1 COMMENT '状态（1启用 0禁用）',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='分类表';
@@ -150,13 +151,15 @@ CREATE TABLE `review` (
     `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
     `user_id` BIGINT NOT NULL COMMENT '用户ID',
     `book_id` BIGINT NOT NULL COMMENT '书籍ID',
+    `order_item_id` BIGINT COMMENT '订单项ID（从订单评价时关联）',
     `rating` TINYINT NOT NULL COMMENT '评分（1-5）',
     `content` VARCHAR(500) COMMENT '评论内容',
     `status` TINYINT DEFAULT 1 COMMENT '状态（1显示/0隐藏）',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     FOREIGN KEY (`user_id`) REFERENCES `user`(`id`),
-    FOREIGN KEY (`book_id`) REFERENCES `book`(`id`)
+    FOREIGN KEY (`book_id`) REFERENCES `book`(`id`),
+    UNIQUE KEY `uk_order_item` (`order_item_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='评论表';
 
 -- 作者表

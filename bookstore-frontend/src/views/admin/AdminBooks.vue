@@ -14,7 +14,29 @@
             <span>🔍</span>
           </template>
         </el-input>
-        <el-button type="primary" @click="handleSearch">搜索</el-button>
+        <el-select v-model="categoryId" style="width: 140px" @change="handleSearch">
+          <el-option label="全部分类" value="" />
+          <el-option
+            v-for="cat in categories"
+            :key="cat.id"
+            :label="cat.name"
+            :value="cat.id"
+          />
+        </el-select>
+        <el-select v-model="statusFilter" style="width: 120px" @change="handleSearch">
+          <el-option label="全部状态" value="" />
+          <el-option label="上架" :value="1" />
+          <el-option label="下架" :value="0" />
+          <el-option label="预售" :value="2" />
+          <el-option label="即将上架" :value="3" />
+        </el-select>
+        <el-select v-model="sortBy" style="width: 140px" @change="handleSearch">
+          <el-option label="排序方式" value="" />
+          <el-option label="上架时间" value="createTime" />
+          <el-option label="销量" value="sales" />
+          <el-option label="价格" value="price" />
+          <el-option label="库存" value="stock" />
+        </el-select>
       </div>
       <el-button type="primary" class="add-btn" @click="openAddDialog">
         + 添加书籍
@@ -40,8 +62,11 @@
       <el-table-column prop="stock" label="库存" width="80" />
       <el-table-column prop="status" label="状态" width="100">
         <template #default="{ row }">
-          <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">
-            {{ row.status === 1 ? '上架' : '下架' }}
+          <el-tag
+            :type="statusType(row.status)"
+            size="small"
+          >
+            {{ statusLabel(row.status) }}
           </el-tag>
         </template>
       </el-table-column>
@@ -51,6 +76,7 @@
             编辑
           </el-button>
           <el-button
+            v-if="row.status === 0 || row.status === 1"
             size="small"
             :type="row.status === 1 ? 'warning' : 'success'"
             link
@@ -158,6 +184,9 @@ const books = ref([])
 const coverErrors = ref({})
 const categories = ref([])
 const searchKeyword = ref('')
+const categoryId = ref('')
+const statusFilter = ref('')
+const sortBy = ref('')
 const pageNum = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
@@ -180,6 +209,20 @@ const form = reactive({
   categoryId: null
 })
 
+const statusType = (s) => {
+  if (s === 1) return 'success'
+  if (s === 2) return 'warning'
+  if (s === 3) return 'info'
+  return 'danger'
+}
+
+const statusLabel = (s) => {
+  if (s === 1) return '上架'
+  if (s === 2) return '预售'
+  if (s === 3) return '即将上架'
+  return '下架'
+}
+
 const rules = {
   title: [{ required: true, message: '请输入书名', trigger: 'blur' }],
   author: [{ required: true, message: '请输入作者', trigger: 'blur' }],
@@ -194,7 +237,10 @@ const loadBooks = async () => {
     const params = {
       pageNum: pageNum.value,
       pageSize: pageSize.value,
-      keyword: searchKeyword.value
+      keyword: searchKeyword.value,
+      categoryId: categoryId.value,
+      status: statusFilter.value !== '' ? Number(statusFilter.value) : undefined,
+      sortBy: sortBy.value || undefined
     }
     const res = await adminApi.getBookList(params)
     books.value = res.data.records || []

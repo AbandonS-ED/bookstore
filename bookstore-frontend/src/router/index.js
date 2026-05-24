@@ -114,8 +114,13 @@ const routes = [
     path: '/admin',
     component: () => import('@/views/admin/Admin.vue'),
     meta: { requiresAuth: true, requiresAdmin: true },
-    redirect: '/admin/books',
+    redirect: '/admin/dashboard',
     children: [
+      {
+        path: 'dashboard',
+        name: 'AdminDashboard',
+        component: () => import('@/views/admin/AdminDashboard.vue')
+      },
       {
         path: 'books',
         name: 'AdminBooks',
@@ -125,6 +130,11 @@ const routes = [
         path: 'categories',
         name: 'AdminCategories',
         component: () => import('@/views/admin/AdminCategories.vue')
+      },
+      {
+        path: 'inventory',
+        name: 'AdminInventory',
+        component: () => import('@/views/admin/AdminInventory.vue')
       },
       {
         path: 'orders',
@@ -140,6 +150,11 @@ const routes = [
         path: 'reviews',
         name: 'AdminReviews',
         component: () => import('@/views/admin/AdminReviews.vue')
+      },
+      {
+        path: 'refunds',
+        name: 'AdminRefunds',
+        component: () => import('@/views/admin/AdminRefund.vue')
       }
     ]
   }

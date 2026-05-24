@@ -66,19 +66,14 @@
               <div class="item-price">¥{{ item.price }}</div>
               <div class="item-quantity">x{{ item.quantity }}</div>
               <div class="item-subtotal">¥{{ (item.price * item.quantity).toFixed(2) }}</div>
-              <div class="item-review" v-if="showReview || reviewedLoading">
-                <span v-if="reviewedLoading" class="review-link loading">···</span>
-                <router-link
-                  v-else-if="reviewedBooks[item.bookId]"
-                  to=""
-                  class="review-link reviewed"
-                  @click.prevent
-                >已评价</router-link>
-                <router-link
-                  v-else
-                  :to="`/book/${item.bookId}?review=1`"
-                  class="review-link"
-                >去评价</router-link>
+              <div class="item-review" v-if="showReview">
+                <template v-if="item.reviewed">
+                  <span class="review-link reviewed">已评价</span>
+                </template>
+                <template v-else>
+                  <button class="btn-review good" @click="openReviewDialog(item, 5)">👍 好评</button>
+                  <button class="btn-review bad" @click="openReviewDialog(item, 1)">👎 差评</button>
+                </template>
               </div>
             </div>
           </div>
@@ -187,6 +182,28 @@
         </div>
       </div>
 
+      <!-- 评价弹窗 -->
+      <el-dialog v-model="showReviewDialog" title="发表评价" width="400px">
+        <div class="review-dialog-body">
+          <p class="review-book-title">《{{ reviewTarget?.bookTitle }}》</p>
+          <p class="review-rating-label">
+            {{ reviewTarget?.rating === 5 ? '👍 好评' : '👎 差评' }}
+          </p>
+          <el-input
+            v-model="reviewContent"
+            type="textarea"
+            :rows="3"
+            maxlength="500"
+            show-word-limit
+            placeholder="说说你的使用感受（选填）"
+          />
+        </div>
+        <template #footer>
+          <el-button @click="showReviewDialog = false">取消</el-button>
+          <el-button type="primary" @click="submitReview" :loading="submittingReview">提交评价</el-button>
+        </template>
+      </el-dialog>
+
       <!-- 支付方式选择弹窗 -->
       <el-dialog v-model="showPaymentDialog" title="选择支付方式" width="400px">
         <div class="payment-methods">
@@ -248,7 +265,6 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useOrderStore } from '@/stores/order'
-import { useUserStore } from '@/stores/user'
 import { reviewApi } from '@/api/review'
 import { formatDateTime, formatOrderStatus } from '@/utils/format'
 import { getCoverStyle } from '@/utils/cover'
@@ -256,7 +272,6 @@ import { getCoverStyle } from '@/utils/cover'
 const route = useRoute()
 const router = useRouter()
 const orderStore = useOrderStore()
-const userStore = useUserStore()
 
 const loading = ref(true)
 const order = ref(null)
@@ -266,8 +281,10 @@ const logistics = ref([])
 const showPaymentDialog = ref(false)
 const selectedPaymentMethod = ref('alipay')
 const paying = ref(false)
-const reviewedBooks = ref({})
-const reviewedLoading = ref(false)
+const showReviewDialog = ref(false)
+const reviewTarget = ref(null)
+const reviewContent = ref('')
+const submittingReview = ref(false)
 
 const showReview = computed(() => {
   const s = order.value?.status
@@ -435,6 +452,32 @@ const handleAfterSale = async () => {
   }
 }
 
+const openReviewDialog = (item, rating) => {
+  reviewTarget.value = { ...item, rating }
+  reviewContent.value = ''
+  showReviewDialog.value = true
+}
+
+const submitReview = async () => {
+  if (!reviewTarget.value) return
+  submittingReview.value = true
+  try {
+    await reviewApi.add({
+      bookId: reviewTarget.value.bookId,
+      orderItemId: reviewTarget.value.id,
+      rating: reviewTarget.value.rating,
+      content: reviewContent.value || null
+    })
+    ElMessage.success(reviewTarget.value.rating === 5 ? '好评已提交' : '差评已提交')
+    showReviewDialog.value = false
+    fetchOrderDetail()
+  } catch (error) {
+    ElMessage.error(error.message || '评价失败')
+  } finally {
+    submittingReview.value = false
+  }
+}
+
 const handleConfirm = async () => {
   try {
     await ElMessageBox.confirm('确认已收到商品？', '确认收货', {
@@ -452,28 +495,8 @@ const handleConfirm = async () => {
   }
 }
 
-const fetchReviewedBooks = async () => {
-  if (!userStore.isLoggedIn) return
-  reviewedLoading.value = true
-  try {
-    const res = await reviewApi.getMyReviews()
-    const myReviews = res.data || []
-    const map = {}
-    myReviews.forEach(r => { map[r.bookId] = true })
-    reviewedBooks.value = map
-  } catch (error) {
-    console.error('Failed to fetch reviewed books:', error)
-  } finally {
-    reviewedLoading.value = false
-  }
-}
-
 onMounted(async () => {
   await fetchOrderDetail()
-  if (order.value?.status === 'delivered' || order.value?.status === 'completed') {
-    reviewedLoading.value = true
-    await fetchReviewedBooks()
-  }
   if (route.query.pay === '1') {
     showPaymentDialog.value = true
   }
@@ -722,12 +745,15 @@ onMounted(async () => {
   min-width: 80px;
   text-align: right;
 }
-.item-review { margin-left: var(--space-3); }
-.review-link { font-size: var(--text-xs); color: var(--color-accent); text-decoration: none; white-space: nowrap; padding: 4px 12px; border: 1px solid var(--color-accent); border-radius: var(--radius-md); transition: all 0.2s ease; }
-.review-link:hover { background: rgba(192,154,75,0.08); }
-.review-link.reviewed { color: var(--color-text-muted); border-color: var(--color-divider-strong); cursor: default; pointer-events: none; }
-.review-link.loading { color: var(--color-text-muted); border-color: var(--color-divider-strong); cursor: default; animation: pulse 1.2s ease infinite; }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.item-review { margin-left: var(--space-3); display: flex; gap: var(--space-2); }
+.btn-review { font-size: var(--text-xs); white-space: nowrap; padding: 4px 12px; border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--color-divider); background: var(--color-bg-card); }
+.btn-review.good { color: #5C8856; border-color: #5C8856; }
+.btn-review.good:hover { background: rgba(92,136,86,0.08); }
+.btn-review.bad { color: #C94043; border-color: #C94043; }
+.btn-review.bad:hover { background: rgba(201,64,67,0.08); }
+.review-dialog-body { padding: var(--space-2) 0; }
+.review-book-title { font-weight: 600; margin-bottom: var(--space-2); }
+.review-rating-label { font-size: var(--text-base); margin-bottom: var(--space-4); }
 
 /* Summary */
 .summary-content {
