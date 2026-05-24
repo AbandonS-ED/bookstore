@@ -48,7 +48,7 @@
       <el-table-column label="封面" width="100">
         <template #default="{ row }">
           <img v-if="row.coverUrl && !coverErrors[row.id]" :src="row.coverUrl" class="book-cover" @error="coverErrors[row.id] = true" />
-          <div v-else class="book-cover-fallback" :style="getCoverStyle(row.id)"></div>
+          <div v-else class="book-cover-fallback" :style="getCoverStyle(row.id)">{{ row.title }}</div>
         </template>
       </el-table-column>
       <el-table-column prop="title" label="书名" min-width="180" />
@@ -233,6 +233,7 @@ const rules = {
 
 const loadBooks = async () => {
   loading.value = true
+  coverErrors.value = {}
   try {
     const params = {
       pageNum: pageNum.value,
@@ -395,12 +396,23 @@ const toggleStatus = async (row) => {
   width: 60px;
   height: 80px;
   object-fit: cover;
+  border-radius: var(--radius-sm);
 }
 .book-cover-fallback {
   width: 60px;
   height: 80px;
   border-radius: var(--radius-sm);
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.55rem;
+  color: rgba(237,230,214,0.7);
+  text-align: center;
+  padding: 4px;
+  line-height: 1.2;
+  overflow: hidden;
 }
 
 .price {

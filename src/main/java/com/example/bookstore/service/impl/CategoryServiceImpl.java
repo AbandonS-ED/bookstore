@@ -1,6 +1,7 @@
 package com.example.bookstore.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.example.bookstore.common.Constants;
 import com.example.bookstore.entity.Book;
 import com.example.bookstore.entity.Category;
 import com.example.bookstore.exception.BusinessException;
@@ -29,7 +30,9 @@ public class CategoryServiceImpl implements CategoryService {
         return categories.stream().map(cat -> {
             CategoryVO vo = convertToVO(cat);
             Long count = bookMapper.selectCount(
-                new LambdaQueryWrapper<Book>().eq(Book::getCategoryId, cat.getId())
+                new LambdaQueryWrapper<Book>()
+                    .eq(Book::getCategoryId, cat.getId())
+                    .eq(Book::getStatus, Constants.BOOK_STATUS_ON)
             );
             vo.setBookCount(count.intValue());
             return vo;

@@ -49,7 +49,8 @@
       <el-table-column label="书籍" min-width="220">
         <template #default="{ row }">
           <div class="book-cell">
-            <div class="book-cover-sm" :style="getCoverStyle(row.id)"></div>
+            <img v-if="row.coverUrl && !coverErrors[row.id]" :src="row.coverUrl" class="book-cover-sm" @error="coverErrors[row.id] = true" />
+            <div v-else class="book-cover-sm" :style="getCoverStyle(row.id)">{{ row.title.charAt(0) }}</div>
             <div>
               <div class="b-title">{{ row.title }}</div>
               <div class="b-author">{{ row.author }}</div>
@@ -102,7 +103,8 @@
     >
       <div class="adjust-info">
         <div class="adjust-book">
-          <div class="book-cover-sm" :style="getCoverStyle(adjustBook?.id)"></div>
+          <img v-if="adjustBook?.coverUrl && !coverErrors[adjustBook.id]" :src="adjustBook.coverUrl" class="book-cover-sm" @error="coverErrors[adjustBook.id] = true" />
+          <div v-else class="book-cover-sm" :style="getCoverStyle(adjustBook?.id)">{{ adjustBook?.title?.charAt(0) }}</div>
           <div>
             <div class="adjust-book-title">{{ adjustBook?.title }}</div>
             <div class="adjust-book-author">{{ adjustBook?.author }}</div>
@@ -137,6 +139,7 @@ import { getCoverStyle } from '@/utils/cover'
 const loading = ref(false)
 const submitLoading = ref(false)
 const books = ref([])
+const coverErrors = ref({})
 const searchKeyword = ref('')
 const stockFilter = ref('')
 const pageNum = ref(1)
@@ -158,6 +161,7 @@ const zeroStockCount = computed(() => books.value.filter(b => b.stock === 0).len
 
 const loadBooks = async () => {
   loading.value = true
+  coverErrors.value = {}
   try {
     const params = { pageNum: pageNum.value, pageSize: pageSize.value }
     if (searchKeyword.value) params.keyword = searchKeyword.value
@@ -300,6 +304,14 @@ onMounted(() => {
   height: 48px;
   border-radius: 4px;
   flex-shrink: 0;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: rgba(237,230,214,0.7);
 }
 
 .b-title { font-weight: 500; font-size: 0.85rem; }
