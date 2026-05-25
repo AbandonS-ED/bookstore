@@ -96,23 +96,23 @@
       <div class="featured-inner">
         <div class="featured-book-cover cover-fs">
           <div>
-            <div style="font-size:0.75rem;color:var(--color-accent-light);margin-bottom:10px;letter-spacing:0.12em;">经典文学</div>
-            活着<br>
-            <span style="font-size:0.95rem;color:rgba(237,230,214,0.45);">余华 著</span>
+            <div style="font-size:0.75rem;color:var(--color-accent-light);margin-bottom:10px;letter-spacing:0.12em;">科幻经典</div>
+            银河帝国4<br>
+            <span style="font-size:0.95rem;color:rgba(237,230,214,0.45);">艾萨克·阿西莫夫 著</span>
           </div>
         </div>
         <div class="featured-text">
           <div class="feat-tag">编辑推荐 · 本周之选</div>
-          <h3>在苦难中体悟生命</h3>
-          <div class="feat-author">余华 ·  中国当代文学经典</div>
-          <p>地主少爷富贵嗜赌成性，终于赌光了家业一贫如洗，穷困之中的富贵因为母亲患病前去求医，没想到半路上被国民党部队抓了壮丁，后被解放军所俘虏，回到家乡他才知道母亲已经过世，妻子家珍含辛茹苦带大了一双儿女，但女儿不幸变成了哑巴。</p>
+          <h3>科幻文学的不朽经典</h3>
+          <div class="feat-author">艾萨克·阿西莫夫 · 美国科幻大师</div>
+          <p>《银河帝国》系列是科幻文学的巅峰之作，书中提出的"心理史学"概念至今仍被学者们津津乐道。作为20世纪最伟大的科幻作家，阿西莫夫用宏大的宇宙视角和深刻的哲学思考，为人类描绘了一幅跨越两万年的文明史诗。</p>
           <div class="feat-price">
-            ¥35.00
-            <span class="old">¥49.00</span>
+            ¥58.00
+            <span class="old">¥78.00</span>
           </div>
           <div class="hero-actions" style="opacity:1;">
-            <router-link to="/book/4" class="btn-primary">立即购买</router-link>
-            <router-link to="/book/4" class="btn-secondary">查看详情</router-link>
+            <router-link to="/book/32" class="btn-primary">立即购买</router-link>
+            <router-link to="/book/32" class="btn-secondary">查看详情</router-link>
           </div>
         </div>
       </div>
