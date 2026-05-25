@@ -15,5 +15,8 @@ export const bookApi = {
   },
   getComingSoon() {
     return api.get('/book/coming-soon')
+  },
+  getDiscounted() {
+    return api.get('/book/discounted')
   }
 }

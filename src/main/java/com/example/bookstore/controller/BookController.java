@@ -47,6 +47,12 @@ public class BookController {
         return Result.success(result);
     }
 
+    @GetMapping("/discounted")
+    public Result<List<BookVO>> discounted() {
+        List<BookVO> result = bookService.getDiscounted();
+        return Result.success(result);
+    }
+
     @GetMapping("/category/{categoryId}")
     public Result<PageResult<BookVO>> category(
             @PathVariable Long categoryId,

@@ -206,8 +206,7 @@ const categoryCount = computed(() => categories.value.length)
 
 const filterPills = [
   { key: 'all', label: '全部' },
-  { key: 'discount', label: '今日特价' },
-  { key: 'sale', label: '限时折扣' },
+  { key: 'discount', label: '限时折扣' },
   { key: 'freeShip', label: '包邮' },
   { key: 'set', label: '套装' },
   { key: 'preorder', label: '预售新品' },

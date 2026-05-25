@@ -91,6 +91,25 @@
       </div>
     </section>
 
+    <!-- 限时折扣 -->
+    <section class="section" v-if="discountBooks.length">
+      <div class="section-header">
+        <h2>限时折扣</h2>
+        <div class="sh-right">
+          <router-link to="/books?tag=discount" class="view-all">查看全部 →</router-link>
+        </div>
+      </div>
+      <div class="books-grid">
+        <BookCard
+          v-for="(book, idx) in discountBooks"
+          :key="book.id"
+          :book="book"
+          :delay="idx * 60"
+          @click="goToBook(book.id)"
+        />
+      </div>
+    </section>
+
     <!-- 推荐横幅 -->
     <section class="featured-banner">
       <div class="featured-inner">
@@ -165,6 +184,7 @@ const categories = ref([])
 const books = ref([])
 const newBooks = ref([])
 const heroBooks = ref([])
+const discountBooks = ref([])
 const loading = ref(true)
 const selectedCategory = ref(null)
 const viewMode = ref('grid')
@@ -214,6 +234,10 @@ onMounted(async () => {
   }
   await fetchBooks()
   newBooks.value = [...books.value].reverse()
+  try {
+    const discRes = await bookApi.getDiscounted()
+    discountBooks.value = discRes.data || []
+  } catch (_) {}
 })
 </script>
 

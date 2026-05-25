@@ -13,6 +13,7 @@ import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -31,6 +32,7 @@ public class Book extends BaseEntity {
 
     private String publisher;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate publishDate;
 
     @NotNull(message = "价格不能为空")
@@ -38,6 +40,10 @@ public class Book extends BaseEntity {
     private BigDecimal price;
 
     private BigDecimal origPrice;
+
+    private BigDecimal discountPrice;
+
+    private LocalDateTime discountEndTime;
 
     @NotNull(message = "库存不能为空")
     @Positive(message = "库存必须大于0")

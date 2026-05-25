@@ -10,6 +10,7 @@ import com.example.bookstore.exception.BusinessException;
 import com.example.bookstore.entity.Review;
 import com.example.bookstore.mapper.*;
 import com.example.bookstore.service.OrderService;
+import com.example.bookstore.service.impl.BookServiceImpl;
 import com.example.bookstore.util.OrderNoGenerator;
 import com.example.bookstore.vo.OrderItemVO;
 import com.example.bookstore.vo.OrderVO;
@@ -96,15 +97,18 @@ public class OrderServiceImpl implements OrderService {
                 throw new BusinessException(1, "书籍[" + book.getTitle() + "]库存不足");
             }
 
+            BigDecimal unitPrice = BookServiceImpl.isOnDiscount(book)
+                    ? book.getDiscountPrice() : book.getPrice();
+
             OrderItem item = new OrderItem();
             item.setOrderId(order.getId());
             item.setBookId(book.getId());
             item.setBookTitle(book.getTitle());
             item.setBookAuthor(book.getAuthor());
             item.setCoverUrl(book.getCoverUrl());
-            item.setPrice(book.getPrice());
+            item.setPrice(unitPrice);
             item.setQuantity(cart.getQuantity());
-            item.setSubtotal(book.getPrice().multiply(BigDecimal.valueOf(cart.getQuantity())));
+            item.setSubtotal(unitPrice.multiply(BigDecimal.valueOf(cart.getQuantity())));
             orderItemMapper.insert(item);
 
             cartMapper.deleteById(cart.getId());

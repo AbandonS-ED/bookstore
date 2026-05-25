@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,8 @@ public class BookServiceImpl implements BookService {
         Page<Book> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
         LambdaQueryWrapper<Book> wrapper = new LambdaQueryWrapper<>();
         boolean hasPreorder = false;
+        boolean hasDiscount = false;
+        LocalDateTime now = LocalDateTime.now();
 
         if (queryDTO.getTag() != null) {
             String[] tags = queryDTO.getTag().split(",");
@@ -58,13 +61,21 @@ public class BookServiceImpl implements BookService {
                     case "preorder":
                         hasPreorder = true;
                         break;
+                    case "discount":
+                        hasDiscount = true;
+                        break;
                     default:
                         break;
                 }
             }
         }
 
-        if (queryDTO.getStatus() != null) {
+        if (hasDiscount) {
+            wrapper.eq(Book::getStatus, Constants.BOOK_STATUS_ON)
+                    .isNotNull(Book::getDiscountPrice)
+                    .isNotNull(Book::getDiscountEndTime)
+                    .gt(Book::getDiscountEndTime, now);
+        } else if (queryDTO.getStatus() != null) {
             wrapper.eq(Book::getStatus, queryDTO.getStatus());
         } else if (hasPreorder) {
             wrapper.eq(Book::getStatus, Constants.BOOK_STATUS_PREORDER);
@@ -161,6 +172,9 @@ public class BookServiceImpl implements BookService {
         vo.setPublishDate(book.getPublishDate());
         vo.setPrice(book.getPrice());
         vo.setOrigPrice(book.getOrigPrice());
+        vo.setDiscountPrice(book.getDiscountPrice());
+        vo.setDiscountEndTime(book.getDiscountEndTime());
+        vo.setOnDiscount(isOnDiscount(book));
         vo.setStock(book.getStock());
         vo.setSales(book.getSales());
         vo.setCategoryId(book.getCategoryId());
@@ -289,6 +303,19 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    public List<BookVO> getDiscounted() {
+        LocalDateTime now = LocalDateTime.now();
+        LambdaQueryWrapper<Book> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Book::getStatus, Constants.BOOK_STATUS_ON)
+                .isNotNull(Book::getDiscountPrice)
+                .isNotNull(Book::getDiscountEndTime)
+                .gt(Book::getDiscountEndTime, now);
+        wrapper.orderByAsc(Book::getDiscountEndTime);
+        List<Book> books = bookMapper.selectList(wrapper);
+        return convertToVOList(books);
+    }
+
+    @Override
     public List<BookVO> getComingSoon() {
         LambdaQueryWrapper<Book> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Book::getStatus, Constants.BOOK_STATUS_COMING)
@@ -296,6 +323,12 @@ public class BookServiceImpl implements BookService {
                 .orderByAsc(Book::getExpectedShelfDate);
         List<Book> books = bookMapper.selectList(wrapper);
         return convertToVOList(books);
+    }
+
+    public static boolean isOnDiscount(Book book) {
+        return book.getDiscountPrice() != null
+                && book.getDiscountEndTime() != null
+                && book.getDiscountEndTime().isAfter(LocalDateTime.now());
     }
 
     private LocalDate getPeriodCutoff(String period) {
@@ -352,6 +385,9 @@ public class BookServiceImpl implements BookService {
             vo.setPublishDate(book.getPublishDate());
             vo.setPrice(book.getPrice());
             vo.setOrigPrice(book.getOrigPrice());
+            vo.setDiscountPrice(book.getDiscountPrice());
+            vo.setDiscountEndTime(book.getDiscountEndTime());
+            vo.setOnDiscount(isOnDiscount(book));
             vo.setStock(book.getStock());
             vo.setSales(book.getSales());
             vo.setFavoritedCount(book.getFavoritedCount());
