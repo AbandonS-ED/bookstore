@@ -22,4 +22,6 @@ public interface BookService {
     BookDetailVO getDetail(Long id);
 
     List<BookVO> getComingSoon();
+
+    List<String> searchSuggestions(String keyword);
 }

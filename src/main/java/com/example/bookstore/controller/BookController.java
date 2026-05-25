@@ -47,6 +47,12 @@ public class BookController {
         return Result.success(result);
     }
 
+    @GetMapping("/search/suggestions")
+    public Result<List<String>> searchSuggestions(@RequestParam String keyword) {
+        List<String> suggestions = bookService.searchSuggestions(keyword);
+        return Result.success(suggestions);
+    }
+
     @GetMapping("/category/{categoryId}")
     public Result<PageResult<BookVO>> category(
             @PathVariable Long categoryId,

@@ -16,14 +16,32 @@
         <li><router-link to="/about" class="nav-link" active-class="active">关于我们</router-link></li>
       </ul>
       <div class="nav-right">
-        <div class="search-box">
-          <span class="search-icon">🔍</span>
-          <input
-            v-model="searchKeyword"
-            type="text"
-            placeholder="搜索书名、作者..."
-            @keyup.enter="handleSearch"
-          />
+        <div class="search-container-light" :class="{ 'has-suggestions': showSuggestions }">
+          <div class="search-box-light">
+            <svg class="search-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              v-model="searchKeyword"
+              type="text"
+              placeholder="搜索"
+              @input="handleSearchInput"
+              @keyup.enter="handleSearch"
+              @blur="hideSuggestions"
+              @focus="handleSearchInput"
+            />
+          </div>
+          <div v-if="showSuggestions" class="search-suggestions-light">
+            <div
+              v-for="(item, index) in suggestions"
+              :key="index"
+              class="suggestion-item-light"
+              @mousedown.prevent="selectSuggestion(item)"
+            >
+              {{ item }}
+            </div>
+          </div>
         </div>
         <router-link to="/cart" class="nav-cart">
           🛒
@@ -57,6 +75,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useCartStore } from '@/stores/cart'
+import { bookApi } from '@/api/book'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -64,12 +83,50 @@ const cartStore = useCartStore()
 
 const searchKeyword = ref('')
 const showUserMenu = ref(false)
+const suggestions = ref([])
+const showSuggestions = ref(false)
+const searchTimer = ref(null)
 
 const cartCount = computed(() => cartStore.totalCount)
 const isAdmin = computed(() => userStore.userInfo?.role === 'admin')
 
+const handleSearchInput = () => {
+  clearTimeout(searchTimer.value)
+  if (searchKeyword.value.trim().length < 1) {
+    suggestions.value = []
+    showSuggestions.value = false
+    return
+  }
+  searchTimer.value = setTimeout(async () => {
+    try {
+      const res = await bookApi.searchSuggestions(searchKeyword.value)
+      if (res.code === 200 && res.data) {
+        suggestions.value = res.data
+        showSuggestions.value = suggestions.value.length > 0
+      }
+    } catch (e) {
+      console.error('Search suggestions error:', e)
+    }
+  }, 200)
+}
+
+const selectSuggestion = (suggestion) => {
+  const title = suggestion.split(' - ')[0]
+  searchKeyword.value = title
+  showSuggestions.value = false
+  router.push({ path: '/books', query: { keyword: title } })
+  searchKeyword.value = ''
+}
+
+const hideSuggestions = () => {
+  setTimeout(() => {
+    showSuggestions.value = false
+  }, 150)
+}
+
 const handleSearch = () => {
   if (searchKeyword.value.trim()) {
+    showSuggestions.value = false
     router.push({ path: '/books', query: { keyword: searchKeyword.value } })
     searchKeyword.value = ''
   }
@@ -84,6 +141,9 @@ const closeMenu = (e) => {
   if (!e.target.closest('.user-menu')) {
     showUserMenu.value = false
   }
+  if (!e.target.closest('.search-box')) {
+    showSuggestions.value = false
+  }
 }
 
 onMounted(() => {
@@ -95,6 +155,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('click', closeMenu)
+  clearTimeout(searchTimer.value)
 })
 </script>
 
@@ -192,34 +253,100 @@ onUnmounted(() => {
   gap: 18px;
 }
 
-.search-box {
+.search-container-light {
+  position: relative;
+  width: 180px;
+  transition: width 0.25s ease;
+}
+
+.search-container-light.has-suggestions {
+  width: 220px;
+}
+
+.search-box-light {
   display: flex;
   align-items: center;
-  background: rgba(237,230,214,0.06);
-  border: 1px solid rgba(237,230,214,0.1);
-  border-radius: 8px;
-  padding: 7px 14px;
-  transition: all 0.3s ease;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  transition: all 0.25s ease;
 }
 
-.search-box:focus-within {
-  background: rgba(237,230,214,0.1);
-  border-color: rgba(192,154,75,0.4);
-  box-shadow: 0 0 0 3px var(--color-accent-glow);
+.search-container-light.has-suggestions .search-box-light {
+  background: #fff;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom: none;
 }
 
-.search-box input {
+.search-box-light:focus-within {
+  background: #fff;
+  border-color: #ccc;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.search-icon-svg {
+  width: 16px;
+  height: 16px;
+  color: #999;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.search-box-light input {
   background: transparent;
   border: none;
   outline: none;
-  color: var(--color-bg);
-  font-size: 0.85rem;
-  width: 160px;
+  color: #333;
+  font-size: 0.88rem;
+  width: 100%;
   font-family: var(--font-body);
 }
 
-.search-box input::placeholder { color: rgba(237,230,214,0.25); }
-.search-icon { color: rgba(237,230,214,0.35); font-size: 0.9rem; margin-right: 8px; }
+.search-box-light input::placeholder { color: #999; }
+
+.search-suggestions-light {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 999;
+}
+
+.suggestion-item-light {
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestion-item-light:first-child {
+  border-radius: 0;
+}
+
+.suggestion-item-light:last-child {
+  border-radius: 0 0 10px 10px;
+}
+
+.suggestion-item-light:hover {
+  background: #f5f5f5;
+}
+
+.suggestion-item-light:not(:last-child) {
+  border-bottom: 1px solid #f0f0f0;
+}
 
 .nav-cart {
   position: relative;
@@ -370,6 +497,7 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .navbar-inner { padding: 0 20px; }
   .nav-links { display: none; }
-  .search-box input { width: 100px; }
+  .search-container-light { width: 140px; }
+  .search-container-light.has-suggestions { width: 160px; }
 }
 </style>

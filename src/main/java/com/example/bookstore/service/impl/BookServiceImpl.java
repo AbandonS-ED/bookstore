@@ -375,4 +375,21 @@ public class BookServiceImpl implements BookService {
         }).collect(Collectors.toList());
     }
 
+    @Override
+    public List<String> searchSuggestions(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        LambdaQueryWrapper<Book> wrapper = new LambdaQueryWrapper<>();
+        wrapper.like(Book::getTitle, keyword)
+                .or()
+                .like(Book::getAuthor, keyword)
+                .eq(Book::getStatus, Constants.BOOK_STATUS_ON);
+        wrapper.last("LIMIT 10");
+        List<Book> books = bookMapper.selectList(wrapper);
+        return books.stream()
+                .map(book -> book.getTitle() + " - " + book.getAuthor())
+                .collect(Collectors.toList());
+    }
+
 }
