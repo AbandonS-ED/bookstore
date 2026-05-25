@@ -13,6 +13,7 @@
         <li><router-link to="/categories" class="nav-link" active-class="active">分类浏览</router-link></li>
         <li><router-link to="/ranking" class="nav-link" active-class="active">排行榜</router-link></li>
         <li><router-link to="/new-arrivals" class="nav-link" active-class="active">新书上架</router-link></li>
+        <li><router-link to="/explore" class="nav-link" active-class="active">探索好书</router-link></li>
         <li><router-link to="/about" class="nav-link" active-class="active">关于我们</router-link></li>
       </ul>
       <div class="nav-right">

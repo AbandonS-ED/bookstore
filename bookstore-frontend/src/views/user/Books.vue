@@ -103,7 +103,7 @@
               <div class="book-rating">
                 <template v-if="book.avgRating">
                   <span class="stars">{{ renderStars(book.avgRating) }}</span>
-                  <span>{{ book.avgRating.toFixed(1) }}</span>
+                  <span class="rating-val">{{ book.avgRating.toFixed(1) }}</span>
                 </template>
                 <span v-else class="no-rating">暂无评分</span>
               </div>
@@ -135,7 +135,7 @@
               <div class="book-rating">
                 <template v-if="book.avgRating">
                   <span class="stars">{{ renderStars(book.avgRating) }}</span>
-                  <span>{{ book.avgRating.toFixed(1) }}</span>
+                  <span class="rating-val">{{ book.avgRating.toFixed(1) }}</span>
                 </template>
                 <span v-else class="no-rating">暂无评分</span>
               </div>
@@ -484,8 +484,8 @@ onMounted(() => {
 .book-price { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; color: var(--color-accent-muted); }
 .book-rating { display: flex; align-items: center; gap: 2px; font-size: .72rem; color: var(--color-accent); }
 .book-rating .stars { font-size: .7rem; }
-.book-rating span { color: var(--color-text-light); margin-left: 2px; }
-.book-rating .no-rating { font-size: .65rem; font-style: italic; color: var(--color-text-muted); margin-left: 0; }
+.book-rating .rating-val { color: var(--color-text-light); margin-left: 2px; }
+.book-rating .no-rating { font-size: .7rem; font-style: italic; color: var(--color-text-light); margin-left: 0; }
 
 /* ── LIST VIEW ── */
 .books-grid.list-view .book-card { display: flex; border-radius: 10px; }
