@@ -294,7 +294,7 @@
 
 ### 阶段七：前端开发（Vue 3）✅
 
-- [x] 用户端页面开发（Home/Books/BookDetail/Cart/Order*/Login/Register/User/Settings/Addresses/Reviews/Ranking/NewArrivals/Favorites/CategoryBrowse/About/OrderSuccess）
+- [x] 用户端页面开发（Home/Books/BookDetail/Cart/Order*/Login/Register/User/Settings/Addresses/Reviews/Ranking/NewArrivals/Favorites/CategoryBrowse/About/OrderSuccess/Explore）
 - [x] 管理端页面开发（Admin/AdminDashboard/AdminBooks/AdminCategories/AdminInventory/AdminOrders/AdminRefund/AdminUsers/AdminReviews）
 - [x] 公共组件（AppHeader/AppFooter/BookCard/PaginationBar/ModalDialog/ToastContainer）
 - [x] Pinia状态管理（user/cart/category/order/favorite/review）
@@ -307,6 +307,7 @@
 - [x] 收藏页面（Favorites.vue）— 降价提示、筛选器
 - [x] 分类浏览页面（CategoryBrowse.vue）— 多条件筛选
 - [x] 关于我们页面（About.vue）— 品牌故事
+- [x] 探索好书页面（Explore.vue）— 命运之书翻牌 + 书的漂流瓶
 
 ### 阶段九：后端完善 ✅
 

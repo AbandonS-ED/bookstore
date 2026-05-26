@@ -39,6 +39,8 @@ CREATE TABLE `book` (
     `publish_date` DATE COMMENT '出版日期',
     `price` DECIMAL(10,2) NOT NULL COMMENT '价格',
     `orig_price` DECIMAL(10,2) NULL COMMENT '原价（划线价）',
+    `discount_price` DECIMAL(10,2) NULL COMMENT '折扣价',
+    `discount_end_time` DATETIME NULL COMMENT '折扣截止时间',
     `stock` INT DEFAULT 0 COMMENT '库存',
     `sales` INT DEFAULT 0 COMMENT '销量',
     `favorited_count` INT DEFAULT 0 COMMENT '收藏数',
@@ -350,7 +352,14 @@ UPDATE `book` SET `publish_date` = '2026-04-28' WHERE `isbn` = '978-7-5354-5424-
 UPDATE `book` SET `publish_date` = '2026-04-15' WHERE `isbn` = '978-7-5442-4535-7';
 
 -- 设置部分书籍为预售状态
-UPDATE `book` SET `status` = 2 WHERE `isbn` IN ('978-7-5402-3412-8', '978-7-5302-1756-6', '978-7-5442-4534-0', '978-7-5402-3616-0', '978-7-5354-5424-9');
+UPDATE `book` SET `status` = 2 WHERE `isbn` IN ('978-7-5302-1756-6', '978-7-5442-4534-0', '978-7-5402-3616-0', '978-7-5354-5424-9');
+
+-- 设置限时折扣（折扣价、截止时间）
+UPDATE `book` SET `discount_price` = 63.20, `discount_end_time` = '2026-12-31 23:59:59' WHERE `isbn` = '978-7-115-42835-7';
+UPDATE `book` SET `discount_price` = 28.00, `discount_end_time` = '2026-12-31 23:59:59' WHERE `isbn` = '978-7-5443-7010-3';
+UPDATE `book` SET `discount_price` = 22.00, `discount_end_time` = '2026-12-31 23:59:59' WHERE `isbn` = '978-7-5402-3412-8';
+UPDATE `book` SET `discount_price` = 30.40, `discount_end_time` = '2026-12-31 23:59:59' WHERE `isbn` = '978-7-5442-4531-9';
+UPDATE `book` SET `discount_price` = 35.00, `discount_end_time` = '2026-12-31 23:59:59' WHERE `isbn` = '978-7-0200-4378-3';
 
 -- 设置即将上架书籍状态和日期
 UPDATE `book` SET `status` = 3, `expected_shelf_date` = '2026-05-24' WHERE `isbn` = '978-7-5086-5325-0';

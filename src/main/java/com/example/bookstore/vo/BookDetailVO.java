@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -27,6 +28,12 @@ public class BookDetailVO {
     private BigDecimal price;
 
     private BigDecimal origPrice;
+
+    private BigDecimal discountPrice;
+
+    private LocalDateTime discountEndTime;
+
+    private Boolean onDiscount;
 
     private Integer stock;
 

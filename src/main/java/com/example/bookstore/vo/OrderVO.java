@@ -30,6 +30,7 @@ public class OrderVO {
 
     private String remark;
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long paymentId;
 
     private String payTime;

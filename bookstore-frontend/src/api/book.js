@@ -18,5 +18,9 @@ export const bookApi = {
   },
   searchSuggestions(keyword) {
     return api.get('/book/search/suggestions', { params: { keyword } })
+  },
+  getDiscounted() {
+    return api.get('/book/discounted')
+  }
   }
 }

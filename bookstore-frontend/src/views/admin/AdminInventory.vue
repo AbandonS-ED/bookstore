@@ -30,12 +30,11 @@
           v-model="searchKeyword"
           placeholder="搜索书名、作者..."
           clearable
-          @clear="loadBooks"
-          @keyup.enter="handleSearch"
+          @clear="handleSearch"
+          @input="handleSearch"
         >
           <template #prefix><span>🔍</span></template>
         </el-input>
-        <el-button type="primary" @click="handleSearch">搜索</el-button>
       </div>
       <el-select v-model="stockFilter" placeholder="库存筛选" style="width: 140px" @change="handleSearch">
         <el-option label="全部" value="" />

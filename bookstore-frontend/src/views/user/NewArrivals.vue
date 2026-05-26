@@ -136,7 +136,7 @@
                 </div>
                 <div class="book-rating">
                   <template v-if="book.avgRating">
-                    <span class="star-display">{{ renderStars(book.avgRating) }}</span><span>{{ book.avgRating.toFixed(1) }}</span>
+                    <span class="stars">{{ renderStars(book.avgRating) }}</span><span class="rating-val">{{ book.avgRating.toFixed(1) }}</span>
                   </template>
                   <span v-else class="no-rating">暂无评分</span>
               </div>
@@ -533,9 +533,10 @@ onUnmounted(() => {
 .book-price { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; color: var(--color-accent-muted); }
 .book-price .original { font-size: .72rem; color: var(--color-text-light); text-decoration: line-through; font-weight: 400; margin-left: 4px; }
 .book-rating { display: flex; align-items: center; gap: 2px; font-size: .72rem; color: var(--color-accent); }
-.book-rating span { color: var(--color-text-light); margin-left: 2px; }
+.book-rating .stars { font-size: .7rem; }
+.book-rating .rating-val { color: var(--color-text-light); margin-left: 2px; }
 .presale-info { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--color-divider); font-size: .76rem; color: var(--color-text-light); display: flex; align-items: center; gap: 4px; }
-.book-rating .no-rating { font-size: .65rem; font-style: italic; color: var(--color-text-muted); margin-left: 0; }
+.book-rating .no-rating { font-size: .7rem; font-style: italic; color: var(--color-text-light); margin-left: 0; }
 
 /* ── QUOTE OVERLAY ── */
 .book-quote-overlay {

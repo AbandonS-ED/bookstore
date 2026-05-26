@@ -80,7 +80,7 @@
                       <div class="book-rating">
                         <template v-if="topThree[1].avgRating">
                           <span class="stars">{{ renderStars(topThree[1].avgRating) }}</span>
-                          <span>{{ topThree[1].avgRating.toFixed(1) }}</span>
+                          <span class="rating-val">{{ topThree[1].avgRating.toFixed(1) }}</span>
                         </template>
                         <span v-else class="no-rating">暂无评分</span>
                       </div>
@@ -119,7 +119,7 @@
                       <div class="book-rating">
                         <template v-if="topThree[0].avgRating">
                           <span class="stars">{{ renderStars(topThree[0].avgRating) }}</span>
-                          <span>{{ topThree[0].avgRating.toFixed(1) }}</span>
+                          <span class="rating-val">{{ topThree[0].avgRating.toFixed(1) }}</span>
                         </template>
                         <span v-else class="no-rating">暂无评分</span>
                       </div>
@@ -158,7 +158,7 @@
                       <div class="book-rating">
                         <template v-if="topThree[2].avgRating">
                           <span class="stars">{{ renderStars(topThree[2].avgRating) }}</span>
-                          <span>{{ topThree[2].avgRating.toFixed(1) }}</span>
+                          <span class="rating-val">{{ topThree[2].avgRating.toFixed(1) }}</span>
                         </template>
                         <span v-else class="no-rating">暂无评分</span>
                       </div>
@@ -201,7 +201,7 @@
                 <div class="rank-rating">
                   <template v-if="book.avgRating">
                     <span class="stars">{{ renderStars(book.avgRating) }}</span>
-                    <span>{{ book.avgRating.toFixed(1) }}</span>
+                    <span class="rating-val">{{ book.avgRating.toFixed(1) }}</span>
                   </template>
                   <span v-else class="no-rating">暂无评分</span>
                 </div>
@@ -711,15 +711,17 @@ const goToBook = (id) => router.push(`/book/${id}`)
 }
 
 .top3-card .book-rating {
-  font-size: 0.68rem;
-  color: var(--color-accent);
   display: flex;
   align-items: center;
   gap: 2px;
+  font-size: .72rem;
+  color: var(--color-accent);
 }
+.top3-card .book-rating .stars { font-size: .7rem; }
+.top3-card .book-rating .rating-val { color: var(--color-text-light); }
 .top3-card .book-rating .no-rating,
 .rank-rating .no-rating {
-  font-size: 0.65rem;
+  font-size: .7rem;
   font-style: italic;
   color: var(--color-text-light);
 }
@@ -900,14 +902,16 @@ const goToBook = (id) => router.push(`/book/${id}`)
 }
 
 .rank-rating {
-  font-size: 0.78rem;
-  color: var(--color-accent);
   display: flex;
   align-items: center;
   gap: 2px;
   text-align: center;
   justify-content: center;
+  font-size: .78rem;
+  color: var(--color-accent);
 }
+.rank-rating .stars { font-size: .7rem; }
+.rank-rating .rating-val { color: var(--color-text-light); }
 
 .rank-stat-col {
   font-size: 0.82rem;

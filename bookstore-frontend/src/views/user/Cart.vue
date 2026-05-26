@@ -30,12 +30,14 @@
               class="cart-item"
             >
               <div class="item-cover">
-                <img v-if="item.coverUrl && !coverErrors[item.id]" :src="item.coverUrl" :alt="item.title" @error="coverErrors[item.id] = true" />
-                <div v-else class="item-cover-fallback" :style="getCoverStyle(item.id)"></div>
+                <img v-if="item.coverUrl && !coverErrors[item.id]" :src="item.coverUrl" :alt="item.bookTitle || item.title" @error="coverErrors[item.id] = true" />
+                <div v-else class="item-cover-fallback" :style="getCoverStyle(item.bookId || item.id)">
+                  <span class="fallback-title">{{ item.bookTitle || item.title }}</span>
+                </div>
               </div>
               <div class="item-info">
-                <h3 class="item-title">{{ item.title }}</h3>
-                <p class="item-author">{{ item.author }}</p>
+                <h3 class="item-title">{{ item.bookTitle || item.title }}</h3>
+                <p class="item-author">{{ item.bookAuthor || item.author }}</p>
                 <p class="item-price">¥{{ item.price }}</p>
               </div>
               <div class="item-quantity">
@@ -288,6 +290,24 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: rgba(237, 230, 214, 0.85);
+  line-height: 1.3;
+  overflow: hidden;
+}
+
+.fallback-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .item-info {

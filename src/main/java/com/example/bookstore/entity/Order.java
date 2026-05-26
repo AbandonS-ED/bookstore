@@ -15,6 +15,7 @@ public class Order extends BaseEntity {
 
     private String orderNo;
 
+    @com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING)
     private Long userId;
 
     private BigDecimal totalAmount;
@@ -23,6 +24,7 @@ public class Order extends BaseEntity {
 
     private String payStatus;
 
+    @com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING)
     private Long addressId;
 
     private String receiverName;
@@ -33,6 +35,7 @@ public class Order extends BaseEntity {
 
     private String remark;
 
+    @com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING)
     private Long paymentId;
 
     private String payTime;

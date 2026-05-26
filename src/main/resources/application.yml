@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: bookstore
+  profiles:
+    active: local
 
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
@@ -22,6 +24,11 @@ mybatis-plus:
 jwt:
   secret: "bookstore-secret-key-for-jwt-token-generation-2024"
   expiration: 86400000
+
+minimax:
+  api:
+    key: ${MINIMAX_API_KEY:}
+    url: https://api.minimaxi.com/anthropic/v1/messages
 
 callback:
   secret: "bookstore-callback-secret-2024"

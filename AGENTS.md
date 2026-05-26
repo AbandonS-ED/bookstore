@@ -1,109 +1,137 @@
 # AGENTS.md
 
-## Commands
+## Quick start
 
-```bash
-mvn spring-boot:run              # backend :8081
-cd bookstore-frontend; npm run dev  # frontend :5173
-mysql -u root -p < sql/init.sql  # init bookstore DB (12 tables + seed)
-mvn test                          # pure JUnit5 + Mockito, no DB needed
-mvn clean package -DskipTests     # full build
-python test_smoke.py              # Playwright e2e (needs both servers)
+```
+mysql -u root -p bookstore < sql/init.sql       # 12 tables InnoDB + seed data
+mvn spring-boot:run                              # backend :8081
+cd bookstore-frontend; npm install && npm run dev # frontend :5173
 ```
 
-No linter/formatter. CI = `mvn test` + `npm run build`.
+DB password in `src/main/resources/application-local.yml` (copy from `.example`, gitignored). Default admin: `admin` / `123456`. MiniMax API key: env `MINIMAX_API_KEY` or `application-local.yml`.
 
-DB password in `src/main/resources/application-local.yml` (copied from `.example`, gitignored).
+## Commands
+
+| Command | What |
+|---------|------|
+| `mvn spring-boot:run` | Backend on :8081 |
+| `mvn test` | JUnit5 + Mockito (no Spring context, no DB) |
+| `mvn clean package -DskipTests` | Full backend build |
+| `cd bookstore-frontend && npm run dev` | Vite dev :5173 |
+| `cd bookstore-frontend && npm run build` | Frontend production |
+| `python test_smoke.py` | Playwright e2e (needs both servers) |
+
+No CI/CD, no Swagger, no integration tests.
 
 ## Snowflake ID (critical)
 
-MyBatis-Plus 3.5.6 global default `IdType.ASSIGN_ID` generates 19-digit Longs → exceeds `Number.MAX_SAFE_INTEGER`. **Must stringify**:
+MyBatis-Plus `ASSIGN_ID` generates 19-digit Longs that overflow `Number.MAX_SAFE_INTEGER`. **Must stringify** on every Java→JS crossing:
 
 | Layer | Rule |
 |-------|------|
-| **VO** | `@JsonSerialize(using = ToStringSerializer.class)` on Long ID fields (12 of 13 VOs; `BookChapterVO` has no Long fields; `BookVO.origPrice` is `BigDecimal` but also annotated) |
-| **Entity** | `@JsonFormat(shape = Shape.STRING)` on `BaseEntity.id` (`common/` pkg, not `entity/`), `Book.authorId`/`categoryId`, `Category.parentId` |
-| **DTO** | ID fields are `String` (`OrderCreateDTO.addressId`/`cartItemIds`, `CartUpdateDTO.id`, `AddressUpdateDTO.id`). Others (`StockAdjustDTO.stock`) are plain types. |
-| **Service** | `Long.parseLong(dto.getId())` to convert back |
+| **VO** | `@JsonSerialize(using = ToStringSerializer.class)` on all Long ID fields (13 VOs). Exceptions: `BookChapterVO` has no Longs; `PaymentVO.amount` is `String` type (hand-stringified `.toString()`). |
+| **Entity** | `@JsonFormat(shape = Shape.STRING)` on `BaseEntity.id`, `Book.authorId`/`categoryId`, `Category.parentId`, `Order.userId`/`addressId`/`paymentId`, `Review.userId`/`bookId`/`orderItemId` |
+| **DTO** | ID fields as `String` (e.g. `OrderCreateDTO.addressId`/`cartItemIds`, `CartUpdateDTO.id`, `BookQueryDTO.categoryId`) |
+| **Service** | `Long.parseLong(dto.getId())` to convert |
 
-**Only real auto-increment exception**: `OrderItem.id` (`@TableId(type = IdType.AUTO)`). `BookChapter` has **no** `@TableId` annotation (uses default snowflake), but its VO exposes no Long IDs so precision loss is irrelevant.
+Exceptions: `OrderItem.id` = `IdType.AUTO` (only non-Snowflake entity). `BookChapter` has **no `@TableId`** (does not inherit `BaseEntity`). `FavoriteController.add()` uses `Map<String, String>` + `Long.parseLong()`.
 
-`FavoriteController.add()` takes `Map<String, String>` (not `Map<String, Long>`) and calls `Long.parseLong(body.get("bookId"))`.
+## Vite proxy (`vite.config.js`)
 
-## Vite proxy
-
-| Frontend path | Backend target | Rewrite |
-|---------------|----------------|---------|
+| Frontend | Target | Rewrite |
+|----------|--------|---------|
 | `/api` | `localhost:8081/api` | passthrough |
-| `/admin-api` | `localhost:8081/admin` | `/admin-api` → `/admin` |
+| `/admin-api` | `localhost:8081/admin` | strip `/admin-api` → `/admin` |
 | `/pictures` | `localhost:8081/pictures` | passthrough |
 
 ## Two axios instances
 
-| File | baseURL | 401 |
-|------|---------|-----|
-| `src/api/index.js` | `/api` | `token=null; router.push('/login')` |
-| `src/api/admin.js` | `/admin-api` | `token=null; window.location.href='/login'` |
+| File | baseURL | 401 handler |
+|------|---------|-------------|
+| `src/api/index.js` | `/api` | clear token → `router.push('/login')` |
+| `src/api/admin.js` | `/admin-api` | clear token → `window.location.href='/login'` |
 
 Admin paths are relative (e.g. `/book/list` → `GET /admin/book/list`).
 
-## Architecture
+## Architecture surprises
 
-- **Controller → Service → Mapper**, DTO in / VO out, unified `Result<T>(code,message,data)`
-- **Admin controllers** (`BookManageController`, `OrderManageController`, `UserManageController`, `ReviewManageController`) inject Mapper directly, return raw `Page<Entity>` (no VO). `CategoryManageController` mixes both: uses `CategoryService` for add/update/delete, `CategoryMapper` for `updateStatus`.
-- **Interceptors**: `AuthInterceptor` on `/api/user/info`, `/api/user/password`, `/api/user/profile`, `/api/address/**`, `/api/cart/**`, `/api/favorite/**`, `/api/order/**`, `/api/review/add`, `/admin/**`. `AdminInterceptor` on `/admin/**` (checks admin role).
-- **Password**: BCrypt via `spring-security-crypto` only (no full Spring Security)
-- **CORS**: allows only `http://localhost:*`
-- **Default admin**: `admin` / `123456`
-- **Cover images**: `pictures/` dir served as `/pictures/**` static resource
-- **Entry**: `BookstoreApplication.java`, `@MapperScan("com.example.bookstore.mapper")`
-- **MyBatis-Plus ID config**: no global `id-type` override → default `ASSIGN_ID` (snowflake). `application.yml` enables `map-underscore-to-camel-case: true` + stdout SQL logging.
+- **Admin controllers** inject **Mapper directly**, return raw `Page<Entity>` (no VO). `CategoryManageController` is the exception (uses `CategoryService` for CRUD, `CategoryMapper` for `updateStatus`).
+- **Interceptors**: `AuthInterceptor` covers `/api/user/info|password|profile`, `/api/address/**`, `/api/cart/**`, `/api/favorite/**`, `/api/order/**`, `/api/review/add`, `/api/ai/**`, `/admin/**`. `AdminInterceptor` covers `/admin/**`.
+- **No `MetaObjectHandler`**: `BaseEntity` has `@TableField(fill = ...)` but **no impl** — relies on MySQL `DEFAULT CURRENT_TIMESTAMP` / `ON UPDATE CURRENT_TIMESTAMP`.
+- **No Spring Security web**: only `spring-security-crypto` for BCrypt. Auth is custom via `AuthInterceptor` + `JwtUtils` + `AuthContext` (ThreadLocal).
+- **`order` table**: must be backtick-quoted in raw SQL (`` `order` ``).
+- **Static files**: `pictures/` at project root (not `src/main/resources/`) served via `WebMvcConfig`.
+- **Book status**: `0`=off, `1`=on, `2`=pre-sale, `3`=coming-soon (`Constants.java`).
+- **Revenue SQL** (`OrderMapper`): filters `pay_time >= #{start} AND pay_time < #{end}` + statuses `paid/shipped/delivered/completed/refunding/after_sale`. NULL `pay_time` excluded.
+- **`BookServiceImpl.isOnDiscount()`** is `public static` — called by `OrderServiceImpl.create()` to pick `discountPrice` vs `price`.
+- **`decreaseStock`** has `WHERE stock >= #{quantity}` guard (no overselling). `cancel()` restores stock but does NOT decrement sales.
+- **`Review` entity**: `username`/`bookTitle` are `@TableField(exist = false)` transient fields (not stored in DB).
+- **`StockAdjustDTO`**: admin 库存调整的请求 DTO，含 `@NotNull` + `@PositiveOrZero` 校验。
 
 ## Order state
 
 ```
 created → paying → paid → shipped → delivered → completed
-   ↓ (expired)  ↓ (cancel)
+   ↓(expired)  ↓(cancel)
 expired       cancelled
-                  paid/shipped → refunded
-                  delivered/completed → after_sale
+                paid/shipped → refunded
+                delivered/completed → after_sale
 ```
 
-- `book.sales` incremented atomically only in `OrderServiceImpl.pay()` (`UPDATE SET sales = sales + #{quantity}`)
-- `cancel()` restores stock but **does NOT roll back** sales (only paid orders count)
-- `applyAfterSale()` accepts `delivered` + `completed`
-- `BookMapper` atomic ops: `decreaseStock` (with `WHERE stock >= #{quantity}` guard), `increaseSales`, `increaseFavoritedCount`, `decreaseFavoritedCount`, `updateStock`
+Order status constants (`String`): `created`, `paying`, `paid`, `shipped`, `delivered`, `completed`, `cancelled`, `expired`, `refunding`, `after_sale`, `refunded`.
 
-## Frontend conventions (easy to get wrong)
+## Frontend gotchas
 
 | Where | Convention |
 |-------|-----------|
-| `OrderItemVO` | fields `bookTitle`/`bookAuthor` (not `title`/`author`) |
-| `OrderVO` | flat `receiverName`/`receiverPhone`/`receiverAddress` (not nested `address`) |
-| Cart update | `PUT {id, quantity}` (cart record ID, not `{bookId, quantity}`) |
-| Order create | `POST {cartItemIds: [cartRecordId], addressId}` (not `{items: [{bookId,qty}]}`) |
-| "Buy now" | `BookDetail.vue` → `/order/confirm?bookId=X&quantity=Y` → calls `cartStore.addToCart` then uses cart ID |
+| `CartVO`, `OrderItemVO` | fields `bookTitle`/`bookAuthor` (not `title`/`author`) |
+| `OrderVO` | flat `receiverName`/`receiverPhone`/`receiverAddress` |
+| `PaymentVO.amount` | `String` type, hand-stringified `.toString()` |
+| Cart update | `PUT {id, quantity}` — `id` is cart record ID, not `{bookId, quantity}` |
+| Order create | `POST {cartItemIds: [cartRecordId], addressId}` |
+| "Buy now" | `BookDetail.vue` → `/order/confirm?bookId=X&quantity=Y` → adds to cart then uses cart ID |
 | Admin orders API | in `src/api/admin.js` (not `src/api/order.js`) |
 
-## Gotchas
+## Admin search quirks
 
-- **DDL `AUTO_INCREMENT` is a fallback only** — actual inserts use snowflake 19-digit IDs (except `OrderItem.id`)
-- **No MetaObjectHandler**: `BaseEntity` has `@TableField(fill = ...)` but no implementation; `createTime`/`updateTime` rely on MySQL `DEFAULT CURRENT_TIMESTAMP` / `ON UPDATE CURRENT_TIMESTAMP`
-- **`avgRating`**: computed live from `review` table at query time, not a DB column
-- **`favorited_count`**: orchestrated by `FavoriteServiceImpl`, atomic SQL in `BookMapper` (`SET favorited_count = favorited_count +/- 1`)
-- **`Address.entity`**: explicit `@TableField("user_id")` column mapping
-- **`PaymentVO.amount`**: `String` (hand-written `.toString()`, not `@JsonSerialize`)
-- **`OrderVO.paymentId`**: `Long` **without** `@JsonSerialize` (potential precision loss — `Payment` uses snowflake ID)
-- **`BookVO.origPrice`**: `BigDecimal` but annotated with `@JsonSerialize(using = ToStringSerializer.class)` (non-standard for non-Long)
-- **`BookChapterVO`**: no Long ID fields, no `@JsonSerialize`
-- **`BookChapter`**: does **not** extend `BaseEntity`, has **no** `@TableId` (uses default snowflake)
-- **`order` table**: must be backtick-quoted in SQL (`OrderMapper` raw `@Select` queries use `` `order` ``)
-- **Ranking API** (`BookController.getRanking`): `type` (`sales`/`rating`/`new`/`collection`) works; `period` (`all`/`week`/`month`/`quarter`/`year`) only applies to `new` type
-- **Pagination response**: user-facing controllers wrap via `PageResult<T>(total, records)`. Admin controllers return raw MyBatis-Plus `Page<Entity>` (many irrelevant fields, but Jackson only serializes what's accessible).
-- **Revenue SQL** (`OrderMapper`): filters by `pay_time BETWEEN start AND end` AND status IN `('paid','shipped','delivered','completed','refunding','after_sale')`. NULL `pay_time` = excluded regardless of status. `pay()` must set `payTime`.
-- **Review purchase validation** (`ReviewServiceImpl.add()`): when `orderItemId` is set, validates user owns the item, order is `delivered`/`completed`, and no duplicate review exists for that order_item_id. `review` table has `uk_order_item` unique constraint.
-- **Admin refund page**: `/admin/refunds` route → `AdminRefund.vue`. 4 stat cards + 4 filter tabs (全部/退款中/售后中/已退款). "全部" fetches all 3 statuses in parallel, merges client-side. Default tab is `refunding` (退款中).
-- **Admin refund/after-sale endpoints** (all in `OrderManageController`): `PUT /admin/order/{id}/refund`, `/approve-refund`, `/reject-refund`, `/approve-after-sale`, `/reject-after-sale`.
-- **Stock adjustment**: `PUT /admin/book/{id}/stock` with `{stock: N}` via `BookManageController`. Uses `BookMapper.updateStock()` (atomic `UPDATE ... SET stock = N`). Admin route: `/admin/inventory` → `AdminInventory.vue`.
-- **Review entity transient fields**: `Review` has `@TableField(exist = false)` fields `username` and `bookTitle` — populated post-query from `UserMapper`/`BookMapper` maps in `ReviewManageController.list()`. Same pattern: `Book.categoryName`.
-- **Admin review/user search**: `ReviewManageController.list()` accepts `keyword`, `status`, `rating` params. `UserManageController.list()` accepts `keyword`, `status`, `role` params. Keyword search on reviews queries user/book tables for IDs since `username`/`bookTitle` are transient; user keyword searches `username LIKE`, `email LIKE`, `phone LIKE` directly.
+- **Refund page**: `AdminRefund.vue` default tab = `refunding`. "全部" fetches all 3 statuses in parallel, merges client-side.
+- **Review search**: keyword queries `user`/`book` tables for IDs first (since `username`/`bookTitle` are transient fields).
+- **User search**: keyword searches `username LIKE`, `email LIKE`, `phone LIKE` directly.
+- **Stock adjustment**: `PUT /admin/book/{id}/stock {stock: N}` via `BookManageController` (atomic `UPDATE ... SET stock = N`).
+
+## Ranking API (`BookController.getRanking`)
+
+- `type`: `sales` / `rating` / `new` / `collection`
+- `period`: `all` / `week` / `month` / `quarter` / `year` — only applies to `new` type
+- `avgRating` computed live from `review` table (not a stored column)
+
+## Discount
+
+`Book.discountPrice` + `Book.discountEndTime`. Static helper `BookServiceImpl.isOnDiscount()`. VO fields: `discountPrice`, `discountEndTime`, `onDiscount`. API: `GET /api/book/discounted`. Tag filter: `discount` for `GET /api/book/list?tag=discount`.
+
+## AI 书友 (`/ai-assistant`)
+
+- **Route**: `/ai-assistant` registered in `router/index.js`. Linked from `AppHeader.vue` nav icon (robot SVG).
+- **Backend**: `AIController.java` (largest file, ~500 lines). Two endpoints: `POST /api/ai/chat` (sync) and `POST /api/ai/chat/stream` (SSE). MiniMax Anthropic-compatible API with function calling (max 5 tool iterations).
+- **Frontend**: `AIAssistant.vue` + `src/api/ai.js`. SSE stream consumed via `fetch` + `ReadableStream.getReader()`. `chatMessages` filter strips AI replies before sending (only user messages go to API).
+- **Auth**: `/api/ai/**` requires login (`AuthInterceptor`).
+- **SSE format**: Spring `SseEmitter` sends `event:done` and `data:..` **without trailing space** after colon. Frontend parser handles both `event:` and `data:` with optional space.
+- **Vue reactivity**: AI message objects must be `reactive()` — `ref` arrays track `push/splice` but NOT in-place property changes on array elements. Without `reactive`, streaming content only appears on next user input.
+- **5 tools**: `searchBooks`, `getBookDetail`, `addToCart`, `getCartItems`, `listAddresses`.
+- **Config** (`application.yml`):
+  ```yaml
+  minimax:
+    api:
+      key: ${MINIMAX_API_KEY:}
+      url: https://api.minimaxi.com/anthropic/v1/messages
+  ```
+
+## Router guard notes
+
+- `meta: { guest: true }` on Login/Register redirects logged-in users to Home.
+- `meta: { requiresAuth: true }` checks `userStore.isLoggedIn`.
+- `meta: { requiresAdmin: true }` on `/admin` and children calls `userStore.getUserInfo()` and checks `role !== 'admin'`.
+
+## Book covers
+
+`CoverStyle.getCoverStyle()` generates colored backgrounds with book title text overlay. Covers are NOT real images — just CSS gradients with text. Books without covers render as fallback with title text.

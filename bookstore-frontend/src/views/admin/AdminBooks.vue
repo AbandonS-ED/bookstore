@@ -29,6 +29,7 @@
           <el-option label="下架" :value="0" />
           <el-option label="预售" :value="2" />
           <el-option label="即将上架" :value="3" />
+          <el-option label="限时折扣" value="discount" />
         </el-select>
         <el-select v-model="sortBy" style="width: 140px" @change="handleSearch">
           <el-option label="排序方式" value="" />
@@ -54,9 +55,13 @@
       <el-table-column prop="title" label="书名" min-width="180" />
       <el-table-column prop="author" label="作者" width="120" />
       <el-table-column prop="categoryName" label="分类" width="100" />
-      <el-table-column prop="price" label="价格" width="100">
+      <el-table-column label="价格/折扣" width="140">
         <template #default="{ row }">
-          <span class="price">¥{{ row.price }}</span>
+          <div class="price-cell">
+            <span class="price">¥{{ row.price }}</span>
+            <el-tag v-if="isOnDiscount(row)" type="danger" size="small" effect="dark" class="discount-tag">特价</el-tag>
+            <span v-if="isOnDiscount(row)" class="discount-price">¥{{ row.discountPrice }}</span>
+          </div>
         </template>
       </el-table-column>
       <el-table-column prop="stock" label="库存" width="80" />
@@ -160,6 +165,19 @@
             />
           </el-select>
         </el-form-item>
+        <el-divider content-position="left">限时折扣（可选）</el-divider>
+        <el-form-item label="折扣价">
+          <el-input-number v-model="form.discountPrice" :min="0" :precision="2" :value-on-clear="null" placeholder="留空则不设折扣" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="截止时间">
+          <el-date-picker
+            v-model="form.discountEndTime"
+            type="datetime"
+            placeholder="选择折扣截止时间"
+            value-format="YYYY-MM-DDTHH:mm:ss"
+            style="width: 100%"
+          />
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
@@ -206,8 +224,14 @@ const form = reactive({
   price: 0,
   stock: 0,
   coverUrl: '',
-  categoryId: null
+  categoryId: null,
+  discountPrice: null,
+  discountEndTime: null
 })
+
+const isOnDiscount = (row) => {
+  return row.discountPrice != null && row.discountEndTime != null && new Date(row.discountEndTime) > new Date()
+}
 
 const statusType = (s) => {
   if (s === 1) return 'success'
@@ -222,6 +246,8 @@ const statusLabel = (s) => {
   if (s === 3) return '即将上架'
   return '下架'
 }
+
+
 
 const rules = {
   title: [{ required: true, message: '请输入书名', trigger: 'blur' }],
@@ -240,7 +266,8 @@ const loadBooks = async () => {
       pageSize: pageSize.value,
       keyword: searchKeyword.value,
       categoryId: categoryId.value,
-      status: statusFilter.value !== '' ? Number(statusFilter.value) : undefined,
+      discount: statusFilter.value === 'discount' ? true : undefined,
+      status: statusFilter.value !== '' && statusFilter.value !== 'discount' ? Number(statusFilter.value) : undefined,
       sortBy: sortBy.value || undefined
     }
     const res = await adminApi.getBookList(params)
@@ -275,12 +302,14 @@ const openAddDialog = () => {
     author: '',
     isbn: '',
     publisher: '',
-    publishDate: '',
+    publishDate: null,
     description: '',
     price: 0,
     stock: 0,
     coverUrl: '',
-    categoryId: null
+    categoryId: null,
+    discountPrice: null,
+    discountEndTime: null
   })
   dialogVisible.value = true
 }
@@ -293,12 +322,14 @@ const openEditDialog = (row) => {
     author: row.author,
     isbn: row.isbn || '',
     publisher: row.publisher || '',
-    publishDate: row.publishDate || '',
+    publishDate: row.publishDate ?? null,
     description: row.description || '',
     price: row.price,
     stock: row.stock,
     coverUrl: row.coverUrl || '',
-    categoryId: row.categoryId
+    categoryId: row.categoryId,
+    discountPrice: row.discountPrice ?? null,
+    discountEndTime: row.discountEndTime ?? null
   })
   dialogVisible.value = true
 }
@@ -419,6 +450,24 @@ const toggleStatus = async (row) => {
   font-family: var(--font-display);
   font-weight: 600;
   color: var(--color-primary);
+}
+
+.price-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.price-cell .discount-tag {
+  font-size: 11px;
+}
+
+.price-cell .discount-price {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-danger, #f56c6c);
+  font-size: 13px;
 }
 
 .pagination-wrapper {

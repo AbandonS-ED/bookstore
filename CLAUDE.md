@@ -43,9 +43,9 @@ npm run build                # 生产构建
 com.example.bookstore/
 ├── config/          # CORS、MyBatis-Plus 分页、WebMvc 配置（拦截器注册 + 静态资源）
 ├── interceptor/     # AuthInterceptor（JWT 验证）、AdminInterceptor（管理员验证）
-├── controller/      # REST 控制器（9 个）
+├── controller/      # REST 控制器（10 个 + AIController）
 │   └── admin/       # 管理后台控制器（5 个，直接注入 Mapper 而非 Service）
-├── service/impl/    # 业务层实现（8 个）
+├── service/impl/    # 业务层实现（9 个）
 ├── mapper/          # MyBatis-Plus Mapper（12 个，仅 BookMapper 含 @Update 原子 SQL）
 ├── entity/          # 实体类（12 个，继承 BaseEntity 或独立）
 ├── dto/             # 数据传输对象（15 个）
@@ -88,6 +88,31 @@ src/utils/           # auth.js / format.js / cover.js
 
 - **AuthInterceptor**：`/api/user/info`、`/api/user/password`、`/api/user/profile`、`/api/address/**`、`/api/cart/**`、`/api/favorite/**`、`/api/order/**`、`/api/review/add`、`/admin/**`
 - **AdminInterceptor**：`/admin/**`（校验 admin 角色）
+
+## AI 书友 (`/ai-assistant`)
+
+| File | Purpose |
+|------|---------|
+| `AIController.java` | POST `/api/ai/chat` + `/api/ai/chat/stream`，MiniMax 代理 + function calling |
+| `AppConfig.java` | `RestTemplate` bean（AIController 用） |
+| `src/api/ai.js` | 前端 API，`chatStream()` 支持 SSE 流式输出 |
+| `AIAssistant.vue` | 聊天 UI，含欢迎页、书籍卡片、流式打字效果 |
+
+### Tools exposed to MiniMax
+- `searchBooks(keyword)` — 按书名/作者搜索
+- `getBookDetail(bookId)` — 完整书籍信息
+- `addToCart(bookId, quantity)` — 加入购物车（需登录）
+- `getCartItems()` — 购物车内容
+- `listAddresses()` — 收货地址列表
+
+### 流式输出
+- 后端：SseEmitter 分 3 字符块发送，15ms 延迟模拟打字效果
+- 前端：SSE 解析 `event:` / `data:`，增量渲染文本
+- `/api/ai/**` 在 AuthInterceptor 保护范围内
+
+## 探索好书 (`/explore`)
+
+`Explore.vue` — 命运之书 + 书的漂流瓶两个 Tab，卡片翻转/收集激励机制。
 
 ## BigInt 精度问题（重要）
 

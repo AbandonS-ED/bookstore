@@ -86,11 +86,12 @@
 
           <div class="price-block">
             <div class="price-row">
-              <span class="price-now">¥{{ book.price }}</span>
-              <span v-if="discountPercent" class="price-original">¥{{ book.origPrice }}</span>
+              <span class="price-now">¥{{ displayPrice }}</span>
+              <span v-if="displayOrigPrice" class="price-original">¥{{ displayOrigPrice }}</span>
               <span v-if="discountPercent" class="price-discount">-{{ discountPercent }}%</span>
             </div>
-            <div class="price-save" v-if="discountPercent">已省 ¥{{ (book.origPrice - book.price).toFixed(2) }}，限时折扣</div>
+            <div class="price-save" v-if="discountPercent">已省 ¥{{ priceSaved }}，{{ book.onDiscount ? '限时折扣' : '优惠' }}</div>
+            <div class="price-countdown" v-if="countdownText">{{ countdownText }}</div>
           </div>
 
           <div class="qty-row">
@@ -300,7 +301,7 @@
             <div class="sb-title">{{ book.title }}</div>
           </div>
           <div class="sb-right">
-            <div class="sb-price">¥{{ book.price }} <span class="sb-orig" v-if="discountPercent">¥{{ book.origPrice }}</span></div>
+            <div class="sb-price">¥{{ displayPrice }} <span class="sb-orig" v-if="displayOrigPrice">¥{{ displayOrigPrice }}</span></div>
             <div class="sb-btns">
               <button class="sb-btn cart" @click="handleAddCart" :disabled="book.stock === 0">加入购物车</button>
               <button class="sb-btn buy" @click="handleBuyNow" :disabled="book.stock === 0">立即购买</button>
@@ -406,10 +407,55 @@ const ratingText = computed(() => rating.value ? ratingTexts[rating.value] : '')
 
 const isLoggedIn = computed(() => userStore.isLoggedIn)
 
+const displayPrice = computed(() => {
+  return book.value?.onDiscount ? book.value.discountPrice : book.value?.price
+})
+
+const displayOrigPrice = computed(() => {
+  if (!book.value) return 0
+  if (book.value.onDiscount) {
+    return book.value.price
+  }
+  if (book.value.origPrice && Number(book.value.origPrice) > Number(book.value.price)) {
+    return book.value.origPrice
+  }
+  return 0
+})
+
 const discountPercent = computed(() => {
+  if (!book.value) return 0
+  if (book.value.onDiscount && book.value.discountPrice && book.value.price > 0) {
+    return Math.round((1 - Number(book.value.discountPrice) / Number(book.value.price)) * 100)
+  }
   if (!book.value?.origPrice || !book.value?.price) return 0
-  if (book.value.origPrice <= book.value.price) return 0
-  return Math.round((1 - book.value.price / book.value.origPrice) * 100)
+  if (Number(book.value.origPrice) <= Number(book.value.price)) return 0
+  return Math.round((1 - Number(book.value.price) / Number(book.value.origPrice)) * 100)
+})
+
+const priceSaved = computed(() => {
+  if (!book.value) return '0.00'
+  if (book.value.onDiscount && book.value.discountPrice && book.value.price > 0) {
+    return (Number(book.value.price) - Number(book.value.discountPrice)).toFixed(2)
+  }
+  if (book.value.origPrice && Number(book.value.origPrice) > Number(book.value.price)) {
+    return (Number(book.value.origPrice) - Number(book.value.price)).toFixed(2)
+  }
+  return '0.00'
+})
+
+const countdownText = computed(() => {
+  if (!book.value?.onDiscount || !book.value?.discountEndTime) return ''
+  const end = new Date(book.value.discountEndTime).getTime()
+  const now = Date.now()
+  const diff = end - now
+  if (diff <= 0) return '折扣已结束'
+  const hours = Math.floor(diff / 3600000)
+  const minutes = Math.floor((diff % 3600000) / 60000)
+  if (hours >= 24) {
+    const days = Math.floor(hours / 24)
+    return `⏰ 距离折扣结束还有 ${days} 天`
+  }
+  return `⏰ 距离折扣结束还有 ${hours} 小时 ${minutes} 分钟`
 })
 
 const badgeText = computed(() => {
@@ -635,7 +681,8 @@ onUnmounted(() => {
 .price-now { font-family: 'Noto Serif SC', 'STSong', serif; font-size: 2rem; font-weight: 900; color: var(--color-accent-muted); line-height: 1; }
 .price-original { font-size: 1rem; color: var(--color-text-light); text-decoration: line-through; }
 .price-discount { font-size: .82rem; font-weight: 700; padding: 2px 10px; border-radius: 5px; background: rgba(160,64,64,0.08); color: #A04040; }
-.price-save { font-size: .8rem; color: #5C8856; margin-bottom: 8px; }
+.price-save { font-size: .8rem; color: #5C8856; margin-bottom: 4px; }
+.price-countdown { font-size: .78rem; color: var(--color-accent-muted); font-weight: 500; }
 
 .qty-row { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
 .qty-label { font-size: .84rem; color: var(--color-text-secondary); }

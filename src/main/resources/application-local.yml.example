@@ -3,3 +3,7 @@
 spring:
   datasource:
     password: ${DB_PASSWORD:}
+
+minimax:
+  api:
+    key: ${MINIMAX_API_KEY:}

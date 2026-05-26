@@ -24,4 +24,5 @@ public interface BookService {
     List<BookVO> getComingSoon();
 
     List<String> searchSuggestions(String keyword);
+    List<BookVO> getDiscounted();
 }

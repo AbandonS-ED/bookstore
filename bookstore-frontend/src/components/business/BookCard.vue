@@ -47,8 +47,9 @@
       <div class="book-author">{{ book.author }}</div>
       <div class="book-meta">
         <div class="book-price">
-          ¥{{ book.price }}
-          <span v-if="book.originalPrice && book.originalPrice !== book.price" class="original">¥{{ book.originalPrice }}</span>
+          ¥{{ book.onDiscount ? book.discountPrice : book.price }}
+          <span v-if="book.onDiscount && book.price" class="original">¥{{ book.price }}</span>
+          <span v-else-if="book.originalPrice && book.originalPrice !== book.price" class="original">¥{{ book.originalPrice }}</span>
         </div>
         <div class="book-rating">
           <template v-if="book.avgRating">
@@ -95,6 +96,7 @@ const fallbackStyle = computed(() => getCoverStyle(props.book.id))
 
 const badge = computed(() => {
   if (props.book.badge) return props.book.badge
+  if (props.book.onDiscount) return '特价'
   if (props.book.stock === 0) return ''
   if (props.book.avgRating && props.book.avgRating >= 9) return '经典'
   if (props.book.sales && props.book.sales > 5000) return '畅销'
@@ -107,6 +109,7 @@ const badgeClass = computed(() => {
     case '新书': return 'badge-new'
     case '经典': return 'badge-classic'
     case '热卖': return 'badge-sale'
+    case '特价': return 'badge-sale'
     default: return ''
   }
 })

@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -83,6 +84,7 @@ public class BookManageController {
     public Result<Page<Book>> list(@RequestParam(required = false) String keyword,
                                     @RequestParam(required = false) Long categoryId,
                                     @RequestParam(required = false) Integer status,
+                                    @RequestParam(required = false) Boolean discount,
                                     @RequestParam(required = false) String sortBy,
                                     @RequestParam(defaultValue = "1") Integer pageNum,
                                     @RequestParam(defaultValue = "10") Integer pageSize) {
@@ -95,6 +97,11 @@ public class BookManageController {
         }
         if (status != null) {
             wrapper.eq(Book::getStatus, status);
+        }
+        if (Boolean.TRUE.equals(discount)) {
+            wrapper.isNotNull(Book::getDiscountPrice)
+                    .isNotNull(Book::getDiscountEndTime)
+                    .gt(Book::getDiscountEndTime, LocalDateTime.now());
         }
         if ("sales".equals(sortBy)) {
             wrapper.orderByDesc(Book::getSales);

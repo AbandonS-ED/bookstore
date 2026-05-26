@@ -90,9 +90,10 @@
           <div :class="['card-check', { checked: selectedIds.has(book.bookId) }]" @click.stop="toggleSelect(book.bookId)"></div>
           <button class="card-unfav" @click.stop="unfav(book.bookId)" title="取消收藏">♥</button>
           <div class="book-cover" @click.stop="goToBook(book.bookId)">
-            <div v-if="book.coverUrl" class="book-cover-img" :style="{ background: `url(${book.coverUrl}) center/cover` }"></div>
-            <div v-else :class="['book-cover-img', getCoverClass(book.bookId)]">
-              {{ book.title }}
+            <img v-if="book.coverUrl && !coverErrors[book.bookId]" class="book-cover-img" :src="book.coverUrl" @error="coverErrors[book.bookId] = true" />
+            <div v-if="!book.coverUrl || coverErrors[book.bookId]" class="book-cover-img book-cover-fallback" :style="getCoverStyle(book.bookId)">
+              <span class="cover-title">{{ book.title }}</span>
+              <span class="cover-author">{{ book.author }}</span>
             </div>
             <div class="cover-badges">
               <span v-if="book.favoritedPrice && book.price < book.favoritedPrice" class="badge-price-drop">↓ 降价</span>
@@ -156,6 +157,7 @@ import { favoriteApi } from '@/api/favorite'
 import { cartApi } from '@/api/cart'
 import { useCartStore } from '@/stores/cart'
 import { useFavoriteStore } from '@/stores/favorite'
+import { getCoverStyle } from '@/utils/cover'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -169,12 +171,7 @@ const searchQuery = ref('')
 const sortBy = ref('recent')
 const viewMode = ref('grid')
 const inCartIds = ref(new Set())
-
-const coverClasses = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'c10', 'c11', 'c12']
-
-function getCoverClass(id) {
-  return coverClasses[Number(id) % coverClasses.length]
-}
+const coverErrors = ref({})
 
 const lowStockCount = computed(() => books.value.filter(b => b.stock > 0 && b.stock <= 5).length)
 const priceDropCount = computed(() => books.value.filter(b => b.favoritedPrice && b.price < b.favoritedPrice).length)
@@ -330,6 +327,7 @@ function goToBook(id) {
 onMounted(async () => {
   loading.value = true
   try {
+    coverErrors.value = {}
     const [favRes] = await Promise.all([
       favoriteApi.list(),
       cartStore.getCartList()
@@ -678,6 +676,10 @@ onMounted(async () => {
   transition: transform 0.4s ease;
 }
 .book-card:hover .book-cover-img { transform: scale(1.04); }
+.book-cover-img img { width: 100%; height: 100%; object-fit: cover; }
+.book-cover-fallback { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.35), inset 0 1px 0 rgba(192,154,75,0.08); border-left: 3px solid rgba(192,154,75,0.12); border-radius: 6px; }
+.cover-title { font-family: var(--font-display); font-weight: 700; font-size: 1.6rem; color: rgba(237,230,214,0.85); text-shadow: 0 1px 4px rgba(0,0,0,0.2); word-break: break-all; line-height: 1.3; margin-bottom: 10px; }
+.cover-author { font-size: .8rem; color: rgba(237,230,214,0.5); text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
 .cover-badges {
   position: absolute;
   bottom: 0;
@@ -910,18 +912,7 @@ onMounted(async () => {
   box-shadow: 0 6px 24px rgba(192,154,75,0.3);
 }
 
-.c1 { background: linear-gradient(160deg,#5D4037,#3E2723,#2C1A12); }
-.c2 { background: linear-gradient(160deg,#6D4C41,#4E342E); }
-.c3 { background: linear-gradient(160deg,#1A1A2E,#16213E,#0F3460); }
-.c4 { background: linear-gradient(160deg,#3D2B1F,#5C3A21); }
-.c5 { background: linear-gradient(160deg,#8B0000,#4A0404); }
-.c6 { background: linear-gradient(160deg,#1B3A2D,#0D2818); }
-.c7 { background: linear-gradient(160deg,#2C3E50,#1A252F); }
-.c8 { background: linear-gradient(160deg,#3C1F3A,#2A1526); }
-.c9 { background: linear-gradient(160deg,#8B4513,#5C2D0E); }
-.c10 { background: linear-gradient(160deg,#B8860B,#8B6914); }
-.c11 { background: linear-gradient(160deg,#4A6741,#2E4228); }
-.c12 { background: linear-gradient(160deg,#6B3A5D,#3E2340); }
+
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(14px); }

@@ -7,7 +7,7 @@ public class BookQueryDTO {
 
     private String keyword;
 
-    private Long categoryId;
+    private String categoryId;
 
     private String tag;
 

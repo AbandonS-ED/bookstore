@@ -82,8 +82,8 @@ bookstore/                          # 后端 Spring Boot 项目
 ├── pictures/                       # 书籍封面图片
 ├── bookstore-frontend/             # 前端 Vue 3 项目
 │   ├── src/
-│   │   ├── views/user/             # 用户端页面（19 个）
-│   │   ├── views/admin/            # 管理后台页面（9 个：Dashboard/Books/Categories/Inventory/Orders/Refund/Users/Reviews）
+│   │   ├── views/user/             # 用户端页面（20 个）
+│   │   ├── views/admin/            # 管理后台页面（9 个：Dashboard/Books/Categories/Inventory/Orders/Refund/Users/Reviews/Admin）
 │   │   ├── components/             # 公共组件
 │   │   ├── router/                 # 路由配置
 │   │   ├── stores/                 # Pinia 状态管理（6 个 store）

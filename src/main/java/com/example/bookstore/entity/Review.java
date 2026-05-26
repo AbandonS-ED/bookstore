@@ -11,10 +11,13 @@ import lombok.EqualsAndHashCode;
 @TableName("review")
 public class Review extends BaseEntity {
 
+    @com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING)
     private Long userId;
 
+    @com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING)
     private Long bookId;
 
+    @com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING)
     private Long orderItemId;
 
     private Integer rating;
