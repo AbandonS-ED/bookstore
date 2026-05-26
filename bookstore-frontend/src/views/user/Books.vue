@@ -287,7 +287,7 @@ const fetchBooks = async () => {
       params.tag = [...activeTags.value].join(',')
     }
     if (route.query.keyword) params.keyword = route.query.keyword
-    if (route.query.categoryId) params.categoryId = Number(route.query.categoryId)
+    if (route.query.categoryId) params.categoryId = route.query.categoryId
     const res = await bookApi.getList(params)
     books.value = res.data?.records || []
     total.value = res.data?.total || 0

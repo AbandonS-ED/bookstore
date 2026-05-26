@@ -50,6 +50,11 @@ const routes = [
     component: () => import('@/views/user/About.vue')
   },
   {
+    path: '/ai-assistant',
+    name: 'AIAssistant',
+    component: () => import('@/views/user/AIAssistant.vue')
+  },
+  {
     path: '/book/:id',
     name: 'BookDetail',
     component: () => import('@/views/user/BookDetail.vue')

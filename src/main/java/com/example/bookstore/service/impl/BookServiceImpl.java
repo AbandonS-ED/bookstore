@@ -83,8 +83,8 @@ public class BookServiceImpl implements BookService {
             wrapper.eq(Book::getStatus, Constants.BOOK_STATUS_ON);
         }
 
-        if (queryDTO.getCategoryId() != null) {
-            wrapper.eq(Book::getCategoryId, queryDTO.getCategoryId());
+        if (queryDTO.getCategoryId() != null && !queryDTO.getCategoryId().isBlank()) {
+            wrapper.eq(Book::getCategoryId, Long.parseLong(queryDTO.getCategoryId()));
         }
 
         if (queryDTO.getKeyword() != null && !queryDTO.getKeyword().isBlank()) {

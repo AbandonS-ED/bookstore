@@ -31,6 +31,16 @@
           <div v-if="cartCount > 0" class="cart-badge">{{ cartCount > 99 ? '99+' : cartCount }}</div>
         </router-link>
         <router-link to="/favorites" class="nav-fav">♡</router-link>
+        <router-link to="/ai-assistant" class="nav-ai">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="7" width="18" height="12" rx="2"/>
+            <circle cx="9" cy="12" r="1.2" fill="currentColor"/>
+            <circle cx="15" cy="12" r="1.2" fill="currentColor"/>
+            <path d="M9 3l3 4 3-4"/>
+            <path d="M12 19v2"/>
+            <path d="M7 21h10"/>
+          </svg>
+        </router-link>
         <template v-if="userStore.isLoggedIn">
           <div class="user-menu" @click="showUserMenu = !showUserMenu">
             <span class="avatar">{{ userStore.username?.[0]?.toUpperCase() }}</span>
@@ -257,6 +267,19 @@ onUnmounted(() => {
   transform: scale(1) rotate(0deg);
   color: var(--color-accent);
 }
+
+.nav-ai {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(237,230,214,0.5);
+  font-size: 1.15rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.nav-ai:hover { color: var(--color-accent); transform: scale(1.1); }
 
 .cart-badge {
   position: absolute;
