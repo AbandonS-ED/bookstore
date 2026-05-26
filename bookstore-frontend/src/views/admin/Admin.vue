@@ -133,7 +133,8 @@ const menuSections = [
     title: '用户与运营',
     items: [
       { path: '/admin/users', icon: '👥', label: '用户管理' },
-      { path: '/admin/reviews', icon: '✍️', label: '评价审核', badge: '12', badgeWarn: true }
+      { path: '/admin/reviews', icon: '✍️', label: '评价审核', badge: '12', badgeWarn: true },
+      { path: '/admin/community', icon: '📖', label: '社区管理' }
     ]
   }
 ]

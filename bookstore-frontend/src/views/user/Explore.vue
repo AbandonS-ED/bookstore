@@ -20,6 +20,10 @@
     </section>
 
     <div class="tab-bar">
+      <div :class="['tab-item', { active: activeTab === 'community' }]" @click="activeTab = 'community'">
+        <span class="ti-icon">📖</span>
+        <span>书斋社区</span>
+      </div>
       <div :class="['tab-item', { active: activeTab === 'fortune' }]" @click="activeTab = 'fortune'">
         <span class="ti-icon">🔮</span>
         <span>命运之书</span>
@@ -27,6 +31,19 @@
       <div :class="['tab-item', { active: activeTab === 'ocean' }]" @click="activeTab = 'ocean'">
         <span class="ti-icon">🍾</span>
         <span>书的漂流瓶</span>
+      </div>
+    </div>
+
+    <!-- Community header with publish button -->
+    <div v-show="activeTab === 'community'" class="community-header">
+      <div class="ch-inner">
+        <div class="ch-title">📖 书斋社区</div>
+        <button class="ch-publish-btn" @click="openPublishModal">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          发布帖子
+        </button>
       </div>
     </div>
 
@@ -206,6 +223,41 @@
           </div>
         </div>
       </div>
+
+      <!-- ═══ COMMUNITY ═══ -->
+      <div v-show="activeTab === 'community'" class="tab-panel">
+        <div class="community-feed" ref="communityFeed">
+          <div class="cf-waterfall">
+            <div v-for="(col, ci) in communityColumns" :key="ci" class="cf-col">
+              <div
+                v-for="post in col"
+                :key="post.id"
+                class="cf-post"
+                @click="openCommunityPost(post)"
+              >
+                <div class="cfp-img-wrap">
+                  <img :src="post.image" :alt="post.content" class="cfp-img" loading="lazy" />
+                </div>
+                <div class="cfp-content">
+                  <p class="cfp-text">{{ post.content }}</p>
+                  <div class="cfp-bottom">
+                    <div class="cfp-user">
+                      <span class="cfp-avatar">{{ post.username[0] }}</span>
+                      <span class="cfp-name">{{ post.username }}</span>
+                    </div>
+                    <button class="cfp-like" :class="{ liked: post.liked }" @click.stop="toggleLike(post)">
+                      <svg viewBox="0 0 24 24" width="16" height="16" :fill="post.liked ? '#ff4d6a' : 'none'" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                      </svg>
+                      <span>{{ post.likes }}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- THROW MODAL -->
@@ -271,6 +323,116 @@
         <div class="tas-droplet dr5"></div>
       </div>
     </div>
+
+    <!-- Community Post Detail Modal -->
+    <Teleport to="body">
+      <div :class="['cpd-overlay', { show: communityPostOpen }]" @click.self="closeCommunityPost">
+        <div class="cpd-modal">
+          <button class="cpd-close" @click="closeCommunityPost">✕</button>
+          <div class="cpd-content" v-if="selectedPost">
+            <div class="cpd-image-section">
+              <img :src="selectedPost.image" :alt="selectedPost.content" class="cpd-image" />
+            </div>
+            <div class="cpd-info-section">
+              <div class="cpd-user">
+                <div class="cpd-avatar">{{ selectedPost.username[0] }}</div>
+                <div class="cpd-user-info">
+                  <span class="cpd-username">{{ selectedPost.username }}</span>
+                  <span class="cpd-time">{{ selectedPost.time }}</span>
+                </div>
+              </div>
+              <div class="cpd-divider"></div>
+              <p class="cpd-text">{{ selectedPost.content }}</p>
+              <div class="cpd-divider"></div>
+              <div class="cpd-book" v-if="selectedPost.book" @click="goToBook(selectedPost.book.id)">
+                <div class="cpd-book-cover" :style="getCoverStyle(selectedPost.book.id)">
+                  {{ selectedPost.book.title.substring(0, 2) }}
+                </div>
+                <div class="cpd-book-info">
+                  <div class="cpd-book-title">{{ selectedPost.book.title }}</div>
+                  <div class="cpd-book-author">{{ selectedPost.book.author }}</div>
+                </div>
+                <span class="cpd-book-arrow">→</span>
+              </div>
+              <div class="cpd-actions">
+                <button class="cpd-like-btn" :class="{ liked: selectedPost.liked }" @click="toggleLike(selectedPost)">
+                  <svg viewBox="0 0 24 24" width="22" height="22" :fill="selectedPost.liked ? '#ff4d6a' : 'none'" stroke="currentColor" stroke-width="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                  <span>{{ selectedPost.likes }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Publish Post Modal -->
+    <Teleport to="body">
+      <div :class="['pm-overlay', { show: publishModalOpen }]">
+        <div class="pm-bg" @click="closePublishModal"></div>
+        <div class="pm-modal">
+          <div class="pm-head">
+            <h3>📖 发布帖子</h3>
+            <button class="pm-close" @click="closePublishModal">✕</button>
+          </div>
+          <div class="pm-body">
+            <div class="pm-field">
+              <div class="pm-field-label">选择图片</div>
+              <div class="pm-image-picker" @click="triggerImageUpload">
+                <img v-if="newPost.imagePreview" :src="newPost.imagePreview" class="pm-img-preview" />
+                <div v-else class="pm-img-placeholder">
+                  <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <path d="M21 15l-5-5L5 21"/>
+                  </svg>
+                  <span>点击上传图片</span>
+                </div>
+                <input ref="imageInputRef" type="file" accept="image/*" style="display:none" @change="handleImageUpload" />
+              </div>
+            </div>
+            <div class="pm-field">
+              <div class="pm-field-label">分享你的阅读感悟</div>
+              <textarea class="pm-textarea" v-model="newPost.content" placeholder="写下你读这本书的感受..." maxlength="200"></textarea>
+              <div class="pm-char">{{ newPost.content.length }}/200</div>
+            </div>
+            <div class="pm-field">
+              <div class="pm-field-label">关联书籍（可选）</div>
+              <div class="pm-book-search">
+                <span class="pmbs-i">🔍</span>
+                <input v-model="publishBookQuery" placeholder="搜索书名关联书籍..." />
+              </div>
+              <div v-if="publishSelectedBook" class="pm-book-selected">
+                <div class="pmbs-info">
+                  <span class="pmbs-title">{{ publishSelectedBook.title }}</span>
+                  <span class="pmbs-author">{{ publishSelectedBook.author }}</span>
+                </div>
+                <button class="pmbs-clear" @click="publishSelectedBook = null">✕</button>
+              </div>
+              <div v-else class="pm-book-list">
+                <div v-for="b in filteredPublishBooks" :key="b.id"
+                  class="pm-book-item"
+                  @click="publishSelectedBook = b">
+                  <div class="pmbi-cover" :style="getCoverStyle(b.id)">{{ b.title.substring(0, 2) }}</div>
+                  <div>
+                    <div class="pmbi-title">{{ b.title }}</div>
+                    <div class="pmbi-author">{{ b.author }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button class="pm-submit" :disabled="!canPublish" @click="doPublish">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+              </svg>
+              发布
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
 
     <!-- Toast container -->
     <div class="toast-wrap" id="toastWrap">
@@ -707,6 +869,115 @@ function catchBottle() {
     }
     confetti(window.innerWidth / 2, window.innerHeight / 2)
   }, 1700)
+}
+
+/* ═══ COMMUNITY ═══ */
+const communityPosts = ref([
+  { id: 1, username: '林小雅', content: '读完《瓦尔登湖》，决定开始极简生活', image: 'https://picsum.photos/seed/walden/400/500', likes: 128, liked: false, time: '2小时前', book: FALLBACK_BOOKS[0] },
+  { id: 2, username: '书虫阿东', content: '深夜推理时间，《白夜行》太绝了', image: 'https://picsum.photos/seed/whiteNight/400/300', likes: 89, liked: false, time: '3小时前', book: FALLBACK_BOOKS[2] },
+  { id: 3, username: '雨落江南', content: '诗集读完了，整个人都安静下来', image: 'https://picsum.photos/seed/poetry/400/600', likes: 256, liked: false, time: '5小时前', book: FALLBACK_BOOKS[3] },
+  { id: 4, username: '北漂青年', content: '打工人的日常，地铁上读完半本《活着》', image: 'https://picsum.photos/seed/toLive/400/350', likes: 67, liked: false, time: '昨天', book: FALLBACK_BOOKS[4] },
+  { id: 5, username: '文艺大叔', content: '三体让我对宇宙充满敬畏', image: 'https://picsum.photos/seed/threeBody/400/450', likes: 312, liked: false, time: '1天前', book: FALLBACK_BOOKS[5] },
+  { id: 6, username: '小红迷', content: '月下看《围城》，方渐鸿的无奈', image: 'https://picsum.photos/seed/fortress/400/400', likes: 178, liked: false, time: '2天前', book: FALLBACK_BOOKS[6] },
+  { id: 7, username: '阅读者', content: '人类简史刷新了我的认知边界', image: 'https://picsum.photos/seed/sapiens/400/550', likes: 234, liked: false, time: '2天前', book: FALLBACK_BOOKS[7] },
+  { id: 8, username: '书语者', content: '我与地坛的文字让我泪流满面', image: 'https://picsum.photos/seed/ditian/400/320', likes: 445, liked: false, time: '3天前', book: FALLBACK_BOOKS[8] },
+  { id: 9, username: '墨染白', content: '边城的翠翠，那条溪水清澈如她的眼眸', image: 'https://picsum.photos/seed/biancheng/400/480', likes: 189, liked: false, time: '3天前', book: FALLBACK_BOOKS[9] },
+  { id: 10, username: '星河书社', content: '认知觉醒，让我开始真正思考', image: 'https://picsum.photos/seed/awaken/400/380', likes: 156, liked: false, time: '4天前', book: FALLBACK_BOOKS[10] },
+  { id: 11, username: '豆瓣用户', content: '百年孤独里的魔幻现实让人着迷', image: 'https://picsum.photos/seed/century/400/520', likes: 278, liked: false, time: '4天前', book: FALLBACK_BOOKS[1] },
+  { id: 12, username: '读书笔记', content: '小王子的纯真，是我们丢失的美好', image: 'https://picsum.photos/seed/principle/400/280', likes: 367, liked: false, time: '5天前', book: FALLBACK_BOOKS[11] },
+])
+
+let postIdCounter = 100
+
+const communityColumns = computed(() => {
+  const cols = [[], [], [], []]
+  communityPosts.value.forEach((post, i) => {
+    cols[i % 4].push(post)
+  })
+  return cols
+})
+
+const communityPostOpen = ref(false)
+const selectedPost = ref(null)
+
+function openCommunityPost(post) {
+  selectedPost.value = post
+  communityPostOpen.value = true
+}
+
+function closeCommunityPost() {
+  communityPostOpen.value = false
+}
+
+function toggleLike(post) {
+  post.liked = !post.liked
+  post.likes += post.liked ? 1 : -1
+}
+
+/* ═══ COMMUNITY PUBLISH ═══ */
+const publishModalOpen = ref(false)
+const publishBookQuery = ref('')
+const publishSelectedBook = ref(null)
+const imageInputRef = ref(null)
+
+const newPost = ref({
+  imagePreview: '',
+  content: '',
+  imageData: null,
+})
+
+const filteredPublishBooks = computed(() => {
+  const q = publishBookQuery.value.trim().toLowerCase()
+  if (!allBooks.value.length) return []
+  let list = q ? allBooks.value.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q)) : allBooks.value.slice(0, 8)
+  return list
+})
+
+const canPublish = computed(() => newPost.value.imagePreview && newPost.value.content.trim().length >= 3)
+
+function openPublishModal() {
+  publishModalOpen.value = true
+  newPost.value = { imagePreview: '', content: '', imageData: null }
+  publishSelectedBook.value = null
+  publishBookQuery.value = ''
+}
+
+function closePublishModal() {
+  publishModalOpen.value = false
+}
+
+function triggerImageUpload() {
+  imageInputRef.value?.click()
+}
+
+function handleImageUpload(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    newPost.value.imagePreview = ev.target.result
+    newPost.value.imageData = file
+  }
+  reader.readAsDataURL(file)
+}
+
+function doPublish() {
+  if (!canPublish.value) return
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+  const newCommunityPost = {
+    id: ++postIdCounter,
+    username: userInfo.username || '我',
+    content: newPost.value.content.trim(),
+    image: newPost.value.imagePreview,
+    likes: 0,
+    liked: false,
+    time: '刚刚',
+    book: publishSelectedBook.value,
+  }
+  communityPosts.value.unshift(newCommunityPost)
+  closePublishModal()
+  toast('📖 帖子发布成功！')
+  confetti(window.innerWidth / 2, window.innerHeight / 2)
 }
 
 /* ═══ SHARED ACTIONS ═══ */
@@ -1533,6 +1804,560 @@ onMounted(async () => {
   100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
 }
 
+/* ═══ COMMUNITY ═══ */
+.community-feed {
+  min-height: 400px;
+}
+.cf-waterfall {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+.cf-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cf-post {
+  background: var(--color-bg-card);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 1px solid var(--color-divider);
+}
+.cf-post:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px var(--color-shadow-medium);
+  border-color: var(--color-accent);
+}
+.cfp-img-wrap {
+  overflow: hidden;
+  background: var(--color-bg);
+}
+.cfp-img {
+  width: 100%;
+  display: block;
+  transition: transform 0.4s ease;
+}
+.cf-post:hover .cfp-img {
+  transform: scale(1.05);
+}
+.cfp-content {
+  padding: 10px 12px 12px;
+}
+.cfp-text {
+  font-size: 0.8rem;
+  color: var(--color-text);
+  line-height: 1.5;
+  margin-bottom: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cfp-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cfp-user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cfp-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-bg-warm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+}
+.cfp-name {
+  font-size: 0.68rem;
+  color: var(--color-text-light);
+}
+.cfp-like {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: none;
+  background: var(--color-bg);
+  color: var(--color-text-light);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.cfp-like:hover {
+  background: rgba(255,77,106,0.08);
+  color: #ff4d6a;
+}
+.cfp-like.liked {
+  color: #ff4d6a;
+}
+
+/* Community Post Detail Modal */
+.cpd-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.35s;
+}
+.cpd-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+.cpd-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(10,20,40,0.75);
+  backdrop-filter: blur(10px);
+}
+.cpd-modal {
+  position: relative;
+  z-index: 1;
+  width: 820px;
+  max-width: 92vw;
+  max-height: 88vh;
+  background: var(--color-bg-card);
+  border-radius: 16px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+  transform: scale(0.92) translateY(20px);
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  overflow: hidden;
+  display: flex;
+}
+.cpd-overlay.show .cpd-modal {
+  transform: scale(1) translateY(0);
+}
+.cpd-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.8);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+}
+.cpd-close:hover {
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+}
+.cpd-content {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  max-height: 88vh;
+}
+.cpd-image-section {
+  width: 50%;
+  flex-shrink: 0;
+  background: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.cpd-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.cpd-overlay.show .cpd-image {
+  animation: cpdImgIn 0.5s ease 0.1s both;
+}
+@keyframes cpdImgIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.cpd-info-section {
+  flex: 1;
+  padding: 32px 28px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.cpd-info-section::-webkit-scrollbar { width: 4px; }
+.cpd-info-section::-webkit-scrollbar-thumb { background: var(--color-divider-strong); border-radius: 2px; }
+.cpd-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.cpd-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-bg-warm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.cpd-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cpd-username {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.cpd-time {
+  font-size: 0.72rem;
+  color: var(--color-text-light);
+}
+.cpd-divider {
+  width: 36px;
+  height: 1px;
+  background: var(--color-divider-strong);
+  margin: 14px 0;
+}
+.cpd-text {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  line-height: 1.8;
+}
+.cpd-book {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--color-bg-cream);
+  border: 1px solid var(--color-divider);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s;
+  margin-top: 12px;
+}
+.cpd-book:hover {
+  border-color: var(--color-accent);
+  transform: translateX(4px);
+}
+.cpd-book-cover {
+  width: 36px;
+  height: 48px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.28rem;
+  color: rgba(237,230,214,0.7);
+}
+.cpd-book-info {
+  flex: 1;
+}
+.cpd-book-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.cpd-book-author {
+  font-size: 0.7rem;
+  color: var(--color-text-light);
+  margin-top: 2px;
+}
+.cpd-book-arrow {
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+}
+.cpd-actions {
+  margin-top: auto;
+  padding-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+.cpd-like-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1.5px solid var(--color-divider-strong);
+  background: var(--color-bg-card);
+  color: var(--color-text-secondary);
+  font-size: 0.84rem;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.cpd-like-btn:hover {
+  border-color: #ff4d6a;
+  color: #ff4d6a;
+  background: rgba(255,77,106,0.06);
+}
+.cpd-like-btn.liked {
+  border-color: #ff4d6a;
+  color: #ff4d6a;
+  background: rgba(255,77,106,0.08);
+}
+
+/* Community header */
+.community-header {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 40px;
+}
+.ch-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0 0;
+}
+.ch-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.ch-publish-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-muted));
+  color: var(--color-primary-abyss);
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 14px rgba(192,154,75,0.25);
+}
+.ch-publish-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(192,154,75,0.35);
+}
+
+/* Publish Modal */
+.pm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.35s;
+}
+.pm-overlay.show { opacity: 1; visibility: visible; }
+.pm-bg {
+  position: absolute;
+  inset: 0;
+  background: rgba(10,20,40,0.72);
+  backdrop-filter: blur(8px);
+}
+.pm-modal {
+  position: relative;
+  z-index: 1;
+  width: 480px;
+  max-width: 92vw;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--color-bg-card);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+  transform: translateY(24px) scale(0.96);
+  transition: transform 0.35s cubic-bezier(0.34,1.2,0.64,1);
+}
+.pm-overlay.show .pm-modal { transform: translateY(0) scale(1); }
+.pm-modal::-webkit-scrollbar { width: 4px; }
+.pm-modal::-webkit-scrollbar-thumb { background: var(--color-divider-strong); border-radius: 2px; }
+.pm-head {
+  padding: 24px 28px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-divider);
+}
+.pm-head h3 { font-size: 1.1rem; }
+.pm-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: var(--color-bg);
+  color: var(--color-text-light);
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.pm-close:hover { background: var(--color-divider); color: var(--color-text); }
+.pm-body { padding: 20px 28px 28px; }
+.pm-field { margin-bottom: 18px; }
+.pm-field-label { font-size: 0.82rem; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 8px; }
+.pm-image-picker {
+  border: 2px dashed var(--color-divider-strong);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.25s;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pm-image-picker:hover { border-color: var(--color-accent); }
+.pm-img-preview {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+.pm-img-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 30px;
+  color: var(--color-text-light);
+  font-size: 0.82rem;
+}
+.pm-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--color-divider-strong);
+  border-radius: 10px;
+  font-size: 0.88rem;
+  color: var(--color-text);
+  background: var(--color-bg-cream);
+  outline: none;
+  resize: vertical;
+  min-height: 90px;
+  line-height: 1.7;
+  transition: border-color 0.2s;
+  font-family: var(--font-body);
+}
+.pm-textarea:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(192,154,75,0.06); }
+.pm-textarea::placeholder { color: var(--color-text-light); }
+.pm-char { text-align: right; font-size: 0.7rem; color: var(--color-text-light); margin-top: 4px; }
+.pm-book-search {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--color-divider-strong);
+  border-radius: 10px;
+  padding: 4px;
+  background: var(--color-bg-cream);
+  transition: border-color 0.2s;
+  margin-bottom: 8px;
+}
+.pm-book-search:focus-within { border-color: var(--color-accent); }
+.pm-book-search input { flex: 1; border: none; background: transparent; outline: none; padding: 8px; font-size: 0.84rem; color: var(--color-text); }
+.pm-book-search input::placeholder { color: var(--color-text-light); }
+.pmbs-i { padding: 6px; font-size: 0.85rem; color: var(--color-text-light); }
+.pm-book-list { display: flex; flex-direction: column; gap: 6px; max-height: 160px; overflow-y: auto; }
+.pm-book-list::-webkit-scrollbar { width: 3px; }
+.pm-book-list::-webkit-scrollbar-thumb { background: var(--color-divider-strong); border-radius: 2px; }
+.pm-book-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1.5px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.pm-book-item:hover { background: var(--color-bg-cream); border-color: var(--color-divider); }
+.pmbi-cover {
+  width: 28px;
+  height: 38px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.26rem;
+  color: rgba(237,230,214,0.7);
+}
+.pmbi-title { font-size: 0.8rem; font-weight: 600; color: var(--color-text); }
+.pmbi-author { font-size: 0.68rem; color: var(--color-text-light); }
+.pm-book-selected {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--color-accent-glow);
+  border: 1.5px solid var(--color-accent);
+  border-radius: 10px;
+  margin-top: 4px;
+}
+.pmbs-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.pmbs-title { font-size: 0.84rem; font-weight: 600; color: var(--color-accent-muted); }
+.pmbs-author { font-size: 0.7rem; color: var(--color-text-light); }
+.pmbs-clear {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(192,154,75,0.15);
+  color: var(--color-accent-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.pmbs-clear:hover { background: rgba(192,154,75,0.3); }
+.pm-submit {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: none;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-muted));
+  color: var(--color-primary-abyss);
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 16px rgba(192,154,75,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.pm-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(192,154,75,0.35); }
+.pm-submit:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
 /* Ocean results */
 .ocean-results { margin-top: 24px; }
 .or-card {
@@ -1853,6 +2678,14 @@ onMounted(async () => {
   .os-btn { width: 100%; text-align: center; }
   .bp-list { grid-template-columns: 1fr; }
   .tm-card { max-width: 96vw; }
+  .cf-waterfall { grid-template-columns: repeat(2, 1fr); }
+  .cpd-content { flex-direction: column; }
+  .cpd-image-section { width: 100%; height: 45vh; }
+  .cpd-info-section { padding: 20px; }
+  .community-header { padding: 0 20px; }
+  .ch-inner { padding: 16px 0 0; }
+  .ch-publish-btn { padding: 8px 16px; font-size: 0.8rem; }
+  .pm-modal { max-width: 96vw; }
 }
 </style>
 

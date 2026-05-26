@@ -22,5 +22,4 @@ export const bookApi = {
   getDiscounted() {
     return api.get('/book/discounted')
   }
-  }
 }

@@ -58,7 +58,6 @@ public class BookController {
         List<BookVO> result = bookService.getDiscounted();
         return Result.success(result);
     }
-    }
 
     @GetMapping("/category/{categoryId}")
     public Result<PageResult<BookVO>> category(
