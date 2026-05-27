@@ -450,6 +450,7 @@ import { ElMessage } from 'element-plus'
 import { bookApi } from '@/api/book'
 import { cartApi } from '@/api/cart'
 import { favoriteApi } from '@/api/favorite'
+import { communityApi } from '@/api/community'
 import { useCartStore } from '@/stores/cart'
 import { useFavoriteStore } from '@/stores/favorite'
 import { getCoverStyle } from '@/utils/cover'
@@ -961,23 +962,37 @@ function handleImageUpload(e) {
   reader.readAsDataURL(file)
 }
 
-function doPublish() {
+async function doPublish() {
   if (!canPublish.value) return
-  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
-  const newCommunityPost = {
-    id: ++postIdCounter,
-    username: userInfo.username || '我',
-    content: newPost.value.content.trim(),
-    image: newPost.value.imagePreview,
-    likes: 0,
-    liked: false,
-    time: '刚刚',
-    book: publishSelectedBook.value,
+  try {
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+    await communityApi.add({
+      username: userInfo.username || '我',
+      content: newPost.value.content.trim(),
+      imageUrl: newPost.value.imagePreview,
+      bookId: publishSelectedBook.value?.id || null,
+    })
+    await loadCommunityPosts()
+    closePublishModal()
+    toast('📖 帖子发布成功！')
+    confetti(window.innerWidth / 2, window.innerHeight / 2)
+  } catch (e) {
+    ElMessage.error('发布失败')
   }
-  communityPosts.value.unshift(newCommunityPost)
-  closePublishModal()
-  toast('📖 帖子发布成功！')
-  confetti(window.innerWidth / 2, window.innerHeight / 2)
+}
+
+async function loadCommunityPosts() {
+  try {
+    const res = await communityApi.list()
+    communityPosts.value = (res.data || []).map(p => ({
+      ...p,
+      image: p.imageUrl,
+      liked: p.liked === 1,
+      book: p.bookId ? { id: p.bookId, title: p.bookTitle } : null,
+    }))
+  } catch (e) {
+    console.error('loadCommunityPosts error', e)
+  }
 }
 
 /* ═══ SHARED ACTIONS ═══ */
@@ -1016,6 +1031,9 @@ watch(activeTab, (val) => {
     refreshOceanScene()
   } else {
     if (spawnTimer) { clearInterval(spawnTimer); spawnTimer = null }
+  }
+  if (val === 'community') {
+    loadCommunityPosts()
   }
 })
 

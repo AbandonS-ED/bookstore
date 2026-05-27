@@ -23,7 +23,7 @@
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column label="图片" width="100">
         <template #default="{ row }">
-          <img v-if="row.image" :src="row.image" class="post-thumb" @error="handleImgError" />
+          <img v-if="row.imageUrl" :src="row.imageUrl" class="post-thumb" @error="handleImgError" />
           <span v-else class="no-img">无图</span>
         </template>
       </el-table-column>
@@ -31,7 +31,11 @@
       <el-table-column prop="username" label="用户名" width="120" />
       <el-table-column prop="likes" label="点赞" width="80" align="center" />
       <el-table-column prop="bookTitle" label="关联书籍" min-width="140" show-overflow-tooltip />
-      <el-table-column prop="time" label="发布时间" width="120" />
+      <el-table-column prop="createTime" label="发布时间" width="160">
+        <template #default="{ row }">
+          {{ formatTime(row.createTime) }}
+        </template>
+      </el-table-column>
       <el-table-column label="操作" width="180" fixed="right">
         <template #default="{ row }">
           <el-button size="small" type="primary" link @click="openEdit(row)">编辑</el-button>
@@ -71,8 +75,8 @@
           <div class="ef-label">更换图片</div>
           <div class="ef-img-picker" @click="triggerImgUpload">
             <img v-if="editingPost.imagePreview" :src="editingPost.imagePreview" class="ef-img-preview" />
-            <div v-else-if="editingPost.image" class="ef-img-current">
-              <img :src="editingPost.image" class="ef-img-current-src" />
+            <div v-else-if="editingPost.imageUrl" class="ef-img-current">
+              <img :src="editingPost.imageUrl" class="ef-img-current-src" />
               <span class="ef-img-overlay">点击更换</span>
             </div>
             <div v-else class="ef-img-placeholder">
@@ -123,6 +127,8 @@
 import { ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCoverStyle } from '@/utils/cover'
+import { communityApi } from '@/api/community'
+import { bookApi } from '@/api/book'
 
 const posts = ref([])
 const loading = ref(false)
@@ -145,53 +151,36 @@ const allBooks = ref([])
 async function loadPosts() {
   loading.value = true
   try {
-    const mockData = generateMockPosts()
-    posts.value = mockData
-    total.value = mockData.length
+    const res = await communityApi.list(searchKeyword.value || null)
+    const data = res.data || []
+    posts.value = data
+    total.value = data.length
+  } catch (e) {
+    ElMessage.error('加载帖子失败')
   } finally {
     loading.value = false
   }
-}
-
-function generateMockPosts() {
-  const bookTitles = [
-    '三体', '百年孤独', '活着', '小王子', '人类简史',
-    '1984', '月亮与六便士', '围城', '我与地坛', '边城',
-    '额尔古纳河右岸', '认知觉醒', '瓦尔登湖', '白夜行', '红楼梦'
-  ]
-  const usernames = ['林小雅', '书虫阿东', '雨落江南', '北漂青年', '文艺大叔', '小红迷', '阅读者', '书语者']
-  const contents = [
-    '读完《瓦尔登湖》，决定开始极简生活',
-    '深夜推理时间，《白夜行》太绝了',
-    '诗集读完了，整个人都安静下来',
-    '打工人的日常，地铁上读完半本《活着》',
-    '三体让我对宇宙充满敬畏',
-    '月下看《围城》，方渐鸿的无奈',
-    '人类简史刷新了我的认知边界',
-    '我与地坛的文字让我泪流满面'
-  ]
-  const times = ['2小时前', '3小时前', '5小时前', '昨天', '1天前', '2天前', '3天前', '4天前']
-  const seedWords = ['walden', 'whiteNight', 'poetry', 'toLive', 'threeBody', 'fortress', 'sapiens', 'ditian']
-
-  return Array.from({ length: 20 }, (_, i) => ({
-    id: i + 1,
-    username: usernames[i % usernames.length],
-    content: contents[i % contents.length],
-    image: `https://picsum.photos/seed/${seedWords[i % seedWords.length]}/400/300`,
-    likes: Math.floor(Math.random() * 500),
-    liked: false,
-    time: times[i % times.length],
-    bookTitle: bookTitles[i % bookTitles.length],
-    bookId: (i % bookTitles.length) + 1
-  }))
 }
 
 function handleImgError(e) {
   e.target.style.display = 'none'
 }
 
+function formatTime(time) {
+  if (!time) return '-'
+  const d = new Date(time)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
 async function openEdit(post) {
-  editingPost.value = { ...post, imagePreview: post.image }
+  // Load all books for picker
+  if (!allBooks.value.length) {
+    try {
+      const res = await bookApi.getList({ pageNum: 1, pageSize: 100 })
+      allBooks.value = res.data?.records || []
+    } catch {}
+  }
+  editingPost.value = { ...post, imagePreview: post.imageUrl }
   editBookQuery.value = ''
   editSelectedBook.value = null
   editBookResults.value = []
@@ -225,18 +214,19 @@ function filterEditBooks() {
 
 async function saveEdit() {
   if (!editingPost.value) return
-  const idx = posts.value.findIndex(p => p.id === editingPost.value.id)
-  if (idx !== -1) {
-    posts.value[idx] = {
-      ...posts.value[idx],
+  try {
+    await communityApi.update({
+      id: editingPost.value.id,
       content: editingPost.value.content,
-      image: editingPost.value.imagePreview || posts.value[idx].image,
-      bookTitle: editSelectedBook.value?.title || posts.value[idx].bookTitle,
-      bookId: editSelectedBook.value?.id || posts.value[idx].bookId
-    }
+      imageUrl: editingPost.value.imagePreview || editingPost.value.imageUrl,
+      bookId: editSelectedBook.value?.id || null,
+    })
+    editDialogOpen.value = false
+    ElMessage.success('帖子更新成功')
+    await loadPosts()
+  } catch (e) {
+    ElMessage.error('更新失败')
   }
-  editDialogOpen.value = false
-  ElMessage.success('帖子更新成功')
 }
 
 async function handleDelete(id) {
@@ -246,9 +236,9 @@ async function handleDelete(id) {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    posts.value = posts.value.filter(p => p.id !== id)
-    total.value--
+    await communityApi.delete(id)
     ElMessage.success('删除成功')
+    await loadPosts()
   } catch {
     // cancelled
   }
