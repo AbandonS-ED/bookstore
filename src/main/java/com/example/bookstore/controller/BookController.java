@@ -3,6 +3,8 @@ package com.example.bookstore.controller;
 import com.example.bookstore.common.PageResult;
 import com.example.bookstore.common.Result;
 import com.example.bookstore.dto.BookQueryDTO;
+import com.example.bookstore.entity.BookExcerpt;
+import com.example.bookstore.service.BookExcerptService;
 import com.example.bookstore.service.BookService;
 import com.example.bookstore.util.AuthContext;
 import com.example.bookstore.vo.BookDetailVO;
@@ -19,6 +21,7 @@ import java.util.List;
 public class BookController {
 
     private final BookService bookService;
+    private final BookExcerptService bookExcerptService;
 
     @GetMapping("/list")
     public Result<PageResult<BookVO>> list(BookQueryDTO queryDTO) {
@@ -66,5 +69,14 @@ public class BookController {
         PageResult<BookVO> result = bookService.findByCategory(categoryId, pageNum, pageSize, sortBy,
                 minPrice, maxPrice, minRating, timeRange);
         return Result.success(result);
+    }
+
+    @GetMapping("/excerpt/{bookId}")
+    public Result<BookExcerpt> excerpt(@PathVariable Long bookId) {
+        List<BookExcerpt> excerpts = bookExcerptService.getByBookId(bookId);
+        if (excerpts.isEmpty()) {
+            return Result.success(null);
+        }
+        return Result.success(excerpts.get(0));
     }
 }

@@ -188,6 +188,52 @@ CREATE TABLE `book_chapter` (
     FOREIGN KEY (`book_id`) REFERENCES `book`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='目录表';
 
+-- 书斋社区帖子表
+CREATE TABLE `community_post` (
+    `id` BIGINT PRIMARY KEY COMMENT '帖子ID（雪花算法）',
+    `user_id` BIGINT COMMENT '发布用户ID',
+    `username` VARCHAR(50) COMMENT '用户名',
+    `content` VARCHAR(500) COMMENT '帖子内容',
+    `image_url` VARCHAR(500) COMMENT '图片URL',
+    `likes` INT DEFAULT 0 COMMENT '点赞数',
+    `liked` TINYINT DEFAULT 0 COMMENT '是否已点赞',
+    `book_id` BIGINT COMMENT '关联书籍ID',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='书斋社区帖子表';
+
+-- 社区点赞表
+CREATE TABLE `community_like` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '点赞ID',
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `post_id` BIGINT NOT NULL COMMENT '帖子ID',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='社区点赞表';
+
+-- 书籍品评表
+CREATE TABLE `book_quality_review` (
+    `id` BIGINT PRIMARY KEY COMMENT '品评ID（雪花算法）',
+    `book_id` BIGINT NOT NULL COMMENT '书籍ID',
+    `reviewer_name` VARCHAR(100) COMMENT '品评人',
+    `content` TEXT COMMENT '品评内容',
+    `source` VARCHAR(200) COMMENT '来源',
+    `rating` DECIMAL(3,1) COMMENT '评分',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    FOREIGN KEY (`book_id`) REFERENCES `book`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='书籍品评表';
+
+-- 书籍精彩文段表
+CREATE TABLE `book_excerpt` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '文段ID',
+    `book_id` BIGINT NOT NULL COMMENT '书籍ID',
+    `content` TEXT NOT NULL COMMENT '文段内容',
+    `sort_order` INT DEFAULT 0 COMMENT '排序',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    FOREIGN KEY (`book_id`) REFERENCES `book`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='书籍精彩文段表';
+
 -- book 表新增 author_id 外键
 ALTER TABLE `book` ADD COLUMN `author_id` BIGINT NULL COMMENT '作者ID' AFTER `author`;
 ALTER TABLE `book` ADD FOREIGN KEY (`author_id`) REFERENCES `author`(`id`);
@@ -514,3 +560,31 @@ INSERT INTO `review` (`user_id`, `book_id`, `rating`, `content`, `status`) VALUE
 (2, 25, 5, '阿蒂克斯·芬奇是我心中最完美的父亲形象，这本书教会了我什么是勇气。', 1),
 (2, 26, 5, '奥威尔的预言在今天看来依然振聋发聩，反乌托邦经典的巅峰之作。', 1),
 (2, 27, 4, '马尔克斯的爱情百科全书，五十年的等待让人动容。但相比百年孤独稍逊一筹。', 1);
+
+-- 初始社区帖子数据（id 由雪花算法生成，此处用显式值）
+INSERT INTO `community_post` (`id`, `user_id`, `username`, `content`, `image_url`, `likes`, `liked`, `book_id`) VALUES
+(100, 2, '林小雅', '读完《瓦尔登湖》，决定开始极简生活', 'https://picsum.photos/seed/walden/400/500', 128, 0, 1),
+(101, 2, '书虫阿东', '深夜推理时间，《白夜行》太绝了', 'https://picsum.photos/seed/whiteNight/400/300', 89, 0, 4),
+(102, 2, '雨落江南', '诗集读完了，整个人都安静下来', 'https://picsum.photos/seed/poetry/400/600', 256, 0, 3),
+(103, 2, '北漂青年', '打工人的日常，地铁上读完半本《活着》', 'https://picsum.photos/seed/toLive/400/350', 67, 0, 4),
+(104, 2, '文艺大叔', '三体让我对宇宙充满敬畏', 'https://picsum.photos/seed/threeBody/400/450', 312, 0, 1),
+(105, 2, '小红迷', '月下看《围城》，方渐鸿的无奈', 'https://picsum.photos/seed/fortress/400/400', 178, 0, 8),
+(106, 2, '阅读者', '人类简史刷新了我的认知边界', 'https://picsum.photos/seed/sapiens/400/550', 234, 0, 5),
+(107, 2, '书语者', '我与地坛的文字让我泪流满面', 'https://picsum.photos/seed/ditian/400/320', 445, 0, 9),
+(108, 2, '墨染白', '边城的翠翠，那条溪水清澈如她的眼眸', 'https://picsum.photos/seed/biancheng/400/480', 189, 0, 10),
+(109, 2, '星河书社', '认知觉醒，让我开始真正思考', 'https://picsum.photos/seed/awaken/400/380', 156, 0, 12),
+(110, 2, '豆瓣用户', '百年孤独里的魔幻现实让人着迷', 'https://picsum.photos/seed/century/400/520', 278, 0, 2),
+(111, 2, '读书笔记', '小王子的纯真，是我们丢失的美好', 'https://picsum.photos/seed/principle/400/280', 367, 0, 6);
+
+-- 初始精彩文段数据
+INSERT INTO `book_excerpt` (`book_id`, `content`, `sort_order`) VALUES
+((SELECT `id` FROM `book` WHERE `isbn` = '978-7-5322-5000-2'), '给岁月以文明，而不是给文明以岁月。', 1),
+((SELECT `id` FROM `book` WHERE `isbn` = '978-7-5322-5000-2'), '在中国，任何超脱飞扬的思想都会砰然坠地——现实的引力实在是太沉重了。', 2),
+((SELECT `id` FROM `book` WHERE `isbn` = '978-7-5443-7010-3'), '人是为活着本身而活着，而不是为了活着之外的任何事物所活着。', 1),
+((SELECT `id` FROM `book` WHERE `isbn` = '978-7-5443-5012-9'), '过去都是假的，回忆是一条没有归途的路，以往的一切春天都无法复原。', 1),
+((SELECT `id` FROM `book` WHERE `isbn` = '978-7-5402-3412-8'), '重要的东西用眼睛是看不见的，要用心去感受。', 1),
+((SELECT `id` FROM `book` WHERE `isbn` = '978-7-80173-502-3'), '婚姻是一座围城，城外的人想进去，城里的人想出来。', 1),
+((SELECT `id` FROM `book` WHERE `isbn` = '978-7-5302-1753-5'), '生活不能等待别人来安排，要自己去争取和奋斗。', 1),
+((SELECT `id` FROM `book` WHERE `isbn` = '978-7-5354-5422-5'), '世上有两样东西不可直视，一是太阳，二是人心。', 1),
+((SELECT `id` FROM `book` WHERE `isbn` = '978-7-5402-3612-2'), '满地都是六便士，他却抬头看见了月亮。', 1),
+((SELECT `id` FROM `book` WHERE `isbn` = '978-7-5442-4532-6'), '为你，千千万万遍。', 1);
