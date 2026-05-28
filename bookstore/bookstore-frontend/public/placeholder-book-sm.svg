@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="160" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="spine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8B4513;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A0522D;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cover" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2F4F4F;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1a1a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect x="4" y="8" width="8" height="144" fill="url(#spine)" rx="2"/>
+  <rect x="12" y="8" width="96" height="144" fill="url(#cover)" rx="3"/>
+  <rect x="20" y="35" width="80" height="4" fill="#b08d57" rx="1"/>
+  <rect x="20" y="45" width="60" height="3" fill="#7a9e7e" rx="1"/>
+  <circle cx="60" cy="90" r="15" fill="none" stroke="#b08d57" stroke-width="1"/>
+  <text x="60" y="95" font-family="serif" font-size="12" fill="#b08d57" text-anchor="middle">書</text>
+</svg>

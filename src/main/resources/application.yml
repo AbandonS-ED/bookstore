@@ -29,3 +29,8 @@ callback:
 logging:
   level:
     com.example.bookstore: debug
+
+minimax:
+  api:
+    key: sk-b567df9d99614faaa9db9118d5b2ebb2
+    url: https://api.minimax.chat/v1/text/chatfunction_v2

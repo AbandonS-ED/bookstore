@@ -45,6 +45,11 @@ const routes = [
     component: () => import('@/views/user/Explore.vue')
   },
   {
+    path: '/ai-assistant',
+    name: 'AIAssistant',
+    component: () => import('@/views/user/AIAssistant.vue')
+  },
+  {
     path: '/about',
     name: 'About',
     component: () => import('@/views/user/About.vue')

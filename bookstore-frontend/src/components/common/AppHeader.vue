@@ -17,19 +17,32 @@
         <li><router-link to="/about" class="nav-link" active-class="active">关于我们</router-link></li>
       </ul>
       <div class="nav-right">
-        <div class="search-box">
+        <div :class="['search-box', { suggested: showSuggestions }]">
           <span class="search-icon">🔍</span>
           <input
             v-model="searchKeyword"
             type="text"
             placeholder="搜索书名、作者..."
-            @keyup.enter="handleSearch"
+            @keydown="onSuggestionKeydown"
+            @keyup.enter="handleSearchInput"
           />
+          <div v-if="showSuggestions" class="search-suggestions">
+            <div
+              v-for="(book, i) in suggestions"
+              :key="book.id"
+              :class="['ss-item', { active: i === selectedIdx }]"
+              @mousedown.prevent="selectSuggestion(book)"
+            >
+              <span class="ss-title">{{ book.title }}</span>
+              <span class="ss-author">{{ book.author }}</span>
+            </div>
+          </div>
         </div>
         <router-link to="/cart" class="nav-cart">
           🛒
           <div v-if="cartCount > 0" class="cart-badge">{{ cartCount > 99 ? '99+' : cartCount }}</div>
         </router-link>
+        <router-link to="/ai-assistant" class="nav-ai">🤖</router-link>
         <router-link to="/favorites" class="nav-fav">♡</router-link>
         <template v-if="userStore.isLoggedIn">
           <div class="user-menu" @click="showUserMenu = !showUserMenu">
@@ -54,10 +67,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useCartStore } from '@/stores/cart'
+import { bookApi } from '@/api/book'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -65,14 +79,65 @@ const cartStore = useCartStore()
 
 const searchKeyword = ref('')
 const showUserMenu = ref(false)
+const suggestions = ref([])
+const showSuggestions = ref(false)
+const selectedIdx = ref(-1)
+let suggestTimer = null
 
 const cartCount = computed(() => cartStore.totalCount)
 const isAdmin = computed(() => userStore.userInfo?.role === 'admin')
+
+watch(searchKeyword, (val) => {
+  clearTimeout(suggestTimer)
+  if (!val.trim()) {
+    suggestions.value = []
+    showSuggestions.value = false
+    return
+  }
+  suggestTimer = setTimeout(() => {
+    fetchSuggestions(val.trim())
+  }, 200)
+})
+
+function fetchSuggestions(keyword) {
+  bookApi.getList({ keyword, pageSize: 6, pageNum: 1 }).then(res => {
+    suggestions.value = res.data?.records || []
+    showSuggestions.value = suggestions.value.length > 0
+    selectedIdx.value = -1
+  }).catch(() => {
+    suggestions.value = []
+    showSuggestions.value = false
+  })
+}
+
+function selectSuggestion(book) {
+  showSuggestions.value = false
+  suggestions.value = []
+  searchKeyword.value = ''
+  router.push(`/book/${book.id}`)
+}
+
+function onSuggestionKeydown(e) {
+  if (!showSuggestions.value) return
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    selectedIdx.value = Math.min(selectedIdx.value + 1, suggestions.value.length - 1)
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    selectedIdx.value = Math.max(selectedIdx.value - 1, 0)
+  } else if (e.key === 'Enter' && selectedIdx.value >= 0) {
+    e.preventDefault()
+    selectSuggestion(suggestions.value[selectedIdx.value])
+  } else if (e.key === 'Escape') {
+    showSuggestions.value = false
+  }
+}
 
 const handleSearch = () => {
   if (searchKeyword.value.trim()) {
     router.push({ path: '/books', query: { keyword: searchKeyword.value } })
     searchKeyword.value = ''
+    showSuggestions.value = false
   }
 }
 
@@ -85,6 +150,16 @@ const closeMenu = (e) => {
   if (!e.target.closest('.user-menu')) {
     showUserMenu.value = false
   }
+  if (!e.target.closest('.search-box')) {
+    showSuggestions.value = false
+  }
+}
+
+function handleSearchInput(e) {
+  const el = e.target
+  if (e.key === 'Enter' && !showSuggestions.value) {
+    handleSearch()
+  }
 }
 
 onMounted(() => {
@@ -96,6 +171,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('click', closeMenu)
+  clearTimeout(suggestTimer)
 })
 </script>
 
@@ -194,20 +270,27 @@ onUnmounted(() => {
 }
 
 .search-box {
+  position: relative;
   display: flex;
   align-items: center;
   background: rgba(237,230,214,0.06);
   border: 1px solid rgba(237,230,214,0.1);
   border-radius: 8px;
   padding: 7px 14px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  min-width: 180px;
+}
+.search-box.suggested {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-color: transparent;
+}
+.search-box.suggested:focus-within {
+  border-bottom-color: transparent;
+  box-shadow: none;
 }
 
-.search-box:focus-within {
-  background: rgba(237,230,214,0.1);
-  border-color: rgba(192,154,75,0.4);
-  box-shadow: 0 0 0 3px var(--color-accent-glow);
-}
+.search-icon { color: rgba(237,230,214,0.35); font-size: 0.9rem; margin-right: 8px; }
 
 .search-box input {
   background: transparent;
@@ -215,12 +298,62 @@ onUnmounted(() => {
   outline: none;
   color: var(--color-bg);
   font-size: 0.85rem;
-  width: 160px;
   font-family: var(--font-body);
+}
+.search-box:focus-within {
+  background: rgba(237,230,214,0.1);
+  border-color: rgba(192,154,75,0.4);
+  box-shadow: 0 0 0 3px var(--color-accent-glow);
 }
 
 .search-box input::placeholder { color: rgba(237,230,214,0.25); }
-.search-icon { color: rgba(237,230,214,0.35); font-size: 0.9rem; margin-right: 8px; }
+
+.search-suggestions {
+  position: absolute;
+  top: 100%;
+  left: -0.5px;
+  right: -0.5px;
+  margin-top: -1px;
+  background: linear-gradient(rgba(237,230,214,0.06), rgba(237,230,214,0.06)), var(--color-primary-abyss);
+  border: 1px solid rgba(237,230,214,0.1);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  z-index: 200;
+  overflow: hidden;
+  padding: 4px 0;
+}
+.search-box:focus-within .search-suggestions {
+  background: linear-gradient(rgba(237,230,214,0.1), rgba(237,230,214,0.1)), var(--color-primary-abyss);
+  border-color: rgba(192,154,75,0.4);
+  border-top-color: transparent;
+}
+.ss-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-radius: 6px;
+  gap: 10px;
+}
+.ss-item:hover, .ss-item.active {
+  background: rgba(192,154,75,0.12);
+}
+.ss-title {
+  font-size: 0.8rem;
+  color: rgba(237,230,214,0.7);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.ss-author {
+  font-size: 0.7rem;
+  color: rgba(192,154,75,0.35);
+  flex-shrink: 0;
+}
 
 .nav-cart {
   position: relative;
@@ -232,6 +365,19 @@ onUnmounted(() => {
 }
 
 .nav-cart:hover { color: var(--color-accent); }
+
+.nav-ai {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(237,230,214,0.5);
+  font-size: 1.15rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s, transform 0.2s;
+}
+.nav-ai:hover { color: var(--color-accent); transform: scale(1.15); }
 
 .nav-fav {
   position: relative;
