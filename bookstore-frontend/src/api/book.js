@@ -18,5 +18,8 @@ export const bookApi = {
   },
   getDiscounted() {
     return api.get('/book/discounted')
+  },
+  getExcerpt(bookId) {
+    return api.get(`/book/excerpt/${bookId}`)
   }
 }
