@@ -15,20 +15,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # 后端
-mvn spring-boot:run          # 启动后端（端口 8081）
-mvn test                     # 运行测试（纯 JUnit 5 + Mockito，无需数据库）
-mvn clean package -DskipTests # 打包
+mvn spring-boot:run                    # 启动后端（端口 8081）
+mvn test                                # 运行测试（纯 JUnit 5 + Mockito，无需数据库）
+mvn clean package -DskipTests           # 打包
 
 # 前端
 cd bookstore-frontend
-npm install                  # 安装依赖
-npm run dev                  # 开发模式（端口 5173）
-npm run build                # 生产构建
+npm install                             # 安装依赖
+npm run dev                             # 开发模式（端口 5173）
+npm run build                           # 生产构建
 ```
 
 ## 快速启动
 
-1. 初始化数据库：`D:/AppServ/MySQL/bin/mysql.exe -u root bookstore < sql/init.sql`（12 张表 + 种子数据）
+1. 初始化数据库：`D:/AppServ/MySQL/bin/mysql.exe -u root bookstore < sql/init.sql`（16 张表 + 种子数据）
 2. 配置密码：复制 `application-local.yml.example` 为 `application-local.yml`，填入 MySQL 密码（无密码则留空）
 3. 启动后端：`mvn spring-boot:run`
 4. 启动前端：`cd bookstore-frontend && npm run dev`
@@ -41,15 +41,15 @@ npm run build                # 生产构建
 
 ```
 com.example.bookstore/
-├── config/          # CORS、MyBatis-Plus 分页、WebMvc 配置（拦截器注册 + 静态资源）
-├── interceptor/     # AuthInterceptor（JWT 验证）、AdminInterceptor（管理员验证）
-├── controller/      # REST 控制器（9 个）
-│   └── admin/       # 管理后台控制器（5 个，直接注入 Mapper 而非 Service）
-├── service/impl/    # 业务层实现（8 个）
-├── mapper/          # MyBatis-Plus Mapper（12 个，仅 BookMapper 含 @Update 原子 SQL）
-├── entity/          # 实体类（12 个，继承 BaseEntity 或独立）
-├── dto/             # 数据传输对象（15 个）
-├── vo/              # 视图对象（13 个，ID 字段 @JsonSerialize ToStringSerializer）
+├── config/          # CORS、MyBatis-Plus 分页、WebMvc 配置
+├── interceptor/     # AuthInterceptor（JWT）、AdminInterceptor（管理员校验）
+├── controller/      # REST 控制器（AIController、CommunityPostController 等）
+│   └── admin/       # 管理后台控制器（直接注入 Mapper 而非 Service）
+├── service/impl/    # 业务层实现
+├── mapper/          # MyBatis-Plus Mapper（全注解）
+├── entity/          # 实体类（继承 BaseEntity 或独立）
+├── dto/             # 数据传输对象（接收前端参数）
+├── vo/              # 视图对象（API 响应，ID 字符串化）
 ├── common/          # Result / BaseEntity / Constants / PageResult
 ├── exception/       # BusinessException / GlobalExceptionHandler
 └── util/            # JwtUtils / SecurityUtils(BCrypt) / AuthContext(ThreadLocal) / OrderNoGenerator
@@ -58,11 +58,11 @@ com.example.bookstore/
 ### 前端结构
 
 ```
-src/views/user/      # 用户端页面（Home/Books/BookDetail/Cart/Order*/Login/Register/...）
-src/views/admin/     # 管理后台（Admin/AdminDashboard/AdminBooks/AdminCategories/AdminOrders/AdminRefund/AdminInventory/AdminUsers/AdminReviews）
+src/views/user/      # 用户端页面（Home/Books/BookDetail/Cart/Order*/Login/Register/AIAssistant/Explore）
+src/views/admin/     # 管理后台（Admin/AdminDashboard/AdminBooks/AdminCategories/AdminOrders/AdminRefund/AdminInventory/AdminUsers/AdminReviews/AdminCommunity）
 src/components/      # 公共组件（AppHeader/AppFooter/BookCard/PaginationBar/ModalDialog/ToastContainer）
-src/api/             # axios 封装（index.js 用户端、admin.js 管理端）+ 7 个模块 API
-src/stores/          # Pinia 状态管理（6 个：user/cart/category/order/favorite/review）
+src/api/             # axios 封装（index.js 用户端、admin.js 管理端）+ ai.js/community.js
+src/stores/          # Pinia 状态管理（user/cart/category/order/favorite/review）
 src/composables/     # Vue 组合式函数（useToast）
 src/utils/           # auth.js / format.js / cover.js
 ```
@@ -86,24 +86,42 @@ src/utils/           # auth.js / format.js / cover.js
 
 ### 拦截路径
 
-- **AuthInterceptor**：`/api/user/info`、`/api/user/password`、`/api/user/profile`、`/api/address/**`、`/api/cart/**`、`/api/favorite/**`、`/api/order/**`、`/api/review/add`、`/admin/**`
+- **AuthInterceptor**：`/api/user/info`、`/api/user/password`、`/api/user/profile`、`/api/address/**`、`/api/cart/**`、`/api/favorite/**`、`/api/order/**`、`/api/review/add`、`/api/ai/**`、`/admin/**`
 - **AdminInterceptor**：`/admin/**`（校验 admin 角色）
+
+## AI 书友 (`/ai-assistant`)
+
+| File | Purpose |
+|------|---------|
+| `AIController.java` | POST `/api/ai/chat` + `/api/ai/chat/stream`，MiniMax 代理 + function calling |
+| `src/api/ai.js` | 前端 API，`chatStream()` 支持 SSE 流式输出 |
+| `AIAssistant.vue` | 聊天 UI，含欢迎页、书籍卡片、流式打字效果 |
+
+### Tools exposed to MiniMax
+- `searchBooks(keyword)` — 按书名/作者搜索
+- `getBookDetail(bookId)` — 完整书籍信息
+- `addToCart(bookId, quantity)` — 加入购物车（需登录）
+- `getCartItems()` — 购物车内容
+- `listAddresses()` — 收货地址列表
+
+## 书斋社区 (`/community`)
+
+`CommunityPostController` 处理社区帖子，支持发帖、点赞、列表查询。
 
 ## BigInt 精度问题（重要）
 
 MyBatis-Plus 雪花算法生成 **19 位 Long 类型 ID**，超出 JS `Number.MAX_SAFE_INTEGER`（约 16 位）。**必须字符串化**：
 
-- **VO**：所有 Long ID 字段加 `@JsonSerialize(using = ToStringSerializer.class)`（`CategoryVO` 含 id + parentId；`BookChapterVO` 无 Long 字段，无注解）
+- **VO**：所有 Long ID 字段加 `@JsonSerialize(using = ToStringSerializer.class)`
 - **Entity**：`BaseEntity.id`、`Book.authorId`/`categoryId`、`Category.parentId` 加 `@JsonFormat(shape = JsonFormat.Shape.STRING)`
 - **DTO**：ID 字段声明为 `String`（如 `OrderCreateDTO.addressId`/`cartItemIds`），Service 层 `Long.parseLong()` 转回
-- **FavoriteController.add()**：用 `Map<String, String>` + `Long.parseLong()` 接收
 
 **注意**：`OrderItem.id` 使用 `@TableId(type = IdType.AUTO)`（自增），不使用雪花算法。
 
-## 数据库表（共 12 张）
+## 数据库表（共 16 张）
 
 | 表名 | 说明 | 特殊字段 |
-|------|------|---------|
+|------|------|----------|
 | `user` | 用户表（角色 user/admin） | — |
 | `category` | 分类表（层级 parent_id） | `status`（1启用 0禁用） |
 | `book` | 书籍表 | `favorited_count`（原子更新）、`orig_price`、`author_id`、`expected_shelf_date`（预售） |
@@ -112,10 +130,14 @@ MyBatis-Plus 雪花算法生成 **19 位 Long 类型 ID**，超出 JS `Number.MA
 | `favorite` | 收藏表 | `favorited_price`（收藏时价格），唯一约束 `user_id+book_id` |
 | `address` | 收货地址表 | `Entity` 中 `@TableField("user_id")` 显式列映射 |
 | `cart` | 购物车表 | 唯一约束 `user_id+book_id` |
-| `order` | 订单主表（`order` 必须反引号） | `status`/`pay_status`/`express_no`/`expire_time` |
+| `order` | 订单主表（`order` 必须反引号） | `status` / `pay_status` / `express_no` / `expire_time` |
 | `order_item` | 订单明细表 | 冗余 `book_title`/`book_author`/`cover_url` |
 | `payment` | 支付记录表 | `payment_no`（流水号） |
 | `review` | 评论表 | 评分 1-5、`status`（显示/隐藏）、`order_item_id`（订单项关联） |
+| `community_post` | 社区帖子表 | 雪花算法 ID，`likes`/`liked`/`book_id` |
+| `community_like` | 社区点赞表 | `user_id`/`post_id`，AUTO_INCREMENT |
+| `book_quality_review` | 书籍品评表 | 雪花算法 ID，关联 `book_id` |
+| `book_excerpt` | 书籍精彩文段表 | `content`/`sort_order`，AUTO_INCREMENT |
 
 ## 订单状态流转
 
@@ -137,30 +159,18 @@ expired      cancelled
 - `increaseSales` — `sales = sales + #{quantity}`，仅在支付时调用
 - `increaseFavoritedCount` / `decreaseFavoritedCount` — `favorited_count +/- 1`
 
-## 排行榜 API（getRanking）
-
-- `type`: `sales`（畅销）、`rating`（评分）、`new`（新书）、`collection`（收藏）
-- `period`: `all`、`week`、`month`、`quarter`、`year`（**仅 `new` 类型实际使用**）
-- `avgRating` 在查询时从 `review` 表实时计算，非 DB 列
-
 ## 关键约束
 
 - **无 MetaObjectHandler**：`BaseEntity` 标注 `@TableField(fill = ...)` 但无实现，依赖 MySQL `DEFAULT CURRENT_TIMESTAMP` / `ON UPDATE CURRENT_TIMESTAMP`
 - `DDL AUTO_INCREMENT` 仅为 fallback，实际使用雪花算法 19 位 Long
 - 管理员控制器（BookManageController、OrderManageController、UserManageController、ReviewManageController）**直接注入 Mapper** 返回原始 `Page<Entity>`，不转 VO
 - `PaymentVO.amount` 为 `String`（手写 `.toString()` 转换非 `@JsonSerialize`）
-- `AdminOrders.vue` 的 API 在 `src/api/admin.js`（非 `order.js`）
-- 管理后台还有 `AdminDashboard.vue`（仪表盘）、`AdminRefund.vue`（退款售后）、`AdminInventory.vue`（库存管理）三个额外页面
 
-## 管理后台搜索/筛选（近期新增）
+## 排行榜 API（getRanking）
 
-- `ReviewManageController.list()` 接受 `keyword`（搜索内容/用户名/书名）、`status`（显示/隐藏）、`rating`（评分）参数。keyword 搜索因 `username`/`bookTitle` 为 transient 字段，需先查 user/book 表取 ID。
-- `UserManageController.list()` 接受 `keyword`（用户名/邮箱/手机号）、`status`（正常/禁用）、`role`（user/admin）参数，直接 LIKE 查询 DB 列。
-- `AdminRefund.vue` 默认激活 tab 为 `refunding`（退款中），非 `all`。
-
-## 管理后台仪表盘 API
-
-`GET /admin/order/stats/revenue` 返回本月每日销售额（dailyRevenue）、本月总额（monthlyRevenue）、上月总额（lastMonthRevenue），基于 `pay_time` 聚合已支付订单。Dashboard 第 1 张卡片展示本月销售额 + 环比涨跌。
+- `type`: `sales`（畅销）、`rating`（评分）、`new`（新书）、`collection`（收藏）
+- `period`: `all`、`week`、`month`、`quarter`、`year`（**仅 `new` 类型实际使用**）
+- `avgRating` 在查询时从 `review` 表实时计算，非 DB 列
 
 ## 文档
 

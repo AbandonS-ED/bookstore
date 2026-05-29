@@ -1,6 +1,6 @@
 # 网上书店系统
 
-基于 Spring Boot 3 + MyBatis-Plus 的网上书店系统，支持用户浏览、购物车、订单管理等核心功能。提供用户端和管理后台两套界面。
+基于 Spring Boot 3 + MyBatis-Plus 的网上书店系统，支持用户浏览、购物车、订单管理、社区互动、AI 智能助手等核心功能。提供用户端和管理后台两套界面。
 
 ## 技术栈
 
@@ -9,6 +9,7 @@
 | 后端 | Java 17, Spring Boot 3.2.5, MyBatis-Plus 3.5.6 |
 | 数据库 | MySQL 8.0, Druid 1.2.23 |
 | 前端 | Vue 3 + Vite + Element Plus + Pinia + Vue Router |
+| AI | MiniMax API (MiniMax-M2.7) + Function Calling |
 | 构建 | Maven |
 
 ## 功能模块
@@ -19,7 +20,9 @@
 - **购物车模块** — 加入购物车、修改数量、删除
 - **订单模块** — 创建订单、订单列表、订单详情、取消、确认收货、售后申请
 - **评论模块** — 书籍评论、1-5 星评分
-- **后台管理** — 仪表盘、书籍管理、分类管理、库存管理、订单管理、退款售后、用户管理、评论管理
+- **社区模块** — 发帖、点赞、关联书籍、管理后台审核
+- **AI 助手** — 智能书友（MiniMax 大模型），支持搜索推荐书籍、加入购物车、流式对话
+- **后台管理** — 仪表盘、书籍管理、分类管理、库存管理、订单管理、退款售后、用户管理、评论管理、社区管理
 
 ## 快速开始
 
@@ -82,8 +85,8 @@ bookstore/                          # 后端 Spring Boot 项目
 ├── pictures/                       # 书籍封面图片
 ├── bookstore-frontend/             # 前端 Vue 3 项目
 │   ├── src/
-│   │   ├── views/user/             # 用户端页面（20 个）
-│   │   ├── views/admin/            # 管理后台页面（9 个：Dashboard/Books/Categories/Inventory/Orders/Refund/Users/Reviews/Admin）
+│   │   ├── views/user/             # 用户端页面（22 个）
+│   │   ├── views/admin/            # 管理后台页面（10 个：Dashboard/Books/Categories/Inventory/Orders/Refund/Users/Reviews/Admin/Community）
 │   │   ├── components/             # 公共组件
 │   │   ├── router/                 # 路由配置
 │   │   ├── stores/                 # Pinia 状态管理（6 个 store）
@@ -91,7 +94,7 @@ bookstore/                          # 后端 Spring Boot 项目
 │   │   └── utils/                  # 工具函数
 │   └── vite.config.js              # Vite 配置（@ 别名、代理规则）
 └── sql/
-    └── init.sql                    # 数据库初始化脚本（12 张表 + 种子数据）
+    └── init.sql                    # 数据库初始化脚本（14 张表 + 种子数据）
 ```
 
 ## 数据库表
@@ -110,6 +113,8 @@ bookstore/                          # 后端 Spring Boot 项目
 | `order_item` | 订单明细表（冗余书籍信息） |
 | `payment` | 支付记录表 |
 | `review` | 评论表（评分 1-5） |
+| `community_post` | 社区帖子表（含点赞、关联书籍） |
+| `community_like` | 社区点赞表 |
 
 ## 书籍详情页
 

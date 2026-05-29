@@ -5,10 +5,9 @@
 ```bash
 mvn spring-boot:run                   # backend :8081
 cd bookstore-frontend; npm run dev    # frontend :5173
-mysql -u root -p < sql/init.sql       # 12 tables + seed data
+mysql -u root -p < sql/init.sql       # 14 tables + seed data
 mvn test                              # JUnit5 + Mockito (no DB)
 mvn clean package -DskipTests         # full build
-python test_smoke.py                  # Playwright e2e (needs both servers)
 ```
 
 DB password in `src/main/resources/application-local.yml` (copy from `.example`, gitignored). Default admin: `admin` / `123456`.
@@ -94,3 +93,22 @@ expired       cancelled
 ## 限时折扣 (Discount)
 
 `Book.discountPrice` + `Book.discountEndTime`. `BookServiceImpl.isOnDiscount()` (public static) used in `OrderServiceImpl.create()` to pick discountPrice vs price. VO fields: `discountPrice`, `discountEndTime`, `onDiscount`. API: `GET /api/book/discounted`. Tag filter: `discount` for `GET /api/book/list?tag=discount`.
+
+## Community feature
+
+- **Tables**: `community_post` (extends `BaseEntity`), `community_like` (separate entity for like tracking)
+- **User API**: `GET /api/community/list`, `GET /api/community/{id}`, `POST /api/community/add`, `PUT /api/community/update`, `DELETE /api/community/{id}`, `POST /api/community/like/{id}`
+- **Admin API**: `GET /admin/community/list`, `DELETE /admin/community/{id}` — admin uses `CommunityManageController` (injects both `CommunityPostService` and `CommunityPostMapper`)
+- **Frontend**: `AdminCommunity.vue` in admin views; user-facing community views in `Explore.vue`
+- `CommunityPost.bookId` is optional (nullable Long); `bookTitle` is `@TableField(exist = false)` transient
+
+## AI Assistant (MiniMax)
+
+- **Backend**: `AIController` at `/api/ai/chat` (sync) and `/api/ai/chat/stream` (SSE)
+- **Model**: `MiniMax-M2.7` via `https://api.minimax.chat/v1/text/chatfunction_v2`
+- **Config**: `minimax.api.key` and `minimax.api.url` in `application.yml` (key is committed, not gitignored)
+- **Tools**: `searchBooks`, `getBookDetail`, `addToCart`, `getCartItems`, `listAddresses`
+- **Auth**: optional — tries `Authorization` header, sets `AuthContext` if valid JWT; guests can search/browse
+- **Frontend**: `AIAssistant.vue` + `src/api/ai.js` (both `chat()` and `chatStream()` with SSE parsing)
+- **SSE quirk**: reply is chunked 3 chars at a time with 15ms sleep (simulated streaming)
+- **Book refs**: after reply, scans all books for title mentions, returns up to 5 as `books` field in response

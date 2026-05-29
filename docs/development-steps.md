@@ -7,7 +7,7 @@
 ## 项目信息
 
 - 技术栈：Java 17 + Spring Boot 3.2.5 + MyBatis-Plus 3.5.6 + Vue 3 + MySQL 8.0
-- 数据库：bookstore（12张表）
+- 数据库：bookstore（14张表）
 - 后端端口：8081
 - 开发周期：2026/5/18 - 2026/5/30
 
@@ -321,6 +321,29 @@
 - [x] 管理员库存管理页面 AdminInventory.vue + AdminRefund.vue 退款售后页面
 - [x] 管理员仪表盘 AdminDashboard.vue
 - [x] 种子数据增加author/book_chapter表，review从12→30条
+
+### 阶段十：社区功能 ✅
+
+- [x] CommunityPost 实体（继承 BaseEntity）
+- [x] CommunityLike 实体
+- [x] CommunityPostMapper / CommunityLikeMapper
+- [x] CommunityPostService + CommunityPostServiceImpl
+- [x] CommunityPostController（/api/community/**）
+- [x] CommunityManageController（/admin/community/**）
+- [x] community_post / community_like 数据库表
+- [x] 前端 Explore.vue 社区帖子展示
+- [x] 前端 AdminCommunity.vue 管理后台
+- [x] 前端 api/community.js
+
+### 阶段十一：AI 智能助手 ✅
+
+- [x] AIController（/api/ai/chat + /api/ai/chat/stream）
+- [x] MiniMax API 集成（MiniMax-M2.7 + Function Calling）
+- [x] 5 个工具：searchBooks / getBookDetail / addToCart / getCartItems / listAddresses
+- [x] SSE 流式输出
+- [x] 前端 AIAssistant.vue 聊天界面
+- [x] 前端 api/ai.js（chat + chatStream）
+- [x] application.yml 配置 minimax.api.key/url
 
 ---
 
