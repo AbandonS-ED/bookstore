@@ -266,9 +266,22 @@ async function quickBuy(book) {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (inputRef.value) {
     inputRef.value.focus()
+  }
+  if (userStore.isLoggedIn) {
+    try {
+      const res = await aiApi.getHistory()
+      const history = res.data || []
+      if (history.length > 0) {
+        hasStarted.value = true
+        for (const msg of history) {
+          addMessage(msg.role, msg.content, [])
+        }
+        scrollToBottom()
+      }
+    } catch {}
   }
 })
 </script>

@@ -210,6 +210,15 @@ CREATE TABLE `community_like` (
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='社区点赞表';
 
+-- AI聊天记录表
+CREATE TABLE `chat_history` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `role` VARCHAR(20) NOT NULL COMMENT 'user/assistant',
+    `content` TEXT NOT NULL COMMENT '消息内容',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI聊天记录表';
+
 -- 书籍品评表
 CREATE TABLE `book_quality_review` (
     `id` BIGINT PRIMARY KEY COMMENT '品评ID（雪花算法）',

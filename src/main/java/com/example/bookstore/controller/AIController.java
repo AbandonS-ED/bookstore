@@ -8,6 +8,8 @@ import com.example.bookstore.service.AddressService;
 import com.example.bookstore.service.BookService;
 import com.example.bookstore.service.CartService;
 import com.example.bookstore.service.OrderService;
+import com.example.bookstore.service.ChatHistoryService;
+import com.example.bookstore.entity.ChatHistory;
 import com.example.bookstore.util.AuthContext;
 import com.example.bookstore.util.JwtUtils;
 import com.example.bookstore.vo.BookVO;
@@ -47,6 +49,7 @@ public class AIController {
     private final CartService cartService;
     private final OrderService orderService;
     private final AddressService addressService;
+    private final ChatHistoryService chatHistoryService;
     private final JwtUtils jwtUtils;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -58,7 +61,37 @@ public class AIController {
 
         try {
             trySetAuth(authHeader);
+            Long userId = AuthContext.getCurrentUserId();
+
+            // Save user message
+            List<Map<String, Object>> incomingMessages = (List<Map<String, Object>>) request.get("messages");
+            if (userId != null && incomingMessages != null && !incomingMessages.isEmpty()) {
+                String lastUserMsg = "";
+                for (Map<String, Object> msg : incomingMessages) {
+                    if ("user".equals(msg.get("role"))) {
+                        lastUserMsg = (String) msg.getOrDefault("content", "");
+                    }
+                }
+                if (!lastUserMsg.isEmpty()) {
+                    ChatHistory userMsg = new ChatHistory();
+                    userMsg.setUserId(userId);
+                    userMsg.setRole("user");
+                    userMsg.setContent(lastUserMsg);
+                    chatHistoryService.save(userMsg);
+                }
+            }
+
             ChatResult result = processChat(request);
+
+            // Save AI reply
+            if (userId != null && result.reply != null && !result.reply.isEmpty()) {
+                ChatHistory aiMsg = new ChatHistory();
+                aiMsg.setUserId(userId);
+                aiMsg.setRole("assistant");
+                aiMsg.setContent(result.reply);
+                chatHistoryService.save(aiMsg);
+            }
+
             Map<String, Object> res = new HashMap<>();
             res.put("reply", result.reply);
             if (!result.books.isEmpty()) {

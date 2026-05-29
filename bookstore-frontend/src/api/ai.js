@@ -5,6 +5,14 @@ export const aiApi = {
     return api.post('/ai/chat', { messages })
   },
 
+  getHistory() {
+    return api.get('/chat/history')
+  },
+
+  clearHistory() {
+    return api.delete('/chat/clear')
+  },
+
   async chatStream(messages, onText, onBooks, onDone) {
     const token = localStorage.getItem('token')
     const headers = { 'Content-Type': 'application/json' }
