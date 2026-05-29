@@ -1,12 +1,16 @@
 import api from '@/api'
 
 export const communityApi = {
-  list() {
-    return api.get('/community/list')
+  list(keyword) {
+    return api.get('/community/list', { params: { keyword } })
   },
 
   add(data) {
     return api.post('/community/add', data)
+  },
+
+  update(data) {
+    return api.put('/community/update', data)
   },
 
   like(id) {

@@ -27,4 +27,17 @@ public class CommunityManageController {
         communityPostMapper.deleteById(id);
         return Result.success();
     }
+
+    @PutMapping("/update")
+    public Result<Void> update(@RequestBody CommunityPost post) {
+        CommunityPost existing = communityPostService.getById(post.getId());
+        if (existing == null) {
+            return Result.error("帖子不存在");
+        }
+        existing.setContent(post.getContent());
+        existing.setImageUrl(post.getImageUrl());
+        existing.setBookId(post.getBookId());
+        communityPostService.update(existing);
+        return Result.success();
+    }
 }
