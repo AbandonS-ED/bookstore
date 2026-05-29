@@ -129,7 +129,10 @@ public class AIController {
             if ("ai".equals(role)) role = "assistant";
             node.put("role", role);
             String content = (String) msg.getOrDefault("content", "");
-            node.put("content", content);
+            ArrayNode contentArr = node.putArray("content");
+            ObjectNode textBlock = contentArr.addObject();
+            textBlock.put("type", "text");
+            textBlock.put("text", content);
         }
 
         String systemPrompt = buildSystemPrompt();
@@ -137,29 +140,26 @@ public class AIController {
 
         int iterations = 0;
         while (isToolUse(response) && iterations < MAX_ITERATIONS) {
-            JsonNode choice = response.get("choices").get(0);
-            JsonNode assistantMsg = choice.get("message");
+            ObjectNode assistantMsg = messages.addObject();
+            assistantMsg.put("role", "assistant");
+            assistantMsg.set("content", response.get("content"));
 
-            ObjectNode assistantNode = messages.addObject();
-            assistantNode.put("role", "assistant");
-            if (assistantMsg.has("content") && !assistantMsg.get("content").isNull()) {
-                assistantNode.put("content", assistantMsg.get("content").asText());
-            }
-            if (assistantMsg.has("tool_calls")) {
-                assistantNode.set("tool_calls", assistantMsg.get("tool_calls"));
-            }
-
-            for (JsonNode toolCall : assistantMsg.get("tool_calls")) {
-                String id = toolCall.get("id").asText();
-                String name = toolCall.get("function").get("name").asText();
-                String args = toolCall.get("function").get("arguments").asText();
+            ArrayNode toolResults = objectMapper.createArrayNode();
+            for (JsonNode block : response.get("content")) {
+                if (!"tool_use".equals(block.get("type").asText())) continue;
+                String name = block.get("name").asText();
+                String args = objectMapper.writeValueAsString(block.get("input"));
                 String result = executeTool(name, args);
 
-                ObjectNode toolResult = messages.addObject();
-                toolResult.put("role", "tool");
-                toolResult.put("tool_call_id", id);
+                ObjectNode toolResult = toolResults.addObject();
+                toolResult.put("type", "tool_result");
+                toolResult.put("tool_use_id", block.get("id").asText());
                 toolResult.put("content", result);
             }
+
+            ObjectNode userMsg = messages.addObject();
+            userMsg.put("role", "user");
+            userMsg.set("content", toolResults);
 
             response = callAnthropic(messages, systemPrompt, true);
             iterations++;
@@ -364,15 +364,8 @@ public class AIController {
             ObjectNode body = objectMapper.createObjectNode();
             body.put("model", MODEL);
             body.put("max_tokens", 2048);
-
-            ArrayNode msgs = objectMapper.createArrayNode();
-            ObjectNode sysMsg = msgs.addObject();
-            sysMsg.put("role", "system");
-            sysMsg.put("content", systemPrompt);
-            for (JsonNode m : messages) {
-                msgs.add(m);
-            }
-            body.set("messages", msgs);
+            body.set("messages", messages);
+            body.put("system", systemPrompt);
 
             if (withTools) {
                 body.set("tools", buildTools());
@@ -380,7 +373,8 @@ public class AIController {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", "Bearer " + apiKey);
+            headers.setBearerAuth(apiKey);
+            headers.add("anthropic-version", "2023-06-01");
 
             String jsonBody = objectMapper.writeValueAsString(body);
             HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
@@ -389,22 +383,18 @@ public class AIController {
             return objectMapper.readTree(response.getBody());
         } catch (Exception e) {
             ObjectNode fallback = objectMapper.createObjectNode();
-            ArrayNode choices = fallback.putArray("choices");
-            ObjectNode choice = choices.addObject();
-            choice.put("finish_reason", "stop");
-            ObjectNode message = choice.putObject("message");
-            message.put("role", "assistant");
-            message.put("content", "抱歉，我现在无法连接服务器，请稍后再试。");
+            ArrayNode content = fallback.putArray("content");
+            ObjectNode textBlock = content.addObject();
+            textBlock.put("type", "text");
+            textBlock.put("text", "抱歉，我现在无法连接服务器，请稍后再试。");
+            fallback.put("stop_reason", "end_turn");
             return fallback;
         }
     }
 
     private boolean isToolUse(JsonNode response) {
         try {
-            JsonNode choices = response.get("choices");
-            if (choices == null || choices.isEmpty()) return false;
-            String reason = choices.get(0).get("finish_reason").asText();
-            return "tool_calls".equals(reason);
+            return "tool_use".equals(response.get("stop_reason").asText());
         } catch (Exception e) {
             return false;
         }
@@ -412,13 +402,13 @@ public class AIController {
 
     private String extractText(JsonNode response) {
         try {
-            JsonNode choices = response.get("choices");
-            if (choices == null || choices.isEmpty()) return "";
-            JsonNode message = choices.get(0).get("message");
-            if (message != null && message.has("content") && !message.get("content").isNull()) {
-                return message.get("content").asText();
+            StringBuilder sb = new StringBuilder();
+            for (JsonNode block : response.get("content")) {
+                if ("text".equals(block.get("type").asText())) {
+                    sb.append(block.get("text").asText());
+                }
             }
-            return "";
+            return sb.toString();
         } catch (Exception e) {
             return "";
         }
@@ -495,16 +485,14 @@ public class AIController {
         return tools;
     }
 
-    private ObjectNode buildTool(String name, String description, String parametersJson) {
+    private ObjectNode buildTool(String name, String description, String inputSchemaJson) {
         ObjectNode tool = objectMapper.createObjectNode();
-        tool.put("type", "function");
-        ObjectNode func = tool.putObject("function");
-        func.put("name", name);
-        func.put("description", description);
+        tool.put("name", name);
+        tool.put("description", description);
         try {
-            func.set("parameters", objectMapper.readTree(parametersJson));
+            tool.set("input_schema", objectMapper.readTree(inputSchemaJson));
         } catch (JsonProcessingException e) {
-            func.putObject("parameters");
+            tool.putObject("input_schema");
         }
         return tool;
     }
