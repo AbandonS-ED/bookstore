@@ -194,7 +194,7 @@ CREATE TABLE `community_post` (
     `user_id` BIGINT COMMENT '发布用户ID',
     `username` VARCHAR(50) COMMENT '用户名',
     `content` VARCHAR(500) COMMENT '帖子内容',
-    `image_url` VARCHAR(500) COMMENT '图片URL',
+    `image_url` TEXT COMMENT '图片URL',
     `likes` INT DEFAULT 0 COMMENT '点赞数',
     `liked` TINYINT DEFAULT 0 COMMENT '是否已点赞',
     `book_id` BIGINT COMMENT '关联书籍ID',
