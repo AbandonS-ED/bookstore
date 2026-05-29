@@ -32,5 +32,5 @@ logging:
 
 minimax:
   api:
-    key: sk-b567df9d99614faaa9db9118d5b2ebb2
+    key: sk-cp-mEnE_KvyPejkFl_cQDkupuPHY9DmRyo-zDooC7HtlXpphaDgyH_MsZbxZJAdE9usZnPZ8_5cw5tN0oBK0s-bRt9mS78R1nh94hQhcyT0OxI07Ue4en27EZA
     url: https://api.minimax.chat/v1/messages
