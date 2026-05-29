@@ -37,12 +37,15 @@ api.interceptors.response.use(
   (error) => {
     if (error.response) {
       const { status, data } = error.response
+      const silent = error.config?.silent
       switch (status) {
         case 401:
-          ElMessage.error(data.message || '未登录或登录已过期')
+          if (!silent) {
+            ElMessage.error(data.message || '未登录或登录已过期')
+          }
           localStorage.removeItem('token')
           localStorage.removeItem('username')
-          router.push('/login')
+          if (!silent) router.push('/login')
           break
         case 403:
           ElMessage.error('无权限访问')

@@ -10,8 +10,8 @@ export const favoriteApi = {
   list(params) {
     return api.get('/favorite/list', { params })
   },
-  ids() {
-    return api.get('/favorite/ids')
+  ids(options) {
+    return api.get('/favorite/ids', { ...options })
   },
   check(bookId) {
     return api.get(`/favorite/check/${bookId}`)
