@@ -121,6 +121,17 @@ export const adminApi = {
     return request.delete(`/user/${id}`)
   },
 
+  // 社区管理
+  getCommunityList(params) {
+    return request.get('/community/list', { params })
+  },
+  updateCommunity(data) {
+    return request.put('/community/update', data)
+  },
+  deleteCommunity(id) {
+    return request.delete(`/community/${id}`)
+  },
+
   // 评价管理
   getReviewList(params) {
     return request.get('/review/list', { params })

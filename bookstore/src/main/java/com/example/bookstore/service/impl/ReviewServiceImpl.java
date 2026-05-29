@@ -59,6 +59,10 @@ public class ReviewServiceImpl implements ReviewService {
             if (reviewMapper.selectCount(dupWrapper) > 0) {
                 throw new BusinessException(1, "该商品已评价");
             }
+        } else {
+            if (orderItemMapper.countPurchased(userId, review.getBookId()) == 0) {
+                throw new BusinessException(1, "请先购买该书后再评价");
+            }
         }
 
         review.setUserId(userId);

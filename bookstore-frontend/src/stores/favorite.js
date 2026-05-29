@@ -22,7 +22,7 @@ export const useFavoriteStore = defineStore('favorite', {
         return
       }
       try {
-        const res = await favoriteApi.ids()
+        const res = await favoriteApi.ids({ silent: true })
         this.favoriteIds = res.data || []
       } catch {
         this.favoriteIds = []

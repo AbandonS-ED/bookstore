@@ -13,6 +13,8 @@ python test_smoke.py                  # Playwright e2e (needs both servers)
 
 DB password in `src/main/resources/application-local.yml` (copy from `.example`, gitignored). Default admin: `admin` / `123456`.
 
+MiniMax API key uses `${MINIMAX_API_KEY}` env var (no default). Put actual key in `application-local.yml` (gitignored).
+
 ## Snowflake ID (critical)
 
 MyBatis-Plus `ASSIGN_ID` generates 19-digit Longs that overflow `Number.MAX_SAFE_INTEGER`. **Must stringify**:
@@ -94,3 +96,22 @@ expired       cancelled
 ## 限时折扣 (Discount)
 
 `Book.discountPrice` + `Book.discountEndTime`. `BookServiceImpl.isOnDiscount()` (public static) used in `OrderServiceImpl.create()` to pick discountPrice vs price. VO fields: `discountPrice`, `discountEndTime`, `onDiscount`. API: `GET /api/book/discounted`. Tag filter: `discount` for `GET /api/book/list?tag=discount`.
+
+## AI 书友 (AI Assistant)
+
+- **AIController** (`/api/ai/chat`, `/api/ai/chat/stream`): Uses MiniMax `chatcompletion_v2` with OpenAI-compatible format (`role`/`content`). Supports function calling.
+- **Functions**: `searchBooks`, `getBookDetail`, `addToCart`, `getCartItems`, `listAddresses` — AI can search/recommend books AND execute cart/address operations on behalf of logged-in user.
+- **Auth**: Frontend sends `Authorization` header via axios interceptor; backend `trySetAuth()` sets `AuthContext` per request. Functions like `addToCart` use `AuthContext.getCurrentUserId()`.
+- **Floating widget**: `components/ai/AIFloatingWidget.vue` added to `App.vue` (draggable, fixed bottom-right). Same API as full AIAssistant page.
+- **RestTemplate UTF-8**: `CorsConfig.restTemplate()` sets `StringHttpMessageConverter` charset to UTF-8 — required for Chinese characters in MiniMax requests.
+
+## Community (书斋社区)
+
+- **Entities**: `CommunityPost` (title/content/image/authorId), `CommunityLike` (postId/userId), `BookExcerpt` (bookId/excerpt/sourcePage/sourceUser)
+- **API**: `GET /api/community/list` (paginated, with like count + liked status), `POST /api/community`, `POST /api/community/like` (toggle)
+- **Admin**: `CommunityManageController` (injects Mapper directly) supports `PUT /admin-api/community/update` to modify status
+- **Interceptors**: AuthInterceptor covers `/api/community/**` (JWT required for CRUD)
+
+## Review purchase check
+
+`ReviewServiceImpl.add()` checks `OrderItemMapper.countPurchased(userId, bookId) > 0` before allowing a review — user must have purchased the book.

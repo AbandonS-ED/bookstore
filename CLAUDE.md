@@ -162,6 +162,26 @@ expired      cancelled
 
 `GET /admin/order/stats/revenue` 返回本月每日销售额（dailyRevenue）、本月总额（monthlyRevenue）、上月总额（lastMonthRevenue），基于 `pay_time` 聚合已支付订单。Dashboard 第 1 张卡片展示本月销售额 + 环比涨跌。
 
+## AI 书友（AI Assistant）
+
+`AIController`（`/api/ai/chat`、`/api/ai/chat/stream`）：调用 MiniMax `chatcompletion_v2`，支持 function calling。可用函数：`searchBooks`、`getBookDetail`、`addToCart`、`getCartItems`、`listAddresses`。
+
+前端悬浮组件 `components/ai/AIFloatingWidget.vue`（可拖拽，右下角固定），用法与 `AIAssistant.vue` 一致。
+
+**RestTemplate UTF-8 编码**：`CorsConfig.restTemplate()` 已设置 `StringHttpMessageConverter` 字符集为 UTF-8，确保中文请求体正常发送。
+
+## 书斋社区（Community）
+
+实体：`CommunityPost`、`CommunityLike`、`BookExcerpt`。API：`GET /api/community/list`（分页含点赞数/状态）、`POST /api/community`（发帖）、`POST /api/community/like`（点赞切换）。管理端 `PUT /admin-api/community/update` 修改帖子状态。拦截器覆盖 `/api/community/**`。
+
+## 评论购买校验
+
+`ReviewServiceImpl.add()` 调用 `OrderItemMapper.countPurchased(userId, bookId) > 0` 校验用户是否已购买该书，未购买不允许评论。
+
+## 环境变量
+
+MiniMax API Key 通过 `${MINIMAX_API_KEY}` 读取，无默认值。实际 Key 填写在 `application-local.yml`（gitignored）。
+
 ## 文档
 
 分析文档位于 `docs/analysis/`：需求分析、数据库设计、技术方案、源码结构

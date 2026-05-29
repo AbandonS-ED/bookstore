@@ -2,7 +2,7 @@ import api from './index'
 
 export const aiApi = {
   chat(messages) {
-    return api.post('/ai/chat', { messages })
+    return api.post('/ai/chat', { messages }, { timeout: 60000 })
   },
 
   async chatStream(messages, onText, onBooks, onDone) {

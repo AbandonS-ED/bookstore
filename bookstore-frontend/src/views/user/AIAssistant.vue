@@ -204,30 +204,27 @@ async function sendMessage() {
   isLoading.value = true
   await scrollToBottom()
 
-  const chatMessages = messages.value
-    .filter(m => m.role === 'user')
-    .map(m => ({ role: 'user', content: m.content }))
+  const chatMessages = messages.value.map(m => ({ role: m.role, content: m.content }))
 
   const aiMsg = reactive({ role: 'ai', content: '', books: [], time: getTime() })
   messages.value.push(aiMsg)
   await scrollToBottom()
 
   try {
-    await aiApi.chatStream(
-      chatMessages,
-      (chunk) => {
-        aiMsg.content += chunk
-      },
-      (books) => {
-        aiMsg.books = books
-      },
-      () => {
-        isLoading.value = false
-        scrollToBottom()
-      }
-    )
-  } catch {
-    aiMsg.content = '抱歉，我暂时无法回应，请稍后再试。'
+    const res = await aiApi.chat(chatMessages)
+    console.log('Chat response:', JSON.stringify(res))
+    aiMsg.content = res.data?.reply
+    if (!aiMsg.content) {
+      console.warn('No reply in response data, full res:', res)
+      aiMsg.content = '抱歉，返回数据异常（' + (res?.message || '未知错误') + '）'
+    }
+    if (res.data?.books) {
+      aiMsg.books = res.data.books
+    }
+  } catch (e) {
+    console.error('Chat error:', e, 'message:', e.message)
+    aiMsg.content = '抱歉，请求失败（' + e.message + '）'
+  } finally {
     isLoading.value = false
     await scrollToBottom()
   }

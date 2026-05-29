@@ -6,8 +6,8 @@
           v-model="searchKeyword"
           placeholder="搜索用户名、内容..."
           clearable
-          @clear="loadPosts"
-          @keyup.enter="loadPosts"
+          @clear="handleSearch"
+          @keyup.enter="handleSearch"
         >
           <template #prefix>
             <span>🔍</span>
@@ -120,11 +120,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCoverStyle } from '@/utils/cover'
-import { communityApi } from '@/api/community'
-import { bookApi } from '@/api/book'
+import { adminApi } from '@/api/admin'
 
 const posts = ref([])
 const loading = ref(false)
@@ -141,13 +140,21 @@ const editSelectedBook = ref(null)
 const editBookResults = ref([])
 const allBooks = ref([])
 
+function handleSearch() {
+  pageNum.value = 1
+  loadPosts()
+}
+
 async function loadPosts() {
   loading.value = true
   try {
-    const res = await communityApi.list(searchKeyword.value || null)
-    const data = res.data || []
-    posts.value = data
-    total.value = data.length
+    const res = await adminApi.getCommunityList({
+      pageNum: pageNum.value,
+      pageSize: pageSize.value,
+      keyword: searchKeyword.value || undefined
+    })
+    posts.value = res.data?.records || []
+    total.value = res.data?.total || 0
   } catch (e) {
     ElMessage.error('加载帖子失败')
   } finally {
@@ -168,7 +175,7 @@ function formatTime(time) {
 async function openEdit(post) {
   if (!allBooks.value.length) {
     try {
-      const res = await bookApi.getList({ pageNum: 1, pageSize: 100 })
+      const res = await adminApi.getBookList({ pageNum: 1, pageSize: 100 })
       allBooks.value = res.data?.records || []
     } catch {}
   }
@@ -207,7 +214,7 @@ function filterEditBooks() {
 async function saveEdit() {
   if (!editingPost.value) return
   try {
-    await communityApi.update({
+    await adminApi.updateCommunity({
       id: editingPost.value.id,
       content: editingPost.value.content,
       imageUrl: editingPost.value.imagePreview || editingPost.value.imageUrl,
@@ -228,14 +235,16 @@ async function handleDelete(id) {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    await communityApi.delete(id)
+    await adminApi.deleteCommunity(id)
     ElMessage.success('删除成功')
     await loadPosts()
   } catch {
   }
 }
 
-loadPosts()
+onMounted(() => {
+  loadPosts()
+})
 </script>
 
 <style scoped>

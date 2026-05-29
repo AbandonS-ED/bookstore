@@ -42,8 +42,17 @@
           🛒
           <div v-if="cartCount > 0" class="cart-badge">{{ cartCount > 99 ? '99+' : cartCount }}</div>
         </router-link>
-        <router-link to="/ai-assistant" class="nav-ai">🤖</router-link>
         <router-link to="/favorites" class="nav-fav">♡</router-link>
+        <router-link to="/ai-assistant" class="nav-ai">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="8" width="18" height="12" rx="2"/>
+            <circle cx="8.5" cy="13" r="1.5" fill="none"/>
+            <circle cx="15.5" cy="13" r="1.5" fill="none"/>
+            <path d="M12 2v4"/>
+            <path d="M8 4l4 2 4-2"/>
+            <path d="M10 17v2a1 1 0 001 1h2a1 1 0 001-1v-2"/>
+          </svg>
+        </router-link>
         <template v-if="userStore.isLoggedIn">
           <div class="user-menu" @click="showUserMenu = !showUserMenu">
             <span class="avatar">{{ userStore.username?.[0]?.toUpperCase() }}</span>

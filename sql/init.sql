@@ -1,4 +1,4 @@
--- 网上书店系统 数据库初始化脚本
+﻿-- 网上书店系统 数据库初始化脚本
 
 -- 创建数据库
 CREATE DATABASE IF NOT EXISTS `bookstore` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
@@ -194,7 +194,7 @@ CREATE TABLE `community_post` (
     `user_id` BIGINT COMMENT '发布用户ID',
     `username` VARCHAR(50) COMMENT '用户名',
     `content` VARCHAR(500) COMMENT '帖子内容',
-    `image_url` VARCHAR(500) COMMENT '图片URL',
+    `image_url` LONGTEXT COMMENT '图片URL',
     `likes` INT DEFAULT 0 COMMENT '点赞数',
     `liked` TINYINT DEFAULT 0 COMMENT '是否已点赞',
     `book_id` BIGINT COMMENT '关联书籍ID',
@@ -608,4 +608,5 @@ INSERT INTO `book_excerpt` (`book_id`, `content`, `sort_order`) VALUES
 ((SELECT `id` FROM `book` WHERE `isbn` = '978-7-0200-4380-6'), '死是一件不必急于求成的事，死是一个必然会降临的节日。', 1),
 ((SELECT `id` FROM `book` WHERE `isbn` = '978-7-0200-4380-6'), '太阳，他每时每刻都是夕阳也都是旭日。当他熄灭着走下山去收尽苍凉残照之际，正是他在另一面燃烧着爬上山巅布散烈烈朝辉之时。', 2),
 ((SELECT `id` FROM `book` WHERE `isbn` = '978-7-0200-4381-3'), '人与人之间的根本差异是认知能力上的差异。', 1),
-((SELECT `id` FROM `book` WHERE `isbn` = '978-7-0200-4381-3'), '焦虑的本质：自己的欲望大于能力，又极度缺乏耐心。', 2);
+((SELECT `id` FROM `book` WHERE `isbn` = '978-7-0200-4381-3'), '焦虑的本质：自己的欲望大于能力，又极度缺乏耐心。', 2),
+((SELECT `id` FROM `book` WHERE `isbn` = '978-7-5442-4531-9'), '渡边坐在电话亭里，听着电话那头传来的音乐声。那是直子最喜欢的唱片，Beatles的《挪威的森林》。他闭上眼睛，仿佛又回到了那个夏天的草地，直子靠在他身边，说起那些永远不会再有第二遍的话。音乐还在响着，而有些人，已经永远留在了十九岁。', 1);

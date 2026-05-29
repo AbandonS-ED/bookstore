@@ -35,6 +35,9 @@ api.interceptors.response.use(
     return res
   },
   (error) => {
+    if (error.config?.silent) {
+      return Promise.reject(error)
+    }
     if (error.response) {
       const { status, data } = error.response
       switch (status) {

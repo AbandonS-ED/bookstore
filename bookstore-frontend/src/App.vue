@@ -6,6 +6,7 @@
     </main>
     <AppFooter v-if="showHeader" />
     <ToastContainer :toasts="toasts" />
+    <AIFloatingWidget v-if="showHeader" />
   </div>
 </template>
 
@@ -17,6 +18,7 @@ import { useToast } from '@/composables/useToast'
 import AppHeader from '@/components/common/AppHeader.vue'
 import AppFooter from '@/components/common/AppFooter.vue'
 import ToastContainer from '@/components/common/ToastContainer.vue'
+import AIFloatingWidget from '@/components/ai/AIFloatingWidget.vue'
 
 const route = useRoute()
 const userStore = useUserStore()

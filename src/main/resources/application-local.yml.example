@@ -7,4 +7,4 @@ spring:
 minimax:
   api:
     key: your-minimax-api-key
-    url: https://api.minimax.chat/v1/text/chatfunction_v2
+    url: https://api.minimax.chat/v1/text/chatcompletion_v2
