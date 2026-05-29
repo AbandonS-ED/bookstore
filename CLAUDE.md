@@ -86,14 +86,14 @@ src/utils/           # auth.js / format.js / cover.js
 
 ### 拦截路径
 
-- **AuthInterceptor**：`/api/user/info`、`/api/user/password`、`/api/user/profile`、`/api/address/**`、`/api/cart/**`、`/api/favorite/**`、`/api/order/**`、`/api/review/add`、`/api/ai/**`、`/admin/**`
+- **AuthInterceptor**：`/api/user/info`、`/api/user/password`、`/api/user/profile`、`/api/address/**`、`/api/cart/**`、`/api/favorite/**`、`/api/order/**`、`/api/review/add`、`/api/community/add`、`/api/community/update`、`/api/community/like/**`、`/admin/**`
 - **AdminInterceptor**：`/admin/**`（校验 admin 角色）
 
 ## AI 书友 (`/ai-assistant`)
 
 | File | Purpose |
 |------|---------|
-| `AIController.java` | POST `/api/ai/chat` + `/api/ai/chat/stream`，MiniMax 代理 + function calling |
+| `AIController.java` | POST `/api/ai/chat` + `/api/ai/chat/stream`，MiniMax 代理 + function calling（OpenAI 兼容格式） |
 | `src/api/ai.js` | 前端 API，`chatStream()` 支持 SSE 流式输出 |
 | `AIAssistant.vue` | 聊天 UI，含欢迎页、书籍卡片、流式打字效果 |
 
@@ -106,7 +106,11 @@ src/utils/           # auth.js / format.js / cover.js
 
 ## 书斋社区 (`/community`)
 
-`CommunityPostController` 处理社区帖子，支持发帖、点赞、列表查询。
+`CommunityPostController` 处理社区帖子，支持发帖、点赞、列表查询。`CommunityManageController` 处理管理后台（列表搜索、编辑、删除）。
+
+- **发帖认证**：`/api/community/add`、`/api/community/update`、`/api/community/like/**` 需要登录
+- **图片存储**：base64 Data URL 存入 `community_post.image_url`（MEDIUMTEXT），请求体限制 10MB
+- **管理后台编辑**：`PUT /admin/community/update` 只允许修改 content/imageUrl/bookId
 
 ## BigInt 精度问题（重要）
 

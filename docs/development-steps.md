@@ -7,7 +7,7 @@
 ## 项目信息
 
 - 技术栈：Java 17 + Spring Boot 3.2.5 + MyBatis-Plus 3.5.6 + Vue 3 + MySQL 8.0
-- 数据库：bookstore（14张表）
+- 数据库：bookstore（16张表）
 - 后端端口：8081
 - 开发周期：2026/5/18 - 2026/5/30
 
@@ -344,6 +344,19 @@
 - [x] 前端 AIAssistant.vue 聊天界面
 - [x] 前端 api/ai.js（chat + chatStream）
 - [x] application.yml 配置 minimax.api.key/url
+
+### 阶段十二：安全与修复 ✅
+
+- [x] 密钥从 application.yml 移至 application-local.yml（gitignore）
+- [x] application.yml 使用环境变量占位符 \${DB_PASSWORD}、\${JWT_SECRET}、\${MINIMAX_API_KEY}
+- [x] AI API URL 修正为 chatcompletion_v2（OpenAI 兼容格式）
+- [x] 社区帖子 image_url 改为 MEDIUMTEXT（支持 base64 图片）
+- [x] 请求体限制增大至 10MB
+- [x] 社区发帖/点赞接口加入认证拦截器
+- [x] 管理后台社区编辑功能（PUT /admin/community/update）
+- [x] 管理后台社区搜索功能（communityApi.list 支持 keyword）
+- [x] 导航栏图标统一为 SVG 简笔画风格
+- [x] 收藏 API 401 错误静默处理
 
 ---
 

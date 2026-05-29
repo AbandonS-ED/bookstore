@@ -10,7 +10,7 @@ mvn test                              # JUnit5 + Mockito (no DB)
 mvn clean package -DskipTests         # full build
 ```
 
-DB password in `src/main/resources/application-local.yml` (copy from `.example`, gitignored). Default admin: `admin` / `123456`.
+DB password in `src/main/resources/application-local.yml` (copy from `.example`, gitignored). Secrets (DB password, JWT secret, MiniMax API key) are injected via environment variables — **never commit real values to `application.yml`**. Default admin: `admin` / `123456`.
 
 ## Snowflake ID (critical)
 
@@ -45,7 +45,7 @@ Admin API paths are relative (e.g., `/book/list` → `GET /admin/book/list`).
 ## Architecture surprises
 
 - **Admin controllers** (`BookManageController`, `OrderManageController`, `UserManageController`, `ReviewManageController`) inject **Mapper directly**, return raw `Page<Entity>` (no VO). `CategoryManageController` uses `CategoryService` for CRUD, `CategoryMapper` for `updateStatus`.
-- **Interceptors**: `AuthInterceptor` on `/api/user/info|password|profile`, `/api/address/**`, `/api/cart/**`, `/api/favorite/**`, `/api/order/**`, `/api/review/add`, `/admin/**`. `AdminInterceptor` on `/admin/**`.
+- **Interceptors**: `AuthInterceptor` on `/api/user/info|password|profile`, `/api/address/**`, `/api/cart/**`, `/api/favorite/**`, `/api/order/**`, `/api/review/add`, `/api/community/add`, `/api/community/update`, `/api/community/like/**`, `/admin/**`. `AdminInterceptor` on `/admin/**`.
 - **No MetaObjectHandler**: `BaseEntity` has `@TableField(fill = ...)` but no impl; relies on MySQL `DEFAULT CURRENT_TIMESTAMP` / `ON UPDATE CURRENT_TIMESTAMP`.
 - **Order table**: must be backtick-quoted in raw SQL (`` `order` ``).
 - **`BookChapter`** does **not** inherit `BaseEntity` (independently defined entity, no shared ID strategy).
@@ -96,17 +96,19 @@ expired       cancelled
 
 ## Community feature
 
-- **Tables**: `community_post` (extends `BaseEntity`), `community_like` (separate entity for like tracking)
+- **Tables**: `community_post` (extends `BaseEntity`, `image_url` is MEDIUMTEXT for base64 images), `community_like` (separate entity for like tracking)
 - **User API**: `GET /api/community/list`, `GET /api/community/{id}`, `POST /api/community/add`, `PUT /api/community/update`, `DELETE /api/community/{id}`, `POST /api/community/like/{id}`
-- **Admin API**: `GET /admin/community/list`, `DELETE /admin/community/{id}` — admin uses `CommunityManageController` (injects both `CommunityPostService` and `CommunityPostMapper`)
-- **Frontend**: `AdminCommunity.vue` in admin views; user-facing community views in `Explore.vue`
+- **Auth required**: `/api/community/add`, `/api/community/update`, `/api/community/like/**` (added to AuthInterceptor)
+- **Admin API**: `GET /admin/community/list?keyword=`, `PUT /admin/community/update` (only content/imageUrl/bookId), `DELETE /admin/community/{id}`
+- **Frontend**: `AdminCommunity.vue` in admin views; user-facing community in `Explore.vue`
+- **Image storage**: base64 Data URL stored directly in DB; request body limit 10MB (configured in application.yml)
 - `CommunityPost.bookId` is optional (nullable Long); `bookTitle` is `@TableField(exist = false)` transient
 
 ## AI Assistant (MiniMax)
 
 - **Backend**: `AIController` at `/api/ai/chat` (sync) and `/api/ai/chat/stream` (SSE)
-- **Model**: `MiniMax-M2.7` via `https://api.minimax.chat/v1/text/chatfunction_v2`
-- **Config**: `minimax.api.key` and `minimax.api.url` in `application.yml` (key is committed, not gitignored)
+- **Model**: `MiniMax-M2.7` via `https://api.minimax.chat/v1/text/chatcompletion_v2` (OpenAI-compatible format)
+- **Config**: `minimax.api.key` and `minimax.api.url` in `application-local.yml` (gitignored, not committed)
 - **Tools**: `searchBooks`, `getBookDetail`, `addToCart`, `getCartItems`, `listAddresses`
 - **Auth**: optional — tries `Authorization` header, sets `AuthContext` if valid JWT; guests can search/browse
 - **Frontend**: `AIAssistant.vue` + `src/api/ai.js` (both `chat()` and `chatStream()` with SSE parsing)

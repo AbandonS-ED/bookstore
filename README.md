@@ -39,9 +39,11 @@
 mysql -u root -p < sql/init.sql
 ```
 
-### 2. 配置数据库密码
+### 2. 配置数据库密码和 AI Key
 
-复制 `application-local.yml.example` 为 `application-local.yml`，填入 MySQL 密码。
+复制 `application-local.yml.example` 为 `application-local.yml`，填入 MySQL 密码和 MiniMax API Key。
+
+> 密钥通过环境变量注入，不提交到仓库。详见 `application-local.yml.example`。
 
 ### 3. 启动后端
 
@@ -94,7 +96,7 @@ bookstore/                          # 后端 Spring Boot 项目
 │   │   └── utils/                  # 工具函数
 │   └── vite.config.js              # Vite 配置（@ 别名、代理规则）
 └── sql/
-    └── init.sql                    # 数据库初始化脚本（14 张表 + 种子数据）
+    └── init.sql                    # 数据库初始化脚本（16 张表 + 种子数据）
 ```
 
 ## 数据库表
@@ -115,6 +117,8 @@ bookstore/                          # 后端 Spring Boot 项目
 | `review` | 评论表（评分 1-5） |
 | `community_post` | 社区帖子表（含点赞、关联书籍） |
 | `community_like` | 社区点赞表 |
+| `book_quality_review` | 书籍品评表 |
+| `book_excerpt` | 书籍精彩文段表 |
 
 ## 书籍详情页
 
