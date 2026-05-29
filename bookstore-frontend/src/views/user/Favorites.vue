@@ -244,9 +244,8 @@ function toggleSelectAll() {
 
 async function addToCart(book) {
   try {
-    await cartApi.add({ bookId: book.bookId, quantity: 1 })
+    await cartStore.addToCart(book.bookId, 1)
     inCartIds.value.add(book.bookId)
-    await cartStore.getCartList()
     ElMessage.success('已加入购物车')
   } catch {
     ElMessage.error('加入购物车失败')

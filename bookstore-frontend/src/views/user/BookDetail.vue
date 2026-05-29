@@ -323,6 +323,7 @@ import { ElMessage } from 'element-plus'
 import { bookApi } from '@/api/book'
 import { reviewApi } from '@/api/review'
 import { cartApi } from '@/api/cart'
+import { useCartStore } from '@/stores/cart'
 import { favoriteApi } from '@/api/favorite'
 import { useUserStore } from '@/stores/user'
 import { useFavoriteStore } from '@/stores/favorite'
@@ -381,6 +382,7 @@ const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 const favoriteStore = useFavoriteStore()
+const cartStore = useCartStore()
 
 const book = ref(null)
 const reviews = ref([])
@@ -516,7 +518,7 @@ const fetchRelatedBooks = async () => {
 
 const handleAddCart = async () => {
   try {
-    await cartApi.add({ bookId: book.value.id, quantity: quantity.value })
+    await cartStore.addToCart(book.value.id, quantity.value)
     toast('已加入购物车')
   } catch {
     ElMessage.error('加入购物车失败')

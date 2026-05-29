@@ -1054,8 +1054,7 @@ async function favBook(book) {
 async function cartBook(book) {
   if (!book) return
   try {
-    await cartApi.add({ bookId: book.id, quantity: 1 })
-    await cartStore.getCartList()
+    await cartStore.addToCart(book.id, 1)
     toast('「' + book.title + '」已加入购物车')
   } catch {
     ElMessage.error('加入购物车失败')
