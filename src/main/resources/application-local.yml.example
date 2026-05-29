@@ -1,4 +1,4 @@
-# 复制此文件为 application-local.yml，填入你自己的数据库密码和 AI API Key
+# 复制此文件为 application-local.yml，填入你自己的配置
 # 此模板文件会被 git 跟踪，有公共变更时在此修改
 spring:
   datasource:
@@ -7,4 +7,4 @@ spring:
 minimax:
   api:
     key: your-minimax-api-key
-    url: https://api.minimax.chat/v1/text/chatfunction_v2
+    url: https://api.minimax.chat/v1/text/chatcompletion_v2
