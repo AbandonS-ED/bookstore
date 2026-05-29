@@ -165,6 +165,11 @@ const routes = [
         path: 'refunds',
         name: 'AdminRefunds',
         component: () => import('@/views/admin/AdminRefund.vue')
+      },
+      {
+        path: 'community',
+        name: 'AdminCommunity',
+        component: () => import('@/views/admin/AdminCommunity.vue')
       }
     ]
   }
