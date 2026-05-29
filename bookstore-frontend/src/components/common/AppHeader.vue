@@ -42,7 +42,7 @@
           🛒
           <div v-if="cartCount > 0" class="cart-badge">{{ cartCount > 99 ? '99+' : cartCount }}</div>
         </router-link>
-        <router-link to="/ai-assistant" class="nav-ai">🤖</router-link>
+        <router-link to="/ai-assistant" class="nav-ai">💬</router-link>
         <router-link to="/favorites" class="nav-fav">♡</router-link>
         <template v-if="userStore.isLoggedIn">
           <div class="user-menu" @click="showUserMenu = !showUserMenu">
